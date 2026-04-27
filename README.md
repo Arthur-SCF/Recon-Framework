@@ -21,8 +21,6 @@ An automated domain reconnaissance platform for security professionals, bug boun
 
 ## 📸 Screenshots
 
-Add your screenshots under `docs/images/` (or any folder you prefer) and update the paths below.
-
 ### 1) Dashboard Overview
 
 <img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-44-36" src="https://github.com/user-attachments/assets/de96f5a2-aaf4-4c09-81c8-dcedc9a48705" />

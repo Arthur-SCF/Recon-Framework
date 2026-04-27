@@ -604,9 +604,13 @@ async def run_pipeline(
     elif final_status == "paused":
         log.info("%s pipeline paused", session_id[:8])
     elif pipeline_ok:
+        subdomain_row = await db.fetchone(
+            "SELECT COUNT(*) AS c FROM subdomains WHERE target_id=?", (target_id,)
+        )
+        subdomain_count = subdomain_row["c"] if subdomain_row else 0
         await db.execute(
-            "UPDATE scan_sessions SET status='completed', finished_at=? WHERE id=?",
-            (_now(), session_id),
+            "UPDATE scan_sessions SET status='completed', finished_at=?, stats=? WHERE id=?",
+            (_now(), json.dumps({"subdomains_found": subdomain_count}), session_id),
         )
         await db.execute(
             "UPDATE targets SET scan_count = scan_count + 1, status='completed' WHERE id=?",

@@ -25,19 +25,19 @@ Add your screenshots under `docs/images/` (or any folder you prefer) and update 
 
 ### 1) Dashboard Overview
 
-![Dashboard Overview](<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-44-36" src="https://github.com/user-attachments/assets/de96f5a2-aaf4-4c09-81c8-dcedc9a48705" />)
+<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-44-36" src="https://github.com/user-attachments/assets/de96f5a2-aaf4-4c09-81c8-dcedc9a48705" />
 
 ### 2) Active Scan Pipeline
 
-![Active Scan Pipeline](<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-40-09" src="https://github.com/user-attachments/assets/746c1b1b-288d-4ab2-be07-34249c8c83f6" />)
+<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-40-09" src="https://github.com/user-attachments/assets/746c1b1b-288d-4ab2-be07-34249c8c83f6" />
 
 ### 3) Live Hosts Results
 
-![Live Hosts Results](<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-44-55" src="https://github.com/user-attachments/assets/23133f8a-a149-4f72-9d4e-1b8aed6f67f4" />)
+<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-44-55" src="https://github.com/user-attachments/assets/23133f8a-a149-4f72-9d4e-1b8aed6f67f4" />
 
 ### 4) Screenshot Gallery
 
-![Screenshot Gallery](<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-49-46" src="https://github.com/user-attachments/assets/23043e48-8c52-4c00-9c39-350ed02d52b3" />)
+<img width="2520" height="1307" alt="Screenshot from 2026-04-27 02-49-46" src="https://github.com/user-attachments/assets/23043e48-8c52-4c00-9c39-350ed02d52b3" />
 
 ## 🚀 Quick Start
 

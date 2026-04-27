@@ -1,0 +1,488 @@
+/* Google Fonts — Inter, Outfit, JetBrains Mono */
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@300..700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap");
+
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────
+   TAILWIND v4 — map CSS custom props to utilities
+   Using @theme inline so values resolve at runtime.
+   Variable names follow the shadcn/ui convention so
+   all themes speak the same language.
+   ───────────────────────────────────────────────── */
+@theme inline {
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-sidebar:                var(--sidebar);
+  --color-sidebar-foreground:     var(--sidebar-foreground);
+  --color-sidebar-border:         var(--sidebar-border);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
+}
+
+/* ─────────────────────────────────────────────────
+   BASE
+   ───────────────────────────────────────────────── */
+html {
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME 1 — NEON RECON  (default)
+   Electric blue & emerald — built for hacking
+   ═══════════════════════════════════════════════════ */
+:root,
+[data-theme="neon-recon"] {
+  /* Light */
+  --background:             #f0f8ff;
+  --foreground:             #0c2340;
+  --card:                   #ffffff;
+  --card-foreground:        #0c2340;
+  --popover:                #ffffff;
+  --popover-foreground:     #0c2340;
+  --sidebar:                #e4f0fb;
+  --sidebar-foreground:     #0c2340;
+  --sidebar-border:         #bfdbfe;
+  --primary:                #0369a1;
+  --primary-foreground:     #ffffff;
+  --secondary:              #059669;
+  --secondary-foreground:   #ffffff;
+  --muted:                  #dbeafe;
+  --muted-foreground:       #1e4d7a;
+  --accent:                 #bae6fd;
+  --accent-foreground:      #0c2340;
+  --destructive:            #e11d48;
+  --destructive-foreground: #ffffff;
+  --border:                 #bfdbfe;
+  --input:                  #dbeafe;
+  --ring:                   #0369a1;
+
+  --radius:           0.375rem;
+  --font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-mono: "JetBrains Mono", ui-monospace, "Courier New", monospace;
+}
+
+[data-theme="neon-recon"].dark,
+:root.dark {
+  /* Dark — the real personality */
+  --background:             #060b12;
+  --foreground:             #e0f2fe;
+  --card:                   #0a1520;
+  --card-foreground:        #e0f2fe;
+  --popover:                #0a1520;
+  --popover-foreground:     #e0f2fe;
+  --sidebar:                #070e18;
+  --sidebar-foreground:     #e0f2fe;
+  --sidebar-border:         #1e3a50;
+  --primary:                #0ea5e9;
+  --primary-foreground:     #001e36;
+  --secondary:              #10b981;
+  --secondary-foreground:   #001f14;
+  --muted:                  #0c1826;
+  --muted-foreground:       #4a8fa8;
+  --accent:                 #0e2537;
+  --accent-foreground:      #7dd3fc;
+  --destructive:            #f43f5e;
+  --destructive-foreground: #fff1f2;
+  --border:                 #1e3a50;
+  --input:                  #0f1f2d;
+  --ring:                   #0ea5e9;
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME 2 — ESLINKS
+   Vivid blue & teal — startup / dashboard feel
+   Source: tweakcn.com/themes/cmmaobxtw000004l7fivrgmwy
+   ═══════════════════════════════════════════════════ */
+[data-theme="eslinks"] {
+  /* Light */
+  --background:             #f5f7fc;
+  --foreground:             #1e2840;
+  --card:                   #ffffff;
+  --card-foreground:        #1e2840;
+  --popover:                #ffffff;
+  --popover-foreground:     #1e2840;
+  --sidebar:                #eef1fa;
+  --sidebar-foreground:     #1e2840;
+  --sidebar-border:         #d0d9ee;
+  --primary:                #2563eb;
+  --primary-foreground:     #ffffff;
+  --secondary:              #3dba8f;
+  --secondary-foreground:   #ffffff;
+  --muted:                  #e8edf7;
+  --muted-foreground:       #5c6a8a;
+  --accent:                 #dde8f9;
+  --accent-foreground:      #1e2840;
+  --destructive:            #dc4d38;
+  --destructive-foreground: #ffffff;
+  --border:                 #d0d9ee;
+  --input:                  #e0e7f4;
+  --ring:                   #2563eb;
+
+  --radius:           0.5rem;
+  --font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-mono: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+}
+
+[data-theme="eslinks"].dark {
+  /* Dark */
+  --background:             #11161f;
+  --foreground:             #f4f9ff;
+  --card:                   #171e2c;
+  --card-foreground:        #f4f9ff;
+  --popover:                #171e2c;
+  --popover-foreground:     #f4f9ff;
+  --sidebar:                #0e131c;
+  --sidebar-foreground:     #f4f9ff;
+  --sidebar-border:         #2a3a55;
+  --primary:                #409cff;
+  --primary-foreground:     #030c1a;
+  --secondary:              #00c47f;
+  --secondary-foreground:   #001f14;
+  --muted:                  #1a2233;
+  --muted-foreground:       #7a9cc0;
+  --accent:                 #1e2c44;
+  --accent-foreground:      #9dc4f0;
+  --destructive:            #cc272e;
+  --destructive-foreground: #ffffff;
+  --border:                 #2a3a55;
+  --input:                  #1e2a3d;
+  --ring:                   #409cff;
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME 3 — RESOLVE AI
+   Professional navy & gold — minimal & clean
+   Source: tweakcn.com/themes/cmmchk1by000004kwag9rfifg
+   ═══════════════════════════════════════════════════ */
+[data-theme="resolve-ai"] {
+  /* Light */
+  --background:             #e8ebed;
+  --foreground:             #333333;
+  --card:                   #f0f2f4;
+  --card-foreground:        #333333;
+  --popover:                #f0f2f4;
+  --popover-foreground:     #333333;
+  --sidebar:                #dde2e6;
+  --sidebar-foreground:     #333333;
+  --sidebar-border:         #c5cdd4;
+  --primary:                #1c2f40;
+  --primary-foreground:     #ffffff;
+  --secondary:              #f3f4f6;
+  --secondary-foreground:   #333333;
+  --muted:                  #dde2e6;
+  --muted-foreground:       #666c72;
+  --accent:                 #d6e4f0;
+  --accent-foreground:      #1c2f40;
+  --destructive:            #ef4444;
+  --destructive-foreground: #ffffff;
+  --border:                 #c5cdd4;
+  --input:                  #d8dde2;
+  --ring:                   #1c2f40;
+
+  --radius:           0.625rem;
+  --font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+[data-theme="resolve-ai"].dark {
+  /* Dark */
+  --background:             #1c2433;
+  --foreground:             #e5e5e5;
+  --card:                   #222d3d;
+  --card-foreground:        #e5e5e5;
+  --popover:                #222d3d;
+  --popover-foreground:     #e5e5e5;
+  --sidebar:                #192030;
+  --sidebar-foreground:     #e5e5e5;
+  --sidebar-border:         #3d4354;
+  --primary:                #a68446;
+  --primary-foreground:     #1c1610;
+  --secondary:              #2a3656;
+  --secondary-foreground:   #c5d0e0;
+  --muted:                  #232e3f;
+  --muted-foreground:       #7a8799;
+  --accent:                 #2a3656;
+  --accent-foreground:      #b8c8dc;
+  --destructive:            #ef4444;
+  --destructive-foreground: #ffffff;
+  --border:                 #3d4354;
+  --input:                  #2a3345;
+  --ring:                   #a68446;
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME 4 — CLAUDE
+   Warm terracotta & cream — editorial feel
+   Source: tweakcn.com/themes/cmdght103000n04lh3e2ae93r
+   ═══════════════════════════════════════════════════ */
+[data-theme="claude"] {
+  /* Light */
+  --radius:                     0.5rem;
+  --background:                 oklch(0.94 0.008 92);
+  --foreground:                 oklch(0.36 0.012 82);
+  --muted:                      oklch(0.91 0.006 92);
+  --muted-foreground:           oklch(0.58 0.012 80);
+  --popover:                    oklch(0.945 0.006 92);
+  --popover-foreground:         oklch(0.36 0.012 82);
+  --card:                       oklch(0.945 0.006 92);
+  --card-foreground:            oklch(0.36 0.012 82);
+  --border:                     oklch(0.88 0.005 88);
+  --input:                      oklch(0.88 0.005 88);
+  --primary:                    oklch(0.66 0.11 50);
+  --primary-foreground:         oklch(0.97 0.004 92);
+  --secondary:                  oklch(0.62 0.07 55);
+  --secondary-foreground:       oklch(0.97 0.004 92);
+  --accent:                     oklch(0.92 0.006 92);
+  --accent-foreground:          oklch(0.36 0.012 82);
+  --destructive:                oklch(0.63 0.18 30);
+  --destructive-foreground:     oklch(0.97 0.004 92);
+  --ring:                       oklch(0.66 0.11 50);
+  --sidebar:                    oklch(0.945 0.006 92);
+  --sidebar-foreground:         oklch(0.36 0.012 82);
+  --sidebar-border:             oklch(0.88 0.005 88);
+
+  --font-family-sans: "Outfit", Georgia, "Times New Roman", serif;
+  --font-family-mono: ui-monospace, "Courier New", monospace;
+}
+
+[data-theme="claude"].dark {
+  /* Dark */
+  --radius:                     0.5rem;
+  --background:                 oklch(0.235 0.004 85);
+  --foreground:                 oklch(0.90 0.008 92);
+  --muted:                      oklch(0.26 0.004 85);
+  --muted-foreground:           oklch(0.72 0.01 85);
+  --popover:                    oklch(0.245 0.004 85);
+  --popover-foreground:         oklch(0.92 0.008 92);
+  --card:                       oklch(0.245 0.004 85);
+  --card-foreground:            oklch(0.92 0.008 92);
+  --border:                     oklch(0.31 0.004 85);
+  --input:                      oklch(0.31 0.004 85);
+  --primary:                    oklch(0.66 0.11 50);
+  --primary-foreground:         oklch(0.235 0.004 85);
+  --secondary:                  oklch(0.34 0.01 55);
+  --secondary-foreground:       oklch(0.90 0.008 92);
+  --accent:                     oklch(0.29 0.004 85);
+  --accent-foreground:          oklch(0.92 0.008 92);
+  --destructive:                oklch(0.63 0.18 30);
+  --destructive-foreground:     oklch(0.92 0.008 92);
+  --ring:                       oklch(0.66 0.11 50);
+  --sidebar:                    oklch(0.245 0.004 85);
+  --sidebar-foreground:         oklch(0.92 0.008 92);
+  --sidebar-border:             oklch(0.31 0.004 85);
+}
+
+
+/* Button press feedback for primary action buttons */
+button[class*="bg-primary"]:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Smooth card hover shadows — theme-aware */
+.card-hover {
+  transition: all 200ms ease;
+}
+.card-hover:hover {
+  box-shadow: 0 4px 12px -2px var(--border);
+}
+
+/* ── Range slider — theme-compliant ───────────────────────
+   Custom track + thumb styling so sliders blend with all
+   themes instead of showing the ugly browser default.
+   ───────────────────────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--muted);
+  outline: none;
+  cursor: pointer;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--background);
+  box-shadow: 0 1px 3px 0 color-mix(in srgb, var(--foreground) 20%, transparent);
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--background);
+  box-shadow: 0 1px 3px 0 color-mix(in srgb, var(--foreground) 20%, transparent);
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+/* Focus visible ring */
+input[type="range"]:focus-visible {
+  outline: none;
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+input[type="range"]:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+/* ── Checkbox / radio — theme accent ──────────────────── */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+/* ── Global keyboard focus ring ───────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ── Toggle switch thumb — theme-aware ────────────────── */
+.toggle-thumb {
+  background: var(--background);
+  box-shadow: 0 1px 3px 0 color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+/* ── Scrollbars — theme-compliant ─────────────────────────
+   Thin, subtle scrollbars that blend with the current theme.
+   Uses both the standard `scrollbar-*` properties and the
+   WebKit pseudo-elements for broad browser support.
+   ───────────────────────────────────────────────────────── */
+
+/* Firefox / standard */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Pipeline step running state ──────────────────────────
+   Pulsing left border for the currently running step.
+   Subtle 2s ease-in-out cycle on the border opacity only.
+   ───────────────────────────────────────────────────────── */
+@keyframes stepBorderPulse {
+  0%, 100% { border-left-color: rgb(59 130 246);        }
+  50%       { border-left-color: rgba(59, 130, 246, 0.3); }
+}
+.pipeline-step-running {
+  animation: stepBorderPulse 2s ease-in-out infinite;
+}
+
+/* ── Pipeline accordion animation ─────────────────────────
+   Radix Accordion.Content uses --radix-accordion-content-height
+   for smooth open/close transitions.
+   ───────────────────────────────────────────────────────── */
+.pipeline-accordion-content {
+  overflow: hidden;
+}
+.pipeline-accordion-content[data-state="open"] {
+  animation: accordion-open 150ms ease-out;
+}
+.pipeline-accordion-content[data-state="closed"] {
+  animation: accordion-close 150ms ease-out;
+}
+@keyframes accordion-open {
+  from { height: 0; opacity: 0; }
+  to   { height: var(--radix-accordion-content-height); opacity: 1; }
+}
+@keyframes accordion-close {
+  from { height: var(--radix-accordion-content-height); opacity: 1; }
+  to   { height: 0; opacity: 0; }
+}
+
+/* ── Mobile touch targets ─────────────────────────────────────────────────────
+   Ensure a minimum 44×44px tap target on touch devices.
+   Use .tap-compact on dense table rows where small buttons are intentional.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .tap-compact button,
+  .tap-compact a,
+  .tap-compact [role="button"] {
+    min-height: unset;
+    min-width: unset;
+  }
+}

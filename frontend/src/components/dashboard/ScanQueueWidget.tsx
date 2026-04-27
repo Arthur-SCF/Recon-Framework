@@ -1,0 +1,246 @@
+import { useState } from "react";
+import { Activity, Clock, Calendar, Repeat, PauseCircle, PlayCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useSchedulerState, type NextScheduled } from "@/hooks/useSchedulerState";
+import { useActionFetch } from "@/hooks/useActionFetch";
+
+const WEEKDAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function pad2(n: number) { return String(n).padStart(2, "0"); }
+
+function formatScheduleDetail(s: NextScheduled): string {
+  if (s.schedule_mode === "daily") {
+    const time = `${pad2(s.schedule_hour)}:${pad2(s.schedule_minute)}`;
+    return `every ${s.schedule_days} ${s.schedule_days === 1 ? "day" : "days"} at ${time}`;
+  }
+  if (s.schedule_mode === "weekly") {
+    const time = `${pad2(s.schedule_hour)}:${pad2(s.schedule_minute)}`;
+    return `every ${WEEKDAYS_SHORT[s.schedule_weekday]} at ${time}`;
+  }
+  // hourly
+  const h = s.rescan_interval;
+  if (h < 24) return `every ${h}h`;
+  const d = h / 24;
+  return `every ${Number.isInteger(d) ? `${d} day${d !== 1 ? "s" : ""}` : `${h}h`}`;
+}
+
+function elapsed(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const diff = Date.now() - new Date(iso).getTime();
+  if (isNaN(diff) || diff < 0) return "—";
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+}
+
+export function ScanQueueWidget() {
+  const { state, refresh } = useSchedulerState();
+  const [toggling, setToggling] = useState(false);
+  const { actionFetch } = useActionFetch();
+
+  const active      = state?.active ?? null;
+  const manualQueue = state?.queue ?? [];
+  const nextUp      = manualQueue[0] ?? null;
+  const waiting     = manualQueue.slice(1);
+  const nextSched   = !nextUp ? (state?.next_scheduled ?? null) : null;
+  const nextLoop    = state?.next_loop ?? null;
+  const loopsPaused = state?.loops_paused ?? false;
+  const queuePaused = state?.queue_paused ?? false;
+
+  const hasAnyLoop =
+    active?.loop ||
+    manualQueue.some((q) => q.loop) ||
+    !!state?.next_loop;
+
+  const hasAnyQueued = manualQueue.length > 0;
+
+  async function toggleLoops() {
+    if (toggling) return;
+    setToggling(true);
+    try {
+      const path = loopsPaused ? "resume" : "pause";
+      const label = loopsPaused ? "resume loops" : "pause loops";
+      await actionFetch(`/api/v1/scheduler/loops/${path}`, {
+        method: "POST",
+        errorPrefix: `Failed to ${label}`,
+      });
+      await refresh();
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  async function toggleQueue() {
+    if (toggling) return;
+    setToggling(true);
+    try {
+      const path = queuePaused ? "resume" : "pause";
+      const label = queuePaused ? "resume queue" : "pause queue";
+      await actionFetch(`/api/v1/scheduler/queue/${path}`, {
+        method: "POST",
+        errorPrefix: `Failed to ${label}`,
+      });
+      await refresh();
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+          <Activity className="h-3.5 w-3.5 text-primary" />
+          Scan Queue
+        </div>
+
+        {/* Pause/resume buttons */}
+        <div className="flex items-center gap-1.5">
+          {/* Pause manual queue — shown when items are queued or queue is paused */}
+          {(hasAnyQueued || queuePaused) && (
+            <button
+              onClick={() => void toggleQueue()}
+              disabled={toggling}
+              className={cn(
+                "flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded border transition-colors disabled:opacity-50",
+                queuePaused
+                  ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                  : "border-muted-foreground/30 bg-muted/30 text-muted-foreground hover:text-foreground hover:border-muted-foreground/60",
+              )}
+              title={queuePaused ? "Resume all scans (queue + loops)" : "Pause everything — queue and loops"}
+            >
+              {queuePaused ? (
+                <><PlayCircle className="h-3 w-3" /> Resume queue</>
+              ) : (
+                <><PauseCircle className="h-3 w-3" /> Pause queue</>
+              )}
+            </button>
+          )}
+
+          {/* Stop / resume loops — hidden when queue is already paused (redundant) */}
+          {!queuePaused && (hasAnyLoop || loopsPaused) && (
+            <button
+              onClick={() => void toggleLoops()}
+              disabled={toggling}
+              className={cn(
+                "flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded border transition-colors disabled:opacity-50",
+                loopsPaused
+                  ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                  : "border-muted-foreground/30 bg-muted/30 text-muted-foreground hover:text-foreground hover:border-muted-foreground/60",
+              )}
+              title={loopsPaused ? "Resume all loops" : "Stop all loops (current scan finishes normally)"}
+            >
+              {loopsPaused ? (
+                <><PlayCircle className="h-3 w-3" /> Resume loops</>
+              ) : (
+                <><PauseCircle className="h-3 w-3" /> Stop loops</>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Queue paused banner — covers both queue and loops */}
+      {queuePaused && (
+        <div className="mb-3 flex items-center gap-1.5 rounded border border-blue-500/30 bg-blue-500/10 px-2 py-1.5 text-[11px] text-blue-400">
+          <PauseCircle className="h-3 w-3 shrink-0" />
+          All scans paused — queue and loops stopped
+        </div>
+      )}
+
+      {/* Loops paused banner — only when queue is NOT paused */}
+      {loopsPaused && !queuePaused && (
+        <div className="mb-3 flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-500">
+          <PauseCircle className="h-3 w-3 shrink-0" />
+          Loops paused — scheduled scans still run
+        </div>
+      )}
+
+      {/* Active scan */}
+      {active ? (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" />
+            <span className="text-sm font-mono text-foreground truncate">{active.domain ?? "—"}</span>
+            {active.loop && <Repeat className="h-3 w-3 text-primary/70 shrink-0" />}
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Clock className="h-3 w-3 shrink-0" />
+            {elapsed(active.started_at)}
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">No active scan</p>
+      )}
+
+      {/* Next up (position 1) */}
+      {nextUp && (
+        <div className="mt-3 border-t border-border pt-2 space-y-1">
+          <p className="text-[10px] font-medium text-primary/80 uppercase tracking-wider mb-1.5">
+            Next up
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-primary/60 shrink-0" />
+            <span className="text-xs font-mono text-foreground truncate">{nextUp.domain}</span>
+            {nextUp.loop && <Repeat className="h-3 w-3 text-primary/60 shrink-0" />}
+          </div>
+        </div>
+      )}
+
+      {/* Rest of manual queue */}
+      {waiting.length > 0 && (
+        <div className={cn("space-y-1", nextUp ? "mt-2" : "mt-3 border-t border-border pt-2")}>
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+            Queued ({waiting.length})
+          </p>
+          {waiting.map((q, i) => (
+            <div key={q.target_id} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="text-[10px] w-3 text-right text-muted-foreground/50 shrink-0">{i + 2}</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+              <span className="font-mono truncate">{q.domain}</span>
+              {q.loop && <Repeat className="h-2.5 w-2.5 text-muted-foreground/50 shrink-0" />}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Auto-scheduled next (non-loop, no manual queue) */}
+      {nextSched && (
+        <div className="mt-3 border-t border-border pt-2">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+            Scheduled next
+          </p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3 shrink-0" />
+            <span className="font-mono truncate">{nextSched.domain}</span>
+          </div>
+          <p className="mt-1 text-[10px] text-muted-foreground/60 pl-5">
+            {formatScheduleDetail(nextSched)}
+          </p>
+        </div>
+      )}
+
+      {/* Next loop target — always shown unless loops paused or loop_stopped */}
+      {nextLoop && (
+        <div className="mt-3 border-t border-border pt-2">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+            Loop next
+          </p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Repeat className="h-3 w-3 shrink-0 text-primary/50" />
+            <span className="font-mono truncate">{nextLoop.domain}</span>
+            <span className="ml-auto text-[10px] text-muted-foreground/50 shrink-0">auto</span>
+          </div>
+        </div>
+      )}
+
+      {/* Idle */}
+      {!active && !nextUp && !nextSched && !nextLoop && (
+        <p className="text-[11px] text-muted-foreground/50 mt-2">Nothing queued</p>
+      )}
+    </div>
+  );
+}

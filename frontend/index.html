@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <title>RECON_APP</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Anti-FOUC: apply stored theme before React mounts -->
+    <script>
+      (function () {
+        var t = localStorage.getItem("recon-theme") || "neon-recon";
+        var d = localStorage.getItem("recon-dark") !== "false";
+        document.documentElement.setAttribute("data-theme", t);
+        if (d) document.documentElement.classList.add("dark");
+      })();
+    </script>
+  </head>
+  <body class="antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -11,7 +11,6 @@ import { App } from "./App";
 
 const Dashboard    = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })));
 const TargetDetail = lazy(() => import("./pages/TargetDetail").then((m) => ({ default: m.TargetDetail })));
-const PipelineEditor = lazy(() => import("./pages/PipelineEditor").then((m) => ({ default: m.PipelineEditor })));
 const Settings     = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
 const NotFound     = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
@@ -62,7 +61,6 @@ const router = createBrowserRouter([
     children: [
       { index: true,                      element: <Suspense fallback={PageSpinner}><Dashboard /></Suspense> },
       { path: "target/:id",               element: <Suspense fallback={PageSpinner}><TargetDetail /></Suspense> },
-      { path: "target/:id/pipeline/edit", element: <Suspense fallback={PageSpinner}><PipelineEditor /></Suspense> },
       { path: "settings",                 element: <Suspense fallback={PageSpinner}><Settings /></Suspense> },
       { path: "*",                         element: <Suspense fallback={PageSpinner}><NotFound /></Suspense> },
     ],

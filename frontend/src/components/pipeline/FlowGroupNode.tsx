@@ -89,7 +89,7 @@ export function FlowGroupNode({
               {fmtTime(totalTime)}
             </span>
           )}
-          <div className="flex-1 h-px bg-border/[0.08] ml-0" />
+          <div className="flex-1 h-px bg-white/[0.05] ml-0" />
         </div>
       )}
 

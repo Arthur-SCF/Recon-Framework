@@ -141,10 +141,13 @@ export function PipelineFlowGraph({
   }, []);
 
   return (
-    <div className="rounded-xl border border-border/30 bg-card overflow-hidden">
+    <div className="rounded-2xl bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-lg shadow-black/20 overflow-hidden">
+
+      {/* Primary accent bar */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent shrink-0" />
 
       {/* ── Phase stepper strip ─────────────────────────────────────────── */}
-      <div className="flex items-start px-5 py-4 border-b border-border/20 bg-muted/[0.03] overflow-x-auto gap-0">
+      <div className="flex items-start px-5 py-4 border-b border-white/[0.05] bg-white/[0.015] overflow-x-auto gap-0">
         {visiblePhases.map((phase, i) => {
           const phaseGroups = groupsByPhase.get(phase.id) ?? [];
           const phaseRuns   = phaseGroups.flatMap((g) => groupRuns.get(g.id) ?? []);
@@ -235,7 +238,7 @@ export function PipelineFlowGraph({
             <Accordion.Item
               key={phase.id}
               value={phase.id}
-              className="border-t border-border/[0.08] first:border-t-0"
+              className="border-t border-white/[0.05] first:border-t-0"
             >
               {/* ── Trigger ── */}
               <Accordion.Header asChild>
@@ -247,8 +250,10 @@ export function PipelineFlowGraph({
                       "border-l-[3px]",
                       PHASE_LEFT_BORDER[phaseStatus],
                       phaseStatus === "running"
-                        ? "bg-blue-950/10 hover:bg-blue-950/20"
-                        : "hover:bg-muted/[0.07]",
+                        ? "bg-blue-500/[0.07] hover:bg-blue-500/[0.10]"
+                        : phaseStatus === "success"
+                          ? "hover:bg-white/[0.02]"
+                          : "hover:bg-white/[0.03]",
                     )}
                   >
                     {/* Status icon */}

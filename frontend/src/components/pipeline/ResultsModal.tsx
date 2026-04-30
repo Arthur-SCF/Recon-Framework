@@ -43,37 +43,41 @@ export function ResultsModal({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[3px]"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
       >
         <motion.div
-          className="relative w-full max-w-2xl max-h-[80vh] m-4 rounded-lg border border-border bg-background flex flex-col shadow-xl"
+          className="relative w-full max-w-2xl max-h-[80vh] m-4 flex flex-col rounded-2xl overflow-hidden bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-2xl shadow-black/60"
           onClick={(e) => e.stopPropagation()}
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.15 }}
+          initial={{ opacity: 0, scale: 0.96, y: 12 }}
+          animate={{ opacity: 1, scale: 1,    y: 0  }}
+          exit={{    opacity: 0, scale: 0.96, y: 12 }}
+          transition={{ type: "spring", damping: 28, stiffness: 380 }}
         >
+          {/* Accent bar */}
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent shrink-0" />
+
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5 bg-gradient-to-r from-primary/[0.04] to-transparent shrink-0">
             <div className="flex items-center gap-3">
-              <span className="font-mono text-sm font-medium">
-                {stepId} — results
+              <span className="font-mono text-sm font-medium text-foreground shrink-0">
+                {stepId}
               </span>
               {data && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground/60">
                   {filter
-                    ? `${filtered.length} / ${data.items.length}`
-                    : `${data.count} total`}
+                    ? `${filtered.length} / ${data.items.length} match`
+                    : `${data.count} results`}
                 </span>
               )}
             </div>
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+              className="rounded-lg p-1 text-muted-foreground/40 hover:text-foreground hover:bg-white/[0.06] transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -81,14 +85,14 @@ export function ResultsModal({
 
           {/* Filter */}
           {data && data.items.length > 0 && (
-            <div className="border-b border-border px-4 py-2">
+            <div className="border-b border-white/[0.05] px-3 py-1.5 bg-white/[0.01] shrink-0">
               <input
                 autoFocus
                 type="text"
                 placeholder="Filter…"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="h-7 w-full rounded border border-border bg-muted/30 px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/30 focus:outline-none"
               />
             </div>
           )}
@@ -100,26 +104,20 @@ export function ResultsModal({
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : data === null ? (
-              <p className="text-sm text-muted-foreground">
-                Failed to load results.
-              </p>
+              <p className="text-sm text-muted-foreground/50">Failed to load results.</p>
             ) : data.type === "live_hosts" ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground/70">
                 {data.count} live host{data.count !== 1 ? "s" : ""} found — view
-                them in the <strong className="text-foreground">Live Hosts</strong>{" "}
-                tab.
+                them in the <strong className="text-foreground">Live Hosts</strong> tab.
               </p>
             ) : data.type === "screenshots" ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground/70">
                 {data.count} screenshot{data.count !== 1 ? "s" : ""} taken — view
                 them in the{" "}
-                <strong className="text-foreground">Live Hosts</strong> tab (expand
-                any row).
+                <strong className="text-foreground">Live Hosts</strong> tab (expand any row).
               </p>
             ) : data.type === "takeovers" && data.items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No takeover candidates found.
-              </p>
+              <p className="text-sm text-muted-foreground/50">No takeover candidates found.</p>
             ) : data.type === "cloud_assets" ? (
               <div className="space-y-px">
                 {filtered.map((item) => {
@@ -127,23 +125,23 @@ export function ResultsModal({
                   const badge = m?.[1] ?? "?";
                   const url   = m?.[2] ?? item;
                   const badgeClass =
-                    badge === "s3"      ? "bg-orange-500/15 text-orange-400" :
-                    badge === "azure"   ? "bg-blue-500/15 text-blue-400"     :
-                    badge === "gcp"     ? "bg-sky-500/15 text-sky-400"       :
-                    "bg-muted text-muted-foreground";
+                    badge === "s3"    ? "bg-orange-500/15 text-orange-400" :
+                    badge === "azure" ? "bg-blue-500/15 text-blue-400"    :
+                    badge === "gcp"   ? "bg-sky-500/15 text-sky-400"      :
+                    "bg-white/[0.06] text-muted-foreground";
                   return (
-                    <div key={item} className="flex items-center gap-2 rounded px-1 py-1 hover:bg-accent/30 group">
+                    <div key={item} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] group transition-colors">
                       <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${badgeClass}`}>
                         {badge}
                       </span>
-                      <span className="flex-1 font-mono text-xs text-foreground truncate" title={url}>
+                      <span className="flex-1 font-mono text-xs text-foreground/80 truncate" title={url}>
                         {url}
                       </span>
                       <a
                         href={url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                        className="text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:text-foreground"
                       >
                         ↗
                       </a>
@@ -151,11 +149,11 @@ export function ResultsModal({
                   );
                 })}
                 {filtered.length === 0 && filter && (
-                  <p className="py-4 text-center text-xs text-muted-foreground">No matches.</p>
+                  <p className="py-4 text-center text-xs text-muted-foreground/40">No matches.</p>
                 )}
               </div>
             ) : data.type === "none" || data.items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground/50">
                 {data.count > 0
                   ? `${data.count} results recorded — no detail view available for this step type.`
                   : "No results for this step."}
@@ -165,9 +163,9 @@ export function ResultsModal({
                 {filtered.map((item) => (
                   <div
                     key={item}
-                    className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-accent/30 group"
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] group transition-colors"
                   >
-                    <span className="flex-1 font-mono text-xs text-foreground">
+                    <span className="flex-1 font-mono text-xs text-foreground/80">
                       {item}
                     </span>
                     {data.type === "subdomains" && (
@@ -175,7 +173,7 @@ export function ResultsModal({
                         href={`https://${item}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                        className="text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:text-foreground"
                       >
                         ↗
                       </a>
@@ -183,9 +181,7 @@ export function ResultsModal({
                   </div>
                 ))}
                 {filtered.length === 0 && filter && (
-                  <p className="py-4 text-center text-xs text-muted-foreground">
-                    No matches.
-                  </p>
+                  <p className="py-4 text-center text-xs text-muted-foreground/40">No matches.</p>
                 )}
               </div>
             )}

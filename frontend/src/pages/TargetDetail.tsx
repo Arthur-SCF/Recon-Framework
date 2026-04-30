@@ -12,6 +12,7 @@ import { PageTransition } from "@/components/PageTransition";
 import type { Target, PipelineGroup } from "@/types/api";
 import { PipelineFlow } from "@/components/pipeline/PipelineFlow";
 import { TargetConfig } from "@/components/config/TargetConfig";
+import { ScopeRuleEditor } from "@/components/ScopeRuleEditor";
 import { SubdomainsTable } from "@/components/SubdomainsTable";
 import { LiveHostsView } from "@/components/hosts/LiveHostsView";
 import { TakeoverTable } from "@/components/TakeoverTable";
@@ -33,6 +34,7 @@ const ALL_TABS = [
   { id: "cloud",       label: "Cloud",       requiredSteps: ["cloud_enum", "s3scanner"] },
   { id: "takeover",    label: "Takeover",    requiredSteps: ["nuclei_takeover"] },
   { id: "history",     label: "History" },
+  { id: "scope",       label: "Scope" },
   { id: "screenshots", label: "Screenshots", requiredSteps: ["gowitness"] },
 ];
 
@@ -283,6 +285,8 @@ export function TargetDetail() {
                   <CloudTable targetId={id!} />
                 ) : tabId === "takeover" ? (
                   <TakeoverTable targetId={id!} />
+                ) : tabId === "scope" ? (
+                  <ScopeRuleEditor targetId={id!} />
                 ) : tabId === "screenshots" ? (
                   <ScreenshotGallery targetId={id!} />
                 ) : (

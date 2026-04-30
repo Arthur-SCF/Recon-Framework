@@ -46,7 +46,7 @@ export function PipelineControls({
             <button
               onClick={onDequeue}
               title="Remove from queue"
-              className="flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
+              className="flex items-center gap-1 rounded-md border border-white/[0.08] px-2 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
             >
               <X className="h-3 w-3" />
               Remove

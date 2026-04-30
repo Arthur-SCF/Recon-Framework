@@ -8,6 +8,7 @@ import {
   Clock,
   FileText,
   RotateCw,
+  Lock,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -171,6 +172,7 @@ export function FlowStepNode({
   isActive,
 }: FlowStepNodeProps) {
   const status = run?.status ?? "pending";
+  const isLocked = !step.skippable;
   const done = ["success", "error", "timeout"].includes(status);
   const hasResults = done && run?.result_count != null && run.result_count > 0;
   const canSkip =
@@ -193,7 +195,9 @@ export function FlowStepNode({
       className={cn(
         "flex items-center gap-3 px-4 py-2.5 group cursor-default",
         "border-l-[3px] transition-colors duration-200",
-        STATUS_ROW[status] ?? STATUS_ROW.pending,
+        isLocked && status === "pending"
+          ? "border-l-primary/20 bg-primary/[0.03]"
+          : STATUS_ROW[status] ?? STATUS_ROW.pending,
         status === "skipped" && "opacity-50",
       )}
       animate={controls}
@@ -238,7 +242,9 @@ export function FlowStepNode({
         </Tooltip.Provider>
       ) : (
         <span className="shrink-0 flex items-center justify-center w-4 h-4">
-          {STATUS_ICON[status] ?? STATUS_ICON.pending}
+          {isLocked && status === "pending"
+            ? <Lock className="h-3.5 w-3.5 text-primary/30" />
+            : STATUS_ICON[status] ?? STATUS_ICON.pending}
         </span>
       )}
 
@@ -247,9 +253,10 @@ export function FlowStepNode({
         <span
           className={cn(
             "text-[13px] font-sans truncate",
-            status === "pending"  ? "text-muted-foreground/35 font-normal"
-            : status === "running"  ? "text-blue-200 font-medium"
-            : status === "skipped"  ? "text-muted-foreground/30 line-through font-normal"
+            status === "pending" && isLocked  ? "text-foreground/45 font-normal"
+            : status === "pending"            ? "text-muted-foreground/35 font-normal"
+            : status === "running"            ? "text-blue-200 font-medium"
+            : status === "skipped"            ? "text-muted-foreground/30 line-through font-normal"
             : status === "error" || status === "timeout" ? "text-red-300/90 font-normal"
             : "text-foreground/65 font-normal",
           )}
@@ -260,9 +267,9 @@ export function FlowStepNode({
           <span
             className={cn(
               "text-[10px] truncate",
-              status === "pending" || status === "skipped"
-                ? "text-muted-foreground/20"
-                : "text-muted-foreground/35",
+              status === "pending" && isLocked ? "text-muted-foreground/35"
+              : status === "pending" || status === "skipped" ? "text-muted-foreground/20"
+              : "text-muted-foreground/35",
             )}
           >
             {STEP_SUBLABEL[step.step_id]}

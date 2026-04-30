@@ -1,34 +1,27 @@
 /**
- * Sheet — a slide-in panel built on top of a Radix-style dialog + framer-motion.
- *
- * Usage:
- *   <Sheet open={open} onClose={() => setOpen(false)} title="Edit params">
- *     {children}
- *   </Sheet>
- *
- * On mobile (<640px) it slides up from the bottom (drawer behaviour).
- * On desktop it slides in from the right.
+ * Sheet — compact floating param editor card with frosted-glass effect.
+ * Replaces the old full-height slide-in panel.
  */
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SheetProps {
-  open:     boolean;
-  onClose:  () => void;
-  title?:   string;
-  children: React.ReactNode;
-  /** Extra classes for the panel container */
-  className?: string;
-  /** If true, panel takes full-height on desktop (default: auto height from bottom) */
-  fullHeight?: boolean;
+  open:         boolean;
+  onClose:      () => void;
+  title?:       string;
+  subtitle?:    string;
+  children:     React.ReactNode;
+  className?:   string;
+  /** Optional hex color for category-aware accent (header tint + top bar). */
+  accentColor?: string;
 }
 
 export function Sheet({
-  open, onClose, title, children, className, fullHeight = true,
+  open, onClose, title, subtitle, children, className, accentColor,
 }: SheetProps) {
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -36,67 +29,107 @@ export function Sheet({
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  // Prevent body scroll when sheet is open
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else       document.body.style.overflow = "";
+    document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop — minimal blur, semi-transparent */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
             onClick={onClose}
             aria-hidden="true"
           />
 
-          {/* Panel — right side on md+, bottom on mobile */}
+          {/* Floating card */}
           <motion.div
             key="panel"
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            initial={{ opacity: 0, scale: 0.94, y: 8 }}
+            animate={{ opacity: 1, scale: 1,    y: 0 }}
+            exit={{    opacity: 0, scale: 0.94, y: 8 }}
+            transition={{ type: "spring", damping: 28, stiffness: 380 }}
             className={cn(
-              "fixed right-0 top-0 z-50 flex flex-col",
-              "w-full max-w-md bg-card border-l border-border shadow-2xl",
-              fullHeight ? "h-full" : "h-auto min-h-[50vh] max-h-full",
-              className
+              "fixed z-50 flex flex-col",
+              "left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2",
+              "w-80 max-h-[calc(100vh-5rem)]",
+              "rounded-2xl overflow-hidden",
+              "bg-card/90 backdrop-blur-2xl",
+              "border border-white/[0.07]",
+              "shadow-2xl shadow-black/60",
+              className,
             )}
           >
+            {/* Accent bar — top gradient line */}
+            <div
+              className="h-px w-full shrink-0"
+              style={accentColor
+                ? { background: `linear-gradient(to right, transparent, ${accentColor}99, transparent)` }
+                : { background: "linear-gradient(to right, transparent, hsl(var(--primary) / 0.5), transparent)" }
+              }
+            />
+
             {/* Header */}
             {title && (
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-                <h2 className="text-sm font-semibold text-foreground truncate">{title}</h2>
+              <div
+                className="flex items-start justify-between gap-3 px-4 py-3 shrink-0 border-b border-white/[0.06]"
+                style={accentColor
+                  ? { background: `linear-gradient(to bottom, ${accentColor}12, transparent)` }
+                  : { background: "linear-gradient(to bottom, hsl(var(--primary) / 0.06), transparent)" }
+                }
+              >
+                <div className="min-w-0 flex-1">
+                  {/* Category dot + title */}
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={accentColor
+                        ? { backgroundColor: `${accentColor}cc` }
+                        : { backgroundColor: "hsl(var(--primary) / 0.6)" }
+                      }
+                    />
+                    <h2 className="text-xs font-semibold text-foreground/90 truncate">
+                      {title}
+                    </h2>
+                  </div>
+
+                  {subtitle && (
+                    <p className="flex items-center gap-1 text-[10px] text-muted-foreground pl-3.5">
+                      {subtitle === "saving…" && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+
                 <button
                   onClick={onClose}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-muted/30"
+                  className="shrink-0 p-1 rounded-lg text-muted-foreground/40 hover:text-foreground hover:bg-white/10 transition-colors"
                   aria-label="Close"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             )}
 
             {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-4 py-3">
+            <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
               {children}
             </div>
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

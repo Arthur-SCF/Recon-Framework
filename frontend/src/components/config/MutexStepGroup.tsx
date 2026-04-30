@@ -2,11 +2,12 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineStep } from "@/types/api";
-import { PARAM_COMPONENTS } from "./StepConfigRow";
+import { PARAM_COMPONENTS, STEP_ACCENT } from "./StepConfigRow";
 import { STEP_TOOLTIPS } from "./tooltips";
 import { InfoTooltip } from "./InfoTooltip";
 import { Sheet } from "@/components/ui/sheet";
 import { DynamicParamForm } from "./dynamic/DynamicParamForm";
+import { useActionFetch } from "@/hooks/useActionFetch";
 
 interface Props {
   steps: PipelineStep[];   // exactly the mutex pair, e.g. [zgrab2_service, nmap_service]
@@ -70,6 +71,7 @@ function StepParamEditor({ step, targetId, onUpdated }: StepParamEditorProps) {
 }
 
 export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLabels }: Props) {
+  const { actionFetch } = useActionFetch();
   const [saving, setSaving] = useState(false);
   const [sheetStep, setSheetStep] = useState<string | null>(null);
 
@@ -82,21 +84,25 @@ export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLab
     try {
       if (chosenStepId === null) {
         // Neither — disable all
-        await Promise.all(steps.map(s =>
-          fetch(`/api/v1/targets/${targetId}/pipeline/steps/${s.id}`, {
+        const results = await Promise.all(steps.map(s =>
+          actionFetch(`/api/v1/targets/${targetId}/pipeline/steps/${s.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ enabled: false }),
+            errorPrefix: "Toggle step failed",
           })
         ));
+        if (results.some(r => r === null)) return;
       } else {
         // Enable chosen — backend mutex logic disables the sibling automatically
         const chosenStep = steps.find(s => s.step_id === chosenStepId)!;
-        await fetch(`/api/v1/targets/${targetId}/pipeline/steps/${chosenStep.id}`, {
+        const res = await actionFetch(`/api/v1/targets/${targetId}/pipeline/steps/${chosenStep.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enabled: true }),
+          errorPrefix: "Toggle step failed",
         });
+        if (!res) return;
       }
       onUpdated();
     } finally {
@@ -211,6 +217,7 @@ export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLab
             open={sheetStep === step.step_id}
             onClose={() => setSheetStep(null)}
             title={`${stepLabels?.[step.step_id] ?? step.step_id} — Parameters`}
+            accentColor={STEP_ACCENT[step.step_id]}
           >
             <StepParamEditor step={step} targetId={targetId} onUpdated={onUpdated} />
           </Sheet>

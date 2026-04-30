@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, Lock, Settings2 } from "lucide-react";
+import { Lock, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineStep } from "@/types/api";
 import { STEP_TOOLTIPS } from "./tooltips";
@@ -8,6 +8,32 @@ import { Switch } from "@/components/ui/switch";
 import { Sheet } from "@/components/ui/sheet";
 import { DynamicParamForm } from "./dynamic/DynamicParamForm";
 import { useActionFetch } from "@/hooks/useActionFetch";
+
+// Hex accent colors per step — mirrors CATEGORY_THEME in TargetConfig.
+export
+const STEP_ACCENT: Record<string, string> = {
+  // passive — blue
+  subfinder: "#54a2ff", amass: "#54a2ff", tlsx: "#54a2ff",
+  assetfinder: "#54a2ff", crt_sh: "#54a2ff", gau: "#54a2ff",
+  s3scanner: "#54a2ff", wafw00f: "#54a2ff",
+  // dns — cyan
+  puredns_default: "#00d2ef", puredns_permutation: "#00d2ef", puredns_custom: "#00d2ef",
+  alterx: "#00d2ef", cewl: "#00d2ef", subdomainizer: "#00d2ef",
+  // http — emerald
+  httpx_r1: "#00d294", httpx_r2: "#00d294", httpx_r3: "#00d294", httpx_ports: "#00d294",
+  // ports — orange
+  naabu: "#ff8b1a",
+  // service — violet
+  zgrab2_service: "#a685ff", nmap_service: "#a685ff",
+  // js — yellow
+  katana: "#fac800",
+  // takeover — red
+  nuclei_takeover: "#ff6568",
+  // screenshots — pink
+  gowitness: "#fb64b6",
+  // cloud — sky
+  cloud_enum: "#00bcfe",
+};
 
 // Steps that have configurable parameters.
 const PARAM_STEP_IDS = new Set([
@@ -27,23 +53,6 @@ const PARAM_STEP_IDS = new Set([
   "nmap_service",
 ]);
 
-// Steps whose param forms are complex enough to warrant a right-side Sheet
-// drawer rather than an inline expand.  Simple steps (≤2 basic fields) keep
-// the collapsible behaviour.
-const SHEET_STEP_IDS = new Set([
-  "httpx_r1", "httpx_r2", "httpx_r3", "httpx_ports",
-  "naabu",
-  "subfinder",
-  "puredns_default", "puredns_permutation", "puredns_custom",
-  "alterx",
-  "katana",
-  "gau",
-  "gowitness",
-  "nuclei_takeover",
-  "cloud_enum",
-  "zgrab2_service",
-  "nmap_service",
-]);
 
 // Legacy shim — PARAM_COMPONENTS is still imported by MutexStepGroup to check
 // whether a step has params.  Point every entry at DynamicParamForm so
@@ -68,8 +77,7 @@ interface Props {
 
 export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: Props) {
   const { actionFetch } = useActionFetch();
-  const [expanded,       setExpanded]       = useState(false);
-  const [sheetOpen,      setSheetOpen]      = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [saving,         setSaving]         = useState(false);
   const [localOverrides, setLocalOverrides] = useState<Record<string, unknown>>(
     step.config_overrides ?? {}
@@ -81,9 +89,8 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
     if (!isPendingRef.current) setLocalOverrides(step.config_overrides ?? {});
   }, [step.config_overrides]);
 
-  const hasParams    = PARAM_STEP_IDS.has(step.step_id);
-  const useSheet     = SHEET_STEP_IDS.has(step.step_id);
-  const stepTooltip  = STEP_TOOLTIPS[step.step_id] ?? "";
+  const hasParams   = PARAM_STEP_IDS.has(step.step_id);
+  const stepTooltip = STEP_TOOLTIPS[step.step_id] ?? "";
   const hasOverrides = Object.keys(step.config_overrides ?? {}).length > 0;
 
   const handleToggle = async (enabled: boolean) => {
@@ -119,24 +126,25 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
     [targetId, step.id, onUpdated, actionFetch]
   );
 
-  // Locked (BaseAction) — dimmed, lock icon, no controls
+  // Locked (BaseAction) — always runs, not user-configurable
   if (!step.skippable) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 opacity-40">
-        {/* Status dot — gray for locked */}
-        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground shrink-0" />
-        <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />
-        <span className="flex-1 text-xs text-muted-foreground">{label ?? step.step_id}</span>
-        <InfoTooltip text={stepTooltip} />
+      <div className="group flex items-center gap-2 px-3 py-2 bg-white/[0.02]">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+        <Lock className="h-3 w-3 shrink-0 text-primary/40" />
+        <span className="flex-1 text-xs text-foreground/50">{label ?? step.step_id}</span>
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          <InfoTooltip text={stepTooltip || "Always runs — mandatory pipeline step, cannot be disabled."} />
+        </span>
       </div>
     );
   }
 
   return (
-    <div className={cn("border-b border-border/50 last:border-0", !step.enabled && "opacity-60")}>
-      {/* Row header — data-step-row makes it navigable via keyboard shortcuts */}
+    <div className={cn("last:border-0", !step.enabled && "opacity-60")}>
+      {/* Row — `group` enables hover-reveal for secondary controls */}
       <div
-        className="flex items-center gap-2 px-3 py-2.5 tap-compact"
+        className="group flex items-center gap-2 px-3 py-2.5 tap-compact hover:bg-white/[0.025] transition-colors duration-100"
         data-step-row
         tabIndex={0}
       >
@@ -155,7 +163,7 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
         {/* Label */}
         <span className="flex-1 text-xs text-foreground">{label ?? step.step_id}</span>
 
-        {/* Modified indicator */}
+        {/* Modified indicator — always visible, it's a state signal */}
         {hasOverrides && (
           <span
             className="text-[10px] text-primary/70 shrink-0"
@@ -165,7 +173,7 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
           </span>
         )}
 
-        {/* Dependency warning */}
+        {/* Dependency warning — always visible, it's a state signal */}
         {depWarning && step.enabled && (
           <span
             title={depWarning}
@@ -176,59 +184,39 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
           </span>
         )}
 
-        {/* Saving indicator */}
+        {/* Saving indicator — always visible while active */}
         {saving && (
           <span className="text-[10px] text-muted-foreground shrink-0">saving…</span>
         )}
 
-        {/* Info tooltip */}
-        <InfoTooltip text={stepTooltip} />
+        {/* Info tooltip — revealed on hover/focus */}
+        <span className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0">
+          <InfoTooltip text={stepTooltip} />
+        </span>
 
-        {/* Param opener — gear icon for Sheet, chevron for inline */}
+        {/* Param opener — revealed on hover/focus */}
         {hasParams && (
-          useSheet ? (
+          <span className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0">
             <button
               onClick={() => setSheetOpen(true)}
               title="Edit parameters"
-              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <Settings2 className="h-3.5 w-3.5" />
             </button>
-          ) : (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            >
-              {expanded
-                ? <ChevronDown className="h-3.5 w-3.5" />
-                : <ChevronRight className="h-3.5 w-3.5" />
-              }
-            </button>
-          )
+          </span>
         )}
       </div>
 
-      {/* Inline param form (simple steps) */}
-      {!useSheet && expanded && hasParams && (
-        <div className="px-6 pb-3">
-          <DynamicParamForm
-            stepId={step.step_id}
-            overrides={localOverrides}
-            onChange={handleParamChange}
-          />
-        </div>
-      )}
-
-      {/* Sheet param editor (complex steps) */}
-      {useSheet && (
+      {/* Sheet param editor */}
+      {hasParams && (
         <Sheet
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
-          title={`${label ?? step.step_id} — Parameters`}
+          title={label ?? step.step_id}
+          subtitle={saving ? "saving…" : undefined}
+          accentColor={STEP_ACCENT[step.step_id]}
         >
-          {saving && (
-            <p className="text-[10px] text-muted-foreground mb-2">saving…</p>
-          )}
           <DynamicParamForm
             stepId={step.step_id}
             overrides={localOverrides}

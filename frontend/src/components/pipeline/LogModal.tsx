@@ -142,25 +142,29 @@ export function LogModal({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[3px]"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
       >
         <motion.div
-          className="relative w-full max-w-3xl max-h-[85vh] m-4 rounded-lg border border-border bg-background flex flex-col shadow-xl"
+          className="relative w-full max-w-3xl max-h-[85vh] m-4 flex flex-col rounded-2xl overflow-hidden bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-2xl shadow-black/60"
           onClick={(e) => e.stopPropagation()}
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.15 }}
+          initial={{ opacity: 0, scale: 0.96, y: 12 }}
+          animate={{ opacity: 1, scale: 1,    y: 0  }}
+          exit={{    opacity: 0, scale: 0.96, y: 12 }}
+          transition={{ type: "spring", damping: 28, stiffness: 380 }}
         >
+          {/* Accent bar */}
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-green-400/40 to-transparent shrink-0" />
+
           {/* Header */}
-          <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
+          <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-2.5 bg-gradient-to-r from-green-400/[0.04] to-transparent">
             <span className="font-mono text-sm font-medium text-foreground shrink-0">{stepId}</span>
             {!loading && content && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground/60">
                 {lineCount.toLocaleString()} lines · {sizeKB} KB
                 {durationSeconds != null && ` · ran ${durationSeconds}s`}
               </span>
@@ -169,7 +173,7 @@ export function LogModal({
             {content && (
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
                 title="Download log"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -177,7 +181,7 @@ export function LogModal({
             )}
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+              className="rounded-lg p-1 text-muted-foreground/40 hover:text-foreground hover:bg-white/[0.06] transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -185,23 +189,20 @@ export function LogModal({
 
           {/* Search bar */}
           {content && (
-            <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
+            <div className="flex items-center gap-2 border-b border-white/[0.05] px-3 py-1.5 bg-white/[0.01]">
               <input
                 type="text"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Filter output…"
-                className="flex-1 bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
+                className="flex-1 bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/30 focus:outline-none"
               />
               {filter && (
                 <>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
+                  <span className="text-[10px] text-muted-foreground/50 shrink-0">
                     {matchCount} match{matchCount !== 1 ? "es" : ""}
                   </span>
-                  <button
-                    onClick={() => setFilter("")}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
+                  <button onClick={() => setFilter("")} className="text-muted-foreground/40 hover:text-foreground transition-colors">
                     <X className="h-3 w-3" />
                   </button>
                 </>
@@ -209,18 +210,18 @@ export function LogModal({
             </div>
           )}
 
-          {/* Content */}
-          <div ref={scrollRef} className="flex-1 overflow-auto p-4">
+          {/* Content — terminal */}
+          <div ref={scrollRef} className="flex-1 overflow-auto p-4 bg-black/20">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : content === null ? (
-              <p className="text-sm text-muted-foreground">No output available.</p>
+              <p className="text-sm text-muted-foreground/50">No output available.</p>
             ) : filter && filteredLines.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No lines match "{filter}"</p>
+              <p className="text-xs text-muted-foreground/50">No lines match "{filter}"</p>
             ) : (
-              <pre className="text-xs font-mono whitespace-pre-wrap text-foreground leading-relaxed">
+              <pre className="text-xs font-mono whitespace-pre-wrap text-foreground/80 leading-relaxed">
                 {filter
                   ? filteredLines.map((line, i) => (
                       <span key={i}>{highlightLine(line, filter)}{"\n"}</span>
@@ -233,10 +234,8 @@ export function LogModal({
 
           {/* Footer */}
           {content && (
-            <div className="flex items-center gap-2 border-t border-border px-4 py-2">
-              <label className={cn(
-                "flex cursor-pointer items-center gap-1.5 text-[10px] text-muted-foreground select-none",
-              )}>
+            <div className="flex items-center gap-2 border-t border-white/[0.05] px-4 py-2 bg-white/[0.01]">
+              <label className={cn("flex cursor-pointer items-center gap-1.5 text-[10px] text-muted-foreground/40 select-none hover:text-muted-foreground/70 transition-colors")}>
                 <input
                   type="checkbox"
                   checked={autoScroll}

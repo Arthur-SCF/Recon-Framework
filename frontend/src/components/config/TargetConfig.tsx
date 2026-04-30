@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Loader2, Plus, RefreshCw, Trash2, ChevronDown, Clock,
+  Loader2, RefreshCw, Trash2, ChevronDown, Clock, Lock, Settings2,
   Network, Zap, Globe, Server, Cpu, Code2,
   AlertTriangle, Camera, Cloud, Shield, Box, Radio,
 } from "lucide-react";
@@ -18,11 +18,27 @@ import { useActionFetch } from "@/hooks/useActionFetch";
 // ── Mutex pair ────────────────────────────────────────────────────────────────
 const MUTEX_PAIR = new Set(["zgrab2_service", "nmap_service"]);
 
-// ── Category icons (no color — accent/bar color is semantic, not categorical) ─
+// ── Category icons ─────────────────────────────────────────────────────────────
 type CategoryId =
   | "passive" | "dns" | "action" | "http" | "ports"
   | "service" | "js" | "takeover" | "screenshots"
   | "cloud" | "waf" | "other";
+
+// Icon + phase label + phase line tint + card border per category
+const CATEGORY_THEME: Record<CategoryId, { icon: string; phaseText: string; phaseLine: string; cardAccentL: string; hex: string }> = {
+  passive:     { icon: "text-blue-400",    phaseText: "text-blue-400/60",    phaseLine: "bg-blue-400/10",    cardAccentL: "border-l-blue-400/55",    hex: "#54a2ff" },
+  dns:         { icon: "text-cyan-400",    phaseText: "text-cyan-400/60",    phaseLine: "bg-cyan-400/10",    cardAccentL: "border-l-cyan-400/55",    hex: "#00d2ef" },
+  http:        { icon: "text-emerald-400", phaseText: "text-emerald-400/60", phaseLine: "bg-emerald-400/10", cardAccentL: "border-l-emerald-400/55", hex: "#00d294" },
+  ports:       { icon: "text-orange-400",  phaseText: "text-orange-400/60",  phaseLine: "bg-orange-400/10",  cardAccentL: "border-l-orange-400/55",  hex: "#ff8b1a" },
+  service:     { icon: "text-violet-400",  phaseText: "text-violet-400/60",  phaseLine: "bg-violet-400/10",  cardAccentL: "border-l-violet-400/55",  hex: "#a685ff" },
+  js:          { icon: "text-yellow-400",  phaseText: "text-yellow-400/60",  phaseLine: "bg-yellow-400/10",  cardAccentL: "border-l-yellow-400/55",  hex: "#fac800" },
+  takeover:    { icon: "text-red-400",     phaseText: "text-red-400/60",     phaseLine: "bg-red-400/10",     cardAccentL: "border-l-red-400/55",     hex: "#ff6568" },
+  screenshots: { icon: "text-pink-400",    phaseText: "text-pink-400/60",    phaseLine: "bg-pink-400/10",    cardAccentL: "border-l-pink-400/55",    hex: "#fb64b6" },
+  cloud:       { icon: "text-sky-400",     phaseText: "text-sky-400/60",     phaseLine: "bg-sky-400/10",     cardAccentL: "border-l-sky-400/55",     hex: "#00bcfe" },
+  waf:         { icon: "text-amber-400",   phaseText: "text-amber-400/60",   phaseLine: "bg-amber-400/10",   cardAccentL: "border-l-amber-400/55",   hex: "#fcbb00" },
+  action:      { icon: "text-zinc-500",    phaseText: "text-muted-foreground/40", phaseLine: "bg-border/25", cardAccentL: "border-l-border/40",      hex: "#71717b" },
+  other:       { icon: "text-zinc-500",    phaseText: "text-muted-foreground/40", phaseLine: "bg-border/25", cardAccentL: "border-l-border/40",      hex: "#71717b" },
+};
 
 const CATEGORY_ICONS: Record<CategoryId, React.ComponentType<{ className?: string }>> = {
   passive:     Radio,
@@ -37,6 +53,21 @@ const CATEGORY_ICONS: Record<CategoryId, React.ComponentType<{ className?: strin
   cloud:       Cloud,
   waf:         Shield,
   other:       Box,
+};
+
+// ── Phase labels — shown as section dividers when category changes ────────────
+const PHASE_LABELS: Partial<Record<CategoryId, string>> = {
+  passive:     "Discovery",
+  dns:         "DNS",
+  http:        "HTTP",
+  ports:       "Ports",
+  service:     "Services",
+  js:          "Content",
+  cloud:       "Cloud",
+  waf:         "WAF",
+  takeover:    "Takeover",
+  screenshots: "Screenshots",
+  // "action" and "other" intentionally omitted — internal steps, no label
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -81,19 +112,17 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
   const [stepMeta,     setStepMeta]     = useState<Record<string, { label: string; category: string }>>({});
   const [selected,     setSelected]     = useState(currentTemplate);
   const [applying,     setApplying]     = useState(false);
-  const [resetConfirm, setResetConfirm] = useState(false);
+  const [applyConfirm,       setApplyConfirm]       = useState(false);
+  const [resetParamsConfirm, setResetParamsConfirm] = useState(false);
   const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
-  const [addGroupOpen,  setAddGroupOpen]  = useState(false);
-  const [newGroupName,  setNewGroupName]  = useState("");
-  const [newGroupParallel, setNewGroupParallel] = useState(false);
-  const [addingGroup,  setAddingGroup]  = useState(false);
-  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
-  const [etaByGroup, setEtaByGroup] = useState<Record<string, number>>({});
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [etaByGroup,   setEtaByGroup]   = useState<Record<string, number>>({});
   const [applyingPreset,  setApplyingPreset]  = useState<PresetName | null>(null);
   const [resettingParams, setResettingParams] = useState(false);
   const [pauseOnFailure,  setPauseOnFailure]  = useState(false);
+  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [savingTemplate,   setSavingTemplate]   = useState(false);
 
-  // Expand/collapse state — all open on first load
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const initialExpanded = useRef(false);
 
@@ -110,7 +139,6 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
       }
     }
     setLoading(false);
-    // Fire ETA fetch in background — don't block render
     void fetch(`/api/v1/targets/${targetId}/pipeline/eta`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
@@ -160,7 +188,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
 
   async function applyTemplate() {
     setApplying(true);
-    setResetConfirm(false);
+    setApplyConfirm(false);
     try {
       const body = selected !== currentTemplate ? { template_name: selected } : {};
       const res = await actionFetch(`/api/v1/targets/${targetId}/pipeline/reset`, {
@@ -173,7 +201,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
       if (!res) return;
       onTemplateChanged?.(selected);
       initialExpanded.current = false;
-      setTemplatePickerOpen(false);
+      setSettingsOpen(false);
       await fetchPipeline();
     } finally {
       setApplying(false);
@@ -182,6 +210,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
 
   async function resetParams() {
     setResettingParams(true);
+    setResetParamsConfirm(false);
     try {
       const res = await actionFetch(`/api/v1/targets/${targetId}/pipeline/reset-params`, {
         method: "POST",
@@ -216,28 +245,6 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
     await fetchPipeline();
   }
 
-  async function handleAddGroup() {
-    const name = newGroupName.trim();
-    if (!name) return;
-    setAddingGroup(true);
-    try {
-      const res = await actionFetch(`/api/v1/targets/${targetId}/pipeline/groups`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, parallel: newGroupParallel }),
-        successMessage: "Group added",
-        errorPrefix: "Add group failed",
-      });
-      if (!res) return;
-      setNewGroupName("");
-      setNewGroupParallel(false);
-      setAddGroupOpen(false);
-      await fetchPipeline();
-    } finally {
-      setAddingGroup(false);
-    }
-  }
-
   function toggleGroup(groupId: string) {
     setOpenGroups(prev => {
       const next = new Set(prev);
@@ -267,7 +274,6 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
     if (!preset || applyingPreset) return;
     setApplyingPreset(name);
     try {
-      // Build a flat map of step_row_id → desired enabled state
       const stepMap: Record<string, boolean> = {};
       for (const group of groups) {
         for (const step of group.steps) {
@@ -276,7 +282,6 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
           }
         }
       }
-      // Only PUT steps that actually change
       const currentEnabled = new Set(
         groups.flatMap(g => g.steps.filter(s => s.enabled).map(s => s.id))
       );
@@ -298,6 +303,25 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
     }
   }
 
+  async function handleSaveTemplate() {
+    const name = saveTemplateName.trim();
+    if (!name) return;
+    setSavingTemplate(true);
+    try {
+      const res = await actionFetch(`/api/v1/targets/${targetId}/pipeline/save-as-template`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+        successMessage: `Saved as "${name}"`,
+        errorPrefix: "Save template failed",
+      });
+      if (!res) return;
+      setSaveTemplateName("");
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -307,196 +331,73 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
   }
 
   const isDirty = selected !== currentTemplate;
-  const currentTemplateName = templates.find(t => t.name === currentTemplate)?.display_name ?? currentTemplate;
 
+  // activeGroupCount: locked-only groups always count as active
   const activeGroupCount = groups.filter(g =>
-    g.enabled && g.steps.some(s => s.skippable && s.enabled)
+    g.enabled && (
+      g.steps.some(s => s.skippable && s.enabled) ||
+      g.steps.some(s => !s.skippable)
+    )
   ).length;
-  const totalEnabled = groups.reduce((n, g) => n + g.steps.filter(s => s.skippable && s.enabled).length, 0);
+  const totalEnabled   = groups.reduce((n, g) => n + g.steps.filter(s => s.skippable && s.enabled).length, 0);
   const totalSkippable = groups.reduce((n, g) => n + g.steps.filter(s => s.skippable).length, 0);
 
-  // Health summary
-  const depWarningCount = groups.reduce((n, g) => {
-    return n + g.steps.filter(s => s.enabled && !!getDepWarning(s.step_id)).length;
-  }, 0);
-  const modifiedCount = groups.reduce((n, g) => {
-    return n + g.steps.filter(s => s.skippable && Object.keys(s.config_overrides ?? {}).length > 0).length;
-  }, 0);
+  const depWarningCount = groups.reduce((n, g) =>
+    n + g.steps.filter(s => s.enabled && !!getDepWarning(s.step_id)).length, 0);
+  const modifiedCount = groups.reduce((n, g) =>
+    n + g.steps.filter(s => s.skippable && Object.keys(s.config_overrides ?? {}).length > 0).length, 0);
 
   return (
     <div className="flex flex-col gap-3">
 
-      {/* ── Template picker — collapsed by default ── */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        {/* Always-visible summary row */}
-        <button
-          onClick={() => { setTemplatePickerOpen(v => !v); setResetConfirm(false); }}
-          className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-muted/30 transition-colors text-left"
-        >
-          <span className="text-xs text-muted-foreground shrink-0">Template</span>
-          <span className="flex-1 text-xs font-medium text-foreground truncate">{currentTemplateName}</span>
-          {isDirty && (
-            <span className="text-[10px] text-amber-500 shrink-0">unsaved</span>
-          )}
-          <ChevronDown className={cn(
-            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-150 shrink-0",
-            !templatePickerOpen && "-rotate-90"
-          )} />
-        </button>
+      {/* ── Pipeline overview card + collapsible settings ── */}
+      <div className="rounded-2xl bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-lg shadow-black/20 overflow-hidden">
 
-        {/* Expanded picker */}
-        <AnimatePresence initial={false}>
-          {templatePickerOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              style={{ overflow: "hidden" }}
-            >
-              <div className="px-4 pb-3 pt-1 border-t border-border/50 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <select
-                    value={selected}
-                    onChange={(e) => { setSelected(e.target.value); setResetConfirm(false); }}
-                    className="flex-1 rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {templates.map((t) => (
-                      <option key={t.id} value={t.name}>{t.display_name}</option>
-                    ))}
-                  </select>
+        {/* Primary accent bar */}
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent shrink-0" />
 
-                  {!resetConfirm && (
-                    <>
-                      {isDirty && (
-                        <button
-                          onClick={() => setResetConfirm(true)}
-                          className="rounded border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:border-primary/50 transition-colors shrink-0"
-                        >
-                          Apply
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setResetConfirm(true)}
-                        title="Reset all params to template defaults"
-                        className="rounded border border-border bg-background p-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                      >
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {/* Reset params — preserves group structure, wipes overrides */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => void resetParams()}
-                    disabled={resettingParams}
-                    className="text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                    title="Clear all parameter overrides and restore template defaults"
-                  >
-                    {resettingParams
-                      ? <Loader2 className="h-2.5 w-2.5 animate-spin inline mr-0.5" />
-                      : null}
-                    Reset params
-                  </button>
-                  <span className="text-[10px] text-muted-foreground/40">·</span>
-                  <span className="text-[10px] text-muted-foreground/60">preserves group structure</span>
-                </div>
-
-                {resetConfirm && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-muted-foreground">
-                      {isDirty ? "Overwrites current pipeline —" : "Reset all params to template defaults —"}
-                    </span>
-                    <button
-                      onClick={() => void applyTemplate()}
-                      disabled={applying}
-                      className="flex items-center gap-1 rounded border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      {applying && <Loader2 className="h-3 w-3 animate-spin" />}
-                      Confirm
-                    </button>
-                    <button
-                      onClick={() => { setResetConfirm(false); if (!isDirty) setSelected(currentTemplate); }}
-                      className="rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* ── Pause on failure ── */}
-      <div className="rounded-lg border border-border bg-card px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-medium text-foreground">Pause on Step Failure</p>
-          <p className="text-xs text-muted-foreground">
-            Auto-pause after a step exhausts all retries. Enables Telegram action buttons.
-          </p>
-        </div>
-        <button
-          onClick={() => void handlePauseOnFailureToggle(!pauseOnFailure)}
-          className={cn(
-            "relative h-6 w-11 rounded-full transition-colors",
-            pauseOnFailure ? "bg-primary" : "bg-muted",
-          )}
-        >
-          <span
-            className={cn(
-              "absolute top-0.5 left-0.5 h-5 w-5 rounded-full toggle-thumb transition-transform",
-              pauseOnFailure && "translate-x-5",
-            )}
-          />
-        </button>
-      </div>
-
-      {/* ── Health summary ── */}
-      {groups.length > 0 && (
-        <div className="flex items-center gap-3 px-1 flex-wrap">
-          <span className={cn(
-            "text-[11px] tabular-nums",
-            totalEnabled === 0 ? "text-muted-foreground/40" : "text-foreground"
-          )}>
-            <span className="font-medium">{totalEnabled}</span>
-            <span className="text-muted-foreground">/{totalSkippable} steps enabled</span>
-          </span>
-
-          {modifiedCount > 0 && (
-            <span className="text-[11px] text-primary/70 tabular-nums">
-              ◆ {modifiedCount} modified
-            </span>
-          )}
-
-          {depWarningCount > 0 && (
-            <span className="text-[11px] text-amber-500 tabular-nums">
-              ⚠ {depWarningCount} dep {depWarningCount === 1 ? "issue" : "issues"}
-            </span>
-          )}
-
-          {depWarningCount === 0 && totalEnabled > 0 && (
-            <span className="text-[11px] text-green-500/70">✓ dependencies OK</span>
-          )}
-        </div>
-      )}
-
-      {/* ── Pipeline overview bar ── */}
-      {groups.length > 0 && (
-        <div className="rounded-lg border border-border bg-card px-4 py-2.5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-foreground">Pipeline</span>
+        {/* Header: stats always visible, gear opens settings */}
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary/[0.05] to-transparent">
+          <span className="text-xs font-medium text-foreground">Pipeline</span>
+          <div className="flex items-center gap-2 ml-auto">
             <span className="text-[10px] text-muted-foreground tabular-nums">
-              {activeGroupCount}/{groups.length} active · {totalEnabled}/{totalSkippable} steps on
+              {activeGroupCount}/{groups.length} active · {totalEnabled}/{totalSkippable} steps
             </span>
+            {modifiedCount > 0 && (
+              <span className="text-[10px] text-primary/70 tabular-nums">◆ {modifiedCount}</span>
+            )}
+            {depWarningCount > 0 && (
+              <span className="text-[10px] text-amber-500 tabular-nums">⚠ {depWarningCount}</span>
+            )}
+            {depWarningCount === 0 && totalEnabled > 0 && (
+              <span className="text-[10px] text-green-500/70">✓</span>
+            )}
+            <button
+              onClick={() => {
+                setSettingsOpen(v => !v);
+                setApplyConfirm(false);
+                setResetParamsConfirm(false);
+              }}
+              title="Pipeline settings"
+              className={cn(
+                "rounded p-1 transition-colors",
+                settingsOpen
+                  ? "text-primary bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              )}
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+            </button>
           </div>
-          <div className="flex gap-0.5 h-2.5">
+        </div>
+
+        {/* Mini bar — clickable segments scroll to group */}
+        {groups.length > 0 && (
+          <div className="flex gap-0.5 h-1.5 px-4 pb-2.5">
             {groups.map((group) => {
-              const skippable = group.steps.filter(s => s.skippable);
-              const enabled = skippable.filter(s => s.enabled).length;
+              const skippable  = group.steps.filter(s => s.skippable);
+              const enabled    = skippable.filter(s => s.enabled).length;
+              const lockedOnly = skippable.length === 0 && group.steps.some(s => !s.skippable);
               return (
                 <button
                   key={group.id}
@@ -505,55 +406,197 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
                     if (!openGroups.has(group.id)) toggleGroup(group.id);
                   }}
-                  title={`${group.name}: ${enabled}/${skippable.length} steps enabled`}
+                  title={
+                    lockedOnly
+                      ? `${group.name}: always runs (mandatory)`
+                      : `${group.name}: ${enabled}/${skippable.length} steps enabled`
+                  }
                   className={cn(
                     "flex-1 rounded-sm transition-colors hover:opacity-70",
-                    getBarClass(group.enabled, enabled)
+                    lockedOnly && group.enabled
+                      ? "bg-primary/35"
+                      : getBarClass(group.enabled, enabled)
                   )}
                 />
               );
             })}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ── Preset chips ── */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[10px] text-muted-foreground shrink-0">Quick&nbsp;profile:</span>
-        {PRESETS.map(preset => (
-          <button
-            key={preset.name}
-            disabled={!!applyingPreset}
-            onClick={() => void applyPreset(preset.name)}
-            title={preset.description}
-            className={cn(
-              "rounded px-2 py-0.5 text-[10px] border transition-colors",
-              applyingPreset === preset.name
-                ? "border-primary bg-primary/20 text-primary"
-                : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground",
-              "disabled:opacity-50"
-            )}
-          >
-            {applyingPreset === preset.name && (
-              <Loader2 className="h-2.5 w-2.5 animate-spin inline mr-1" />
-            )}
-            {preset.label}
-          </button>
-        ))}
+        {/* Settings panel: template, pause, presets, save-as-template */}
+        <AnimatePresence initial={false}>
+          {settingsOpen && (
+            <motion.div
+              key="settings"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              style={{ overflow: "hidden" }}
+            >
+              <div className="border-t border-white/[0.06] px-4 py-3 flex flex-col gap-4">
+
+                {/* Template */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Template</span>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <select
+                        value={selected}
+                        onChange={(e) => { setSelected(e.target.value); setApplyConfirm(false); }}
+                        className="w-full appearance-none rounded border border-border bg-background pl-2 pr-7 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        {templates.map((t) => (
+                          <option key={t.id} value={t.name}>{t.display_name}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                    {isDirty && !applyConfirm && (
+                      <button
+                        onClick={() => setApplyConfirm(true)}
+                        className="rounded border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:border-primary/50 transition-colors shrink-0"
+                      >
+                        Apply
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setResetParamsConfirm(v => !v)}
+                      title="Reset all params to template defaults"
+                      className={cn(
+                        "rounded border border-border bg-background p-1.5 transition-colors shrink-0",
+                        resetParamsConfirm ? "border-primary/50 text-primary" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  {applyConfirm && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground">Overwrites current pipeline —</span>
+                      <button
+                        onClick={() => void applyTemplate()}
+                        disabled={applying}
+                        className="flex items-center gap-1 rounded border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        {applying && <Loader2 className="h-3 w-3 animate-spin" />}
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => { setApplyConfirm(false); setSelected(currentTemplate); }}
+                        className="rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+
+                  {resetParamsConfirm && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground">Reset all params to defaults —</span>
+                      <button
+                        onClick={() => void resetParams()}
+                        disabled={resettingParams}
+                        className="flex items-center gap-1 rounded border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        {resettingParams && <Loader2 className="h-3 w-3 animate-spin" />}
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => setResetParamsConfirm(false)}
+                        className="rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+
+                  {!applyConfirm && !resetParamsConfirm && (
+                    <span className="text-[10px] text-muted-foreground/50">Reset params preserves group structure</span>
+                  )}
+                </div>
+
+                {/* Pause on failure */}
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">Pause on Step Failure</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Auto-pause after a step exhausts all retries. Enables Telegram action buttons.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={pauseOnFailure}
+                    onCheckedChange={(v) => void handlePauseOnFailureToggle(v)}
+                  />
+                </div>
+
+                {/* Quick profile presets */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-muted-foreground shrink-0">Quick profile:</span>
+                  {PRESETS.map(preset => (
+                    <button
+                      key={preset.name}
+                      disabled={!!applyingPreset}
+                      onClick={() => void applyPreset(preset.name)}
+                      title={preset.description}
+                      className={cn(
+                        "rounded px-2 py-0.5 text-[10px] border transition-colors disabled:opacity-50",
+                        applyingPreset === preset.name
+                          ? "border-primary bg-primary/20 text-primary"
+                          : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                      )}
+                    >
+                      {applyingPreset === preset.name && (
+                        <Loader2 className="h-2.5 w-2.5 animate-spin inline mr-1" />
+                      )}
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Save as template */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Save as Template</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={saveTemplateName}
+                      onChange={(e) => setSaveTemplateName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") void handleSaveTemplate(); }}
+                      placeholder="Template name…"
+                      className="flex-1 rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <button
+                      onClick={() => void handleSaveTemplate()}
+                      disabled={savingTemplate || !saveTemplateName.trim()}
+                      className="flex items-center gap-1 rounded border border-primary/50 bg-primary/10 px-2.5 py-1 text-xs text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
+                    >
+                      {savingTemplate && <Loader2 className="h-3 w-3 animate-spin" />}
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── Groups ── */}
-      <div className="flex flex-col gap-3">
-        {groups.map((group) => {
-          const skippable = group.steps.filter(s => s.skippable);
+      <div className="flex flex-col gap-2.5">
+        {groups.flatMap((group, idx) => {
+          const skippable    = group.steps.filter(s => s.skippable);
           const enabledCount = skippable.filter(s => s.enabled).length;
-          const totalCount = skippable.length;
-          const cat = getGroupCategory(group, stepMeta);
-          const CatIcon = CATEGORY_ICONS[cat];
-          const isOpen = openGroups.has(group.id);
+          const totalCount   = skippable.length;
+          const lockedOnly   = totalCount === 0 && group.steps.some(s => !s.skippable);
+          const cat          = getGroupCategory(group, stepMeta);
+          const CatIcon      = CATEGORY_ICONS[cat];
+          const isOpen       = openGroups.has(group.id);
           const isDeletePending = deleteGroupId === group.id;
-          const mutexSteps = group.steps.filter(s => MUTEX_PAIR.has(s.step_id));
-          const showMutex = mutexSteps.length === 2;
+          const mutexSteps   = group.steps.filter(s => MUTEX_PAIR.has(s.step_id));
+          const showMutex    = mutexSteps.length === 2;
           const regularSteps = group.steps.filter(s =>
             showMutex ? !MUTEX_PAIR.has(s.step_id) : true
           );
@@ -561,86 +604,144 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
             ? getDepWarning("zgrab2_service")
             : undefined;
 
-          // Is group active (for icon tint)
-          const isActive = group.enabled && enabledCount > 0;
+          const isActive = group.enabled && (enabledCount > 0 || lockedOnly);
 
-          return (
+          const groupStepIds = new Set(group.steps.map(s => s.step_id));
+          const hasIntraGroupDeps = group.steps.some(step =>
+            (STEP_DEPS[step.step_id] ?? []).some(dep => groupStepIds.has(dep))
+          );
+          const showExecMode = totalCount > 1 && !showMutex;
+
+          const prevCat    = idx > 0 ? getGroupCategory(groups[idx - 1], stepMeta) : null;
+          const phaseLabel = PHASE_LABELS[cat];
+          const showPhase  = phaseLabel && cat !== prevCat;
+
+          // Phase header element — reused in both branches below
+          const theme = CATEGORY_THEME[cat];
+          const phaseHeader = showPhase ? (
+            <div
+              key={`phase-${group.id}`}
+              className={cn("flex items-center gap-2", idx > 0 ? "mt-3" : "mt-1")}
+            >
+              <CatIcon className={cn("h-3 w-3 shrink-0", theme.icon, "opacity-50")} />
+              <span className={cn("text-[10px] font-semibold uppercase tracking-widest shrink-0", theme.phaseText)}>
+                {phaseLabel}
+              </span>
+              <div className={cn("flex-1 h-px", theme.phaseLine)} />
+            </div>
+          ) : null;
+
+          // Single non-skippable step → pipeline checkpoint, not a card
+          if (lockedOnly && group.steps.length === 1) {
+            const step = group.steps[0];
+            const stepLabel = stepMeta[step.step_id]?.label ?? step.step_id;
+            const eta = etaByGroup[group.id];
+            const checkpoint = (
+              <div
+                key={group.id}
+                id={`group-${group.id}`}
+                className="flex items-center gap-2 px-1 py-0.5"
+              >
+                <div className="flex-1 h-px bg-border/25" />
+                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/35 shrink-0">
+                  <Lock className={cn("h-2.5 w-2.5", cat !== "action" && cat !== "other" ? cn(theme.icon, "opacity-50") : "text-muted-foreground/30")} />
+                  {stepLabel}
+                  {eta ? (
+                    <span className="text-muted-foreground/25 tabular-nums ml-1">{fmtSeconds(eta)}</span>
+                  ) : null}
+                </span>
+                <div className="flex-1 h-px bg-border/25" />
+              </div>
+            );
+            return phaseHeader ? [phaseHeader, checkpoint] : [checkpoint];
+          }
+
+          const card = (
             <div
               key={group.id}
               id={`group-${group.id}`}
-              className="group/card rounded-lg border border-border bg-card overflow-hidden shadow-sm"
+              className={cn(
+                "group/card rounded-2xl overflow-hidden",
+                "bg-card/90 backdrop-blur-xl",
+                "border border-l-[3px] border-white/[0.07]",
+                theme.cardAccentL,
+                "shadow-md shadow-black/20"
+              )}
             >
-              {/* Group header — full row click to toggle, controls stop propagation */}
+              {/* Category accent bar */}
+              <div
+                className="h-px w-full shrink-0"
+                style={{ background: `linear-gradient(to right, transparent, ${theme.hex}70, transparent)` }}
+              />
+
+              {/* Group header */}
               <div
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none transition-colors duration-150",
-                  isActive && "bg-primary/5"
+                  "flex items-center gap-2 px-3 py-3 cursor-pointer select-none transition-colors duration-150",
+                  isActive ? "hover:bg-white/[0.04]" : "hover:bg-white/[0.02]"
                 )}
+                style={{ background: `linear-gradient(to right, ${theme.hex}09, transparent)` }}
                 onClick={() => toggleGroup(group.id)}
               >
-                {/* Status dot — green=active, amber=enabled/idle, muted=disabled */}
-                <span className={cn(
-                  "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
-                  group.enabled && enabledCount > 0
-                    ? "bg-green-500"
-                    : group.enabled
-                      ? "bg-amber-500/50"
-                      : "bg-muted-foreground/25"
-                )} />
-
                 <ChevronDown className={cn(
                   "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-150",
                   !isOpen && "-rotate-90"
                 )} />
 
-                {/* Category icon — primary tint when active, muted when not */}
                 <CatIcon className={cn(
-                  "h-3.5 w-3.5 shrink-0 transition-colors",
-                  isActive ? "text-primary/70" : "text-muted-foreground/40"
+                  "h-3.5 w-3.5 shrink-0 transition-opacity",
+                  theme.icon,
+                  !isActive && "opacity-30"
                 )} />
 
-                {/* Group name */}
+                {/* Group name — text-sm to visually distinguish headers from step rows */}
                 <span className={cn(
-                  "flex-1 text-xs font-medium truncate min-w-0 transition-colors",
-                  group.enabled ? "text-foreground" : "text-muted-foreground/60"
+                  "flex-1 text-sm font-medium truncate min-w-0 transition-colors",
+                  group.enabled ? "text-foreground" : "text-muted-foreground/50"
                 )}>
                   {group.name}
                 </span>
 
-                {/* Step count */}
-                {totalCount > 0 && (
+                {/* Step count / locked badge */}
+                {lockedOnly ? (
+                  <span title="All steps always run — mandatory actions" className="shrink-0 flex items-center">
+                    <Lock className="h-3 w-3 text-primary/30" />
+                  </span>
+                ) : totalCount > 0 ? (
                   <span className={cn(
                     "text-[10px] tabular-nums font-medium shrink-0",
                     enabledCount === totalCount
-                      ? "text-muted-foreground/60"
+                      ? "text-muted-foreground/50"
                       : enabledCount === 0
-                        ? "text-muted-foreground/30"
+                        ? "text-muted-foreground/25"
                         : "text-amber-500"
                   )}>
                     {enabledCount}/{totalCount}
                   </span>
+                ) : null}
+
+                {/* Execution mode badge */}
+                {showExecMode && (
+                  <span className="text-[10px] text-muted-foreground/35 shrink-0">
+                    {hasIntraGroupDeps ? "→" : group.parallel ? "∥" : "→"}
+                  </span>
                 )}
 
-                {/* ETA badge */}
+                {/* ETA */}
                 {group.enabled && enabledCount > 0 && etaByGroup[group.id] ? (
-                  <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground/50 shrink-0 tabular-nums">
+                  <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">
                     <Clock className="h-2.5 w-2.5" />
                     {fmtSeconds(etaByGroup[group.id])}
                   </span>
                 ) : null}
 
-                {/* Interactive controls — stop propagation so they don't toggle expand */}
-                <div
-                  className="flex items-center gap-1.5 shrink-0"
-                  onClick={e => e.stopPropagation()}
-                >
-                  {/* Master enable/disable */}
+                {/* Controls — stop propagation */}
+                <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
                   <Switch
                     checked={group.enabled}
                     onCheckedChange={(v) => void handleGroupUpdate(group.id, { enabled: v })}
                   />
 
-                  {/* Delete — hover-only */}
                   {isDeletePending ? (
                     <div className="flex items-center gap-1">
                       <span className="text-[10px] text-muted-foreground">Delete?</span>
@@ -652,7 +753,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       </button>
                       <button
                         onClick={() => setDeleteGroupId(null)}
-                        className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground border border-border hover:text-foreground transition-colors"
+                        className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground border border-white/[0.08] hover:text-foreground transition-colors"
                       >
                         ✕
                       </button>
@@ -660,7 +761,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                   ) : (
                     <button
                       onClick={() => setDeleteGroupId(group.id)}
-                      className="text-muted-foreground/0 group-hover/card:text-muted-foreground/40 hover:!text-destructive transition-colors"
+                      className="text-muted-foreground/0 group-hover/card:text-muted-foreground/35 hover:!text-destructive transition-colors"
                       title="Delete group"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -669,7 +770,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                 </div>
               </div>
 
-              {/* Steps + execution mode — animated expand/collapse */}
+              {/* Steps + execution mode */}
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div
@@ -681,37 +782,42 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                     style={{ overflow: "hidden" }}
                   >
                     <div className={cn(!group.enabled && "pointer-events-none opacity-50")}>
-                      {/* Execution mode — inside body so header stays lean */}
-                      {totalCount > 0 && (
-                        <div className="flex items-center gap-2 px-4 py-1.5 border-t border-border/50 bg-muted/20">
+                      {showExecMode && (
+                        <div className="flex items-center gap-2 px-4 py-1.5 border-t border-white/[0.05] bg-white/[0.02]">
                           <span className="text-[10px] text-muted-foreground">Execution</span>
-                          <div className="flex rounded border border-border overflow-hidden text-[10px]">
-                            <button
-                              onClick={() => void handleGroupUpdate(group.id, { parallel: false })}
-                              className={cn(
-                                "px-2 py-0.5 transition-colors",
-                                !group.parallel ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-                              )}
-                              title="Run steps one after another"
-                            >
-                              Sequential
-                            </button>
-                            <button
-                              onClick={() => void handleGroupUpdate(group.id, { parallel: true })}
-                              className={cn(
-                                "px-2 py-0.5 border-l border-border transition-colors",
-                                group.parallel ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-                              )}
-                              title="Run all steps at the same time"
-                            >
-                              Parallel
-                            </button>
-                          </div>
+                          {hasIntraGroupDeps ? (
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                              <Lock className="h-2.5 w-2.5" />
+                              Sequential (step ordering required)
+                            </div>
+                          ) : (
+                            <div className="flex rounded border border-white/[0.08] overflow-hidden text-[10px]">
+                              <button
+                                onClick={() => void handleGroupUpdate(group.id, { parallel: false })}
+                                className={cn(
+                                  "px-2 py-0.5 transition-colors",
+                                  !group.parallel ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                                title="Run steps one after another"
+                              >
+                                Sequential
+                              </button>
+                              <button
+                                onClick={() => void handleGroupUpdate(group.id, { parallel: true })}
+                                className={cn(
+                                  "px-2 py-0.5 border-l border-white/[0.08] transition-colors",
+                                  group.parallel ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                                title="Run all steps at the same time"
+                              >
+                                Parallel
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {/* Step rows */}
-                      <div className="divide-y divide-border/50 border-t border-border/50">
+                      <div className="divide-y divide-white/[0.04] border-t border-white/[0.05]">
                         {regularSteps.length === 0 && !showMutex ? (
                           <div className="px-4 py-3 text-[11px] text-muted-foreground/50 italic">
                             No steps — reset to template to repopulate
@@ -748,62 +854,11 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
               </AnimatePresence>
             </div>
           );
+
+          return phaseHeader ? [phaseHeader, card] : [card];
         })}
       </div>
 
-      {/* ── Add group ── */}
-      <div className="rounded-lg border border-border border-dashed bg-card/50">
-        {addGroupOpen ? (
-          <div className="px-4 py-3 flex flex-col gap-2">
-            <p className="text-xs font-medium text-foreground">New Group</p>
-            <input
-              type="text"
-              value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void handleAddGroup();
-                if (e.key === "Escape") setAddGroupOpen(false);
-              }}
-              placeholder="Group name…"
-              autoFocus
-              className="rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-              <input
-                type="checkbox"
-                checked={newGroupParallel}
-                onChange={(e) => setNewGroupParallel(e.target.checked)}
-                className="accent-primary"
-              />
-              Run steps in parallel
-            </label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => void handleAddGroup()}
-                disabled={!newGroupName.trim() || addingGroup}
-                className="flex items-center gap-1 rounded border border-primary/50 bg-primary/10 px-2.5 py-1 text-xs text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
-              >
-                {addingGroup && <Loader2 className="h-3 w-3 animate-spin" />}
-                Add Group
-              </button>
-              <button
-                onClick={() => { setAddGroupOpen(false); setNewGroupName(""); setNewGroupParallel(false); }}
-                className="rounded border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setAddGroupOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 px-4 py-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add Group
-          </button>
-        )}
-      </div>
     </div>
   );
 }

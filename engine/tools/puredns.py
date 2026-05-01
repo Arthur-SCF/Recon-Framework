@@ -27,6 +27,7 @@ Wildcard batch:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import tempfile
@@ -220,19 +221,30 @@ class PureDnsTool(BaseTool):
                 )
             else:
                 timeout = ctx.config.get("timeout", self.default_timeout)
-            start                   = time.monotonic()
-            stdout, stderr, retcode = await run_subprocess(cmd, timeout=timeout)
-            elapsed                 = time.monotonic() - start
+            cancelled  = False
+            start      = time.monotonic()
+            stderr     = ""
+            retcode    = 0
+            try:
+                stdout, stderr, retcode = await run_subprocess(cmd, timeout=timeout)
+            except asyncio.CancelledError:
+                # Step was cancelled/paused mid-run. The subprocess is already dead
+                # (run_subprocess kills it before re-raising). Read whatever puredns
+                # managed to write to the output file before being killed.
+                cancelled = True
+            elapsed = time.monotonic() - start
 
-            if retcode == -9:
+            if cancelled:
+                status = OutputStatus.SKIPPED
+            elif retcode == -9:
                 status = OutputStatus.TIMEOUT
             elif retcode not in (0, 1):
                 status = OutputStatus.ERROR
             else:
                 status = OutputStatus.SUCCESS
 
-            # Read from the output file regardless of status.
-            # Even on timeout, puredns has been writing progressively — partial results count.
+            # Read from the output file regardless of status — puredns writes
+            # progressively so partial results are always worth saving.
             file_content = ""
             try:
                 file_content = Path(tmp_output).read_text(encoding="utf-8", errors="replace")
@@ -243,10 +255,12 @@ class PureDnsTool(BaseTool):
             if file_content:
                 data = self.parse_output(file_content, ctx)
                 data["run_type"] = run_type
-                if status == OutputStatus.TIMEOUT and data.get("count", 0) > 0:
+                if status in (OutputStatus.TIMEOUT, OutputStatus.SKIPPED) and data.get("count", 0) > 0:
                     log.info(
-                        "%s puredns (%s): timed out but recovered %d partial results",
-                        ctx.session_id[:8], run_type, data["count"],
+                        "%s puredns (%s): %s but recovered %d partial results",
+                        ctx.session_id[:8], run_type,
+                        "timed out" if status == OutputStatus.TIMEOUT else "cancelled",
+                        data["count"],
                     )
 
             await save_raw_output(ctx, cmd=cmd, stdout=file_content, stderr=stderr,
@@ -267,9 +281,14 @@ class PureDnsTool(BaseTool):
                     await self._persist(ctx, result, run_type)
                 except Exception as exc:
                     log.error("%s puredns _persist failed: %r", ctx.session_id[:8], exc)
-                    result.status = OutputStatus.ERROR
+                    if not cancelled:
+                        result.status = OutputStatus.ERROR
                     result.data["persist_error"] = str(exc)
 
+            # Return rather than re-raise so _finish_step_run records the real
+            # partial count. The runner treats SKIPPED the same either way;
+            # scan cancellation is enforced via session-status checks at group
+            # boundaries, not by CancelledError propagation.
             return result
 
         finally:

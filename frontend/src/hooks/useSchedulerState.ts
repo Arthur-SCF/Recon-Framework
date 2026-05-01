@@ -22,6 +22,7 @@ export interface QueueItem {
 }
 
 export interface NextScheduled {
+  target_id: string;
   domain: string;
   schedule_mode: "hourly" | "daily" | "weekly";
   rescan_interval: number;
@@ -29,11 +30,14 @@ export interface NextScheduled {
   schedule_weekday: number;
   schedule_hour: number;
   schedule_minute: number;
+  next_run_at: string;
+  is_due: boolean;
 }
 
 export interface SchedulerState {
   active: ActiveScan | null;
   queue: QueueItem[];
+  scheduled: NextScheduled[];
   next_scheduled: NextScheduled | null;
   next_loop: { target_id: string; domain: string } | null;
   loops_paused: boolean;

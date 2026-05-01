@@ -92,6 +92,40 @@ def is_scheduled_target_due(row, now: datetime) -> bool:
     return False
 
 
+def calculate_next_run_at(row, now: datetime) -> datetime | None:
+    """Return the next scheduled run time for a non-loop target, or None if indeterminate."""
+    last_str = row["last_scan_at"]
+    mode = row["schedule_mode"] if row["schedule_mode"] else "hourly"
+
+    if not last_str:
+        return now  # never scanned → overdue now
+
+    last = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+
+    if mode == "hourly":
+        hours = row["rescan_interval"] if row["rescan_interval"] else 24
+        return last + timedelta(hours=hours)
+
+    elif mode == "daily":
+        days = row["schedule_days"] if row["schedule_days"] else 1
+        hour = row["schedule_hour"] if row["schedule_hour"] is not None else 0
+        minute = row["schedule_minute"] if row["schedule_minute"] is not None else 0
+        base = last + timedelta(days=days)
+        return base.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    elif mode == "weekly":
+        weekday = row["schedule_weekday"] if row["schedule_weekday"] is not None else 0
+        hour = row["schedule_hour"] if row["schedule_hour"] is not None else 0
+        minute = row["schedule_minute"] if row["schedule_minute"] is not None else 0
+        days_ahead = (weekday - last.weekday()) % 7 or 7
+        candidate = last + timedelta(days=days_ahead)
+        return candidate.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    return None
+
+
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 def set_mode(mode: str) -> None:

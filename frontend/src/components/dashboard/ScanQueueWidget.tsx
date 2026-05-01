@@ -17,11 +17,22 @@ function formatScheduleDetail(s: NextScheduled): string {
     const time = `${pad2(s.schedule_hour)}:${pad2(s.schedule_minute)}`;
     return `every ${WEEKDAYS_SHORT[s.schedule_weekday]} at ${time}`;
   }
-  // hourly
   const h = s.rescan_interval;
   if (h < 24) return `every ${h}h`;
   const d = h / 24;
   return `every ${Number.isInteger(d) ? `${d} day${d !== 1 ? "s" : ""}` : `${h}h`}`;
+}
+
+function formatCountdown(isoStr: string): string {
+  const diff = new Date(isoStr).getTime() - Date.now();
+  if (diff <= 0) return "overdue";
+  const totalSecs = Math.floor(diff / 1000);
+  const days = Math.floor(totalSecs / 86400);
+  const hours = Math.floor((totalSecs % 86400) / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  if (days > 0) return `in ${days}d ${hours}h`;
+  if (hours > 0) return `in ${hours}h ${mins}m`;
+  return `in ${mins}m`;
 }
 
 function elapsed(iso: string | null | undefined): string {
@@ -44,7 +55,7 @@ export function ScanQueueWidget() {
   const manualQueue = state?.queue ?? [];
   const nextUp      = manualQueue[0] ?? null;
   const waiting     = manualQueue.slice(1);
-  const nextSched   = !nextUp ? (state?.next_scheduled ?? null) : null;
+  const scheduled   = state?.scheduled ?? [];
   const nextLoop    = state?.next_loop ?? null;
   const loopsPaused = state?.loops_paused ?? false;
   const queuePaused = state?.queue_paused ?? false;
@@ -53,6 +64,7 @@ export function ScanQueueWidget() {
     active?.loop ||
     manualQueue.some((q) => q.loop) ||
     !!state?.next_loop;
+  const hasAnyScheduled = scheduled.length > 0;
 
   const hasAnyQueued = manualQueue.length > 0;
 
@@ -207,19 +219,31 @@ export function ScanQueueWidget() {
         </div>
       )}
 
-      {/* Auto-scheduled next (non-loop, no manual queue) */}
-      {nextSched && (
+      {/* Scheduled targets — always shown, sorted by next_run_at */}
+      {hasAnyScheduled && (
         <div className="mt-3 border-t border-border pt-2">
           <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
-            Scheduled next
+            Scheduled
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3 shrink-0" />
-            <span className="font-mono truncate">{nextSched.domain}</span>
+          <div className="space-y-2">
+            {scheduled.map((s) => (
+              <div key={s.target_id}>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3 shrink-0" />
+                  <span className="font-mono truncate flex-1">{s.domain}</span>
+                  <span className={cn(
+                    "text-[10px] shrink-0 tabular-nums",
+                    s.is_due ? "text-amber-500" : "text-muted-foreground/50"
+                  )}>
+                    {formatCountdown(s.next_run_at)}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[10px] text-muted-foreground/50 pl-5">
+                  {formatScheduleDetail(s)}
+                </p>
+              </div>
+            ))}
           </div>
-          <p className="mt-1 text-[10px] text-muted-foreground/60 pl-5">
-            {formatScheduleDetail(nextSched)}
-          </p>
         </div>
       )}
 
@@ -238,7 +262,7 @@ export function ScanQueueWidget() {
       )}
 
       {/* Idle */}
-      {!active && !nextUp && !nextSched && !nextLoop && (
+      {!active && !nextUp && !hasAnyScheduled && !nextLoop && (
         <p className="text-[11px] text-muted-foreground/50 mt-2">Nothing queued</p>
       )}
     </div>

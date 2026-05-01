@@ -79,38 +79,43 @@ async def get_scheduler_state(db: Database = Depends(get_db)):
         # Sort by priority descending; stable sort preserves insertion order for ties
         queue_info.sort(key=lambda q: q["scan_priority"], reverse=True)
 
-        # Next non-loop scheduled target — use Python-side filtering to support all
-        # schedule modes (hourly / daily / weekly).
-        next_scheduled = None
-        if not queue_info:
-            sched_candidates = await db.fetchall(
-                """
-                SELECT t.domain, t.last_scan_at, t.rescan_interval, t.scan_priority,
-                       t.schedule_mode, t.schedule_days, t.schedule_weekday,
-                       t.schedule_hour, t.schedule_minute
-                FROM targets t
-                LEFT JOIN scan_sessions ss ON ss.target_id = t.id AND ss.status = 'running'
-                WHERE t.manual_only = 0
-                  AND t.loop = 0
-                  AND t.status NOT IN ('running', 'paused')
-                  AND ss.id IS NULL
-                ORDER BY t.scan_priority DESC, COALESCE(t.last_scan_at, '1970-01-01') ASC
-                """,
-                (),
-            )
-            now_utc = datetime.now(timezone.utc)
-            for candidate in sched_candidates:
-                if scheduler.is_scheduled_target_due(candidate, now_utc):
-                    next_scheduled = {
-                        "domain":          candidate["domain"],
-                        "schedule_mode":   candidate["schedule_mode"] or "hourly",
-                        "rescan_interval": candidate["rescan_interval"],
-                        "schedule_days":   candidate["schedule_days"],
-                        "schedule_weekday": candidate["schedule_weekday"],
-                        "schedule_hour":   candidate["schedule_hour"],
-                        "schedule_minute": candidate["schedule_minute"],
-                    }
-                    break
+        # All non-loop scheduled targets — sorted by next_run_at ascending so the
+        # frontend can show the full upcoming schedule (not just currently-due ones).
+        sched_candidates = await db.fetchall(
+            """
+            SELECT t.id, t.domain, t.last_scan_at, t.rescan_interval, t.scan_priority,
+                   t.schedule_mode, t.schedule_days, t.schedule_weekday,
+                   t.schedule_hour, t.schedule_minute
+            FROM targets t
+            LEFT JOIN scan_sessions ss ON ss.target_id = t.id AND ss.status = 'running'
+            WHERE t.manual_only = 0
+              AND t.loop = 0
+              AND t.status NOT IN ('running', 'paused')
+              AND ss.id IS NULL
+            """,
+            (),
+        )
+        now_utc = datetime.now(timezone.utc)
+        scheduled = []
+        for candidate in sched_candidates:
+            next_run = scheduler.calculate_next_run_at(candidate, now_utc)
+            if next_run is None:
+                continue
+            scheduled.append({
+                "target_id":       candidate["id"],
+                "domain":          candidate["domain"],
+                "schedule_mode":   candidate["schedule_mode"] or "hourly",
+                "rescan_interval": candidate["rescan_interval"],
+                "schedule_days":   candidate["schedule_days"],
+                "schedule_weekday": candidate["schedule_weekday"],
+                "schedule_hour":   candidate["schedule_hour"],
+                "schedule_minute": candidate["schedule_minute"],
+                "next_run_at":     next_run.isoformat(),
+                "is_due":          scheduler.is_scheduled_target_due(candidate, now_utc),
+            })
+        scheduled.sort(key=lambda x: x["next_run_at"])
+        # Keep backward-compat field pointing at the soonest due target
+        next_scheduled = next((s for s in scheduled if s["is_due"]), None)
 
         # Next loop target — always shown unless loops are globally paused.
         # Excludes targets already in the manual queue (shown there instead)
@@ -153,8 +158,9 @@ async def get_scheduler_state(db: Database = Depends(get_db)):
                 next_loop = {"target_id": loop_row["id"], "domain": loop_row["domain"]}
 
         return {
-            "active":        active_info,
-            "queue":         queue_info,
+            "active":         active_info,
+            "queue":          queue_info,
+            "scheduled":      scheduled,
             "next_scheduled": next_scheduled,
             "next_loop":      next_loop,
             "loops_paused":   scheduler.get_loops_paused(),

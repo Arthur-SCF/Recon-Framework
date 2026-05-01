@@ -1,5 +1,6 @@
 import { Loader2, Repeat } from "lucide-react";
 import { useSchedulerState, type NextScheduled } from "@/hooks/useSchedulerState";
+import { cn } from "@/lib/utils";
 
 const WEEKDAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 function pad2(n: number) { return String(n).padStart(2, "0"); }
@@ -19,7 +20,7 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
 
   const active    = state?.active ?? null;
   const nextUp    = state?.queue?.[0] ?? null;
-  const nextAuto  = !nextUp ? (state?.next_scheduled ?? null) : null;
+  const nextAuto  = state?.scheduled?.[0] ?? null;
   const nextLoop  = state?.next_loop ?? null;
 
   if (!active) {
@@ -41,7 +42,13 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
           <div className="mt-1.5 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground/60 shrink-0">Sched:</span>
-              <span className="font-mono truncate">{nextAuto.domain}</span>
+              <span className="font-mono truncate flex-1">{nextAuto.domain}</span>
+              <span className={cn(
+                "shrink-0 tabular-nums",
+                nextAuto.is_due ? "text-amber-500" : "text-muted-foreground/50"
+              )}>
+                {fmtCountdown(nextAuto.next_run_at)}
+              </span>
             </div>
             <p className="pl-9 text-muted-foreground/50">{fmtSched(nextAuto)}</p>
           </div>
@@ -120,6 +127,18 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
       )}
     </div>
   );
+}
+
+function fmtCountdown(isoStr: string): string {
+  const diff = new Date(isoStr).getTime() - Date.now();
+  if (diff <= 0) return "overdue";
+  const secs = Math.floor(diff / 1000);
+  const days = Math.floor(secs / 86400);
+  const hours = Math.floor((secs % 86400) / 3600);
+  const mins = Math.floor((secs % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
 }
 
 function formatElapsed(start: Date): string {

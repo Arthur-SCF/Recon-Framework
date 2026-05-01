@@ -48,7 +48,7 @@ An automated domain reconnaissance platform for security professionals, bug boun
 
 ```bash
 # Clone and navigate
-git clone <repo-url>
+git clone https://github.com/Arthur-SCF/Recon-Framework.git
 cd RECON_APP
 
 # Copy example env and update with your settings

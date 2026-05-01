@@ -334,6 +334,7 @@ async def _run_step(
                     "step_id":          step_id,
                     "error_category":   result.error_category,
                     "retry_count":      result.retry_count,
+                    "max_retries":      max_retries,
                     "pause_on_failure": pause_on_failure,
                 },
                 target_id=target_id,

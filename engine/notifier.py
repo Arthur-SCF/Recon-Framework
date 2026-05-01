@@ -96,6 +96,116 @@ async def notify(
     return notif_id
 
 
+def _h(s: str) -> str:
+    """HTML-escape a string for Telegram HTML parse_mode."""
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _build_telegram_text(
+    notification_type: str,
+    title: str,
+    message: str | None,
+    data: dict | None,
+) -> str:
+    """Build a richly formatted HTML message for each notification type."""
+    d = data or {}
+
+    if notification_type == "scan_complete":
+        discovered = d.get("discovered", 0)
+        changed    = d.get("changed", 0)
+        gone       = d.get("gone", 0)
+        domain     = title.split(" — ", 1)[-1] if " — " in title else title
+        return (
+            f"✅ <b>Scan complete</b> — <code>{_h(domain)}</code>\n"
+            f"\n"
+            f"🆕 <b>{discovered}</b> discovered  ·  "
+            f"🔄 <b>{changed}</b> changed  ·  "
+            f"💀 <b>{gone}</b> gone"
+        )
+
+    if notification_type in ("new_hosts", "host_changed", "host_gone", "host_returned"):
+        hosts  = d.get("hosts", [])
+        count  = len(hosts)
+        plural = "s" if count != 1 else ""
+        domain = title.split(" on ", 1)[-1] if " on " in title else ""
+        _icons = {
+            "new_hosts":     ("🆕", f"{count} new host{plural}"),
+            "host_changed":  ("🔄", f"{count} host{plural} changed"),
+            "host_gone":     ("💀", f"{count} host{plural} offline"),
+            "host_returned": ("♻️", f"{count} host{plural} returned"),
+        }
+        icon, label = _icons[notification_type]
+        header = f"{icon} <b>{label}</b>"
+        if domain:
+            header += f" — <code>{_h(domain)}</code>"
+        lines = [header, ""]
+        for url in hosts[:5]:
+            lines.append(f"• <code>{_h(url)}</code>")
+        if len(hosts) > 5:
+            lines.append(f"<i>…and {len(hosts) - 5} more</i>")
+        return "\n".join(lines)
+
+    if notification_type == "takeover_candidate":
+        subdomain = _h(d.get("subdomain", title))
+        service   = _h(d.get("service", ""))
+        severity  = d.get("severity", "").upper()
+        url       = _h(d.get("url", ""))
+        sev_emoji = {
+            "CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡",
+            "LOW": "🟢", "INFO": "🔵",
+        }.get(severity, "⚪")
+        lines = [f"🎯 <b>Takeover candidate</b>", "", f"<code>{subdomain}</code>"]
+        if url:
+            lines.append(f"🔗 {url}")
+        if service:
+            lines.append(f"{sev_emoji} <b>{severity}</b> — {service}")
+        return "\n".join(lines)
+
+    if notification_type == "step_error":
+        step_id   = _h(d.get("step_id", ""))
+        category  = d.get("error_category", "")
+        domain    = _h(title.split(" — ", 1)[0]) if " — " in title else ""
+        if category == "upstream":
+            return (
+                f"⏭️ <b>Step skipped</b> — <code>{domain}</code>\n"
+                f"\n"
+                f"<code>{step_id}</code>\n"
+                f"No upstream data — dependency produced no results."
+            )
+        retry_count = d.get("retry_count", 0)
+        max_retries = d.get("max_retries", 2)
+        lines = [
+            f"⚠️ <b>Step failed</b> — <code>{domain}</code>",
+            "",
+            f"<code>{step_id}</code>",
+            f"📋 Category: <b>{_h(category)}</b>",
+            f"🔁 Attempts: <b>{retry_count + 1}</b>",
+        ]
+        if message:
+            for line in message.splitlines():
+                if line.startswith("Error:"):
+                    err = _h(line[6:].strip()[:200])
+                    lines.append(f"💬 <code>{err}</code>")
+                    break
+        if d.get("pause_on_failure"):
+            lines += ["", "⏸️ <i>Scan paused — use the buttons to act.</i>"]
+        return "\n".join(lines)
+
+    if notification_type == "scan_error":
+        domain = _h(d.get("domain", title))
+        return (
+            f"🚨 <b>Scan error</b> — <code>{domain}</code>\n"
+            f"\n"
+            f"<i>Pipeline encountered an unexpected error.</i>"
+        )
+
+    # Fallback for unknown types
+    lines = [f"<b>{_h(title)}</b>"]
+    if message:
+        lines.append(_h(message))
+    return "\n".join(lines)
+
+
 async def _maybe_send_telegram(
     notification_type: str,
     title: str,
@@ -144,9 +254,7 @@ async def _maybe_send_telegram(
         log.warning("Cannot send Telegram — failed to decrypt bot token")
         return
 
-    text = f"*{title}*"
-    if message:
-        text += f"\n{message}"
+    text = _build_telegram_text(notification_type, title, message, data)
 
     # Build inline keyboard for actionable notifications
     reply_markup: dict | None = None
@@ -179,7 +287,7 @@ async def _maybe_send_telegram(
     payload: dict = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": "Markdown",
+        "parse_mode": "HTML",
     }
     if reply_markup:
         payload["reply_markup"] = reply_markup

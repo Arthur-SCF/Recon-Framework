@@ -148,7 +148,7 @@ class TelegramBot:
         elif cmd == "/help":
             await self._cmd_help(chat_id)
         else:
-            await self._send(chat_id, "Unknown command. Type /help for available commands.")
+            await self._send(chat_id, "❓ Unknown command. Use /help for available commands.")
 
     async def _cmd_status(self, chat_id: str) -> None:
         from engine import scheduler
@@ -177,61 +177,66 @@ class TelegramBot:
                 except Exception:
                     elapsed = "?"
                 step = row["current_step"] if "current_step" in row.keys() else "?"
-                lines.append(f"Active: {domain} ({step}, {elapsed} elapsed)")
+                lines.append(f"🟢 <b>Active:</b> <code>{domain}</code>")
+                lines.append(f"   ↳ <i>{step}</i> · {elapsed} elapsed")
             else:
-                lines.append("Active: session data unavailable")
+                lines.append("🟡 Active session data unavailable")
         else:
-            lines.append("No active scan")
+            lines.append("⚪ No active scan")
 
+        lines.append("")
         if queue:
-            lines.append(f"Queue: {len(queue)} targets")
+            lines.append(f"📋 <b>Queue</b> ({len(queue)} target{'s' if len(queue) != 1 else ''})")
             for i, tid in enumerate(queue[:5], 1):
                 trow = await db.fetchone(
                     "SELECT domain, scan_priority FROM targets WHERE id=?", (tid,)
                 )
                 if trow:
-                    lines.append(f"  {i}. {trow['domain']} (priority {trow['scan_priority']})")
+                    lines.append(f"   {i}. <code>{trow['domain']}</code> · priority {trow['scan_priority']}")
         else:
-            lines.append("Queue: empty")
+            lines.append("📋 Queue: <i>empty</i>")
 
+        lines.append("")
+        loops_icon = "⏸️" if scheduler.is_loops_paused() else "♾️"
+        queue_icon = "⏸️" if scheduler.is_queue_paused() else "▶️"
         loops_state = "paused" if scheduler.is_loops_paused() else "running"
         queue_state = "paused" if scheduler.is_queue_paused() else "running"
-        lines.append(f"Loops: {loops_state}")
-        lines.append(f"Queue drain: {queue_state}")
+        lines.append(f"{loops_icon} Loops: <b>{loops_state}</b>  ·  {queue_icon} Queue: <b>{queue_state}</b>")
 
-        await self._send(chat_id, "\n".join(lines))
+        await self._send(chat_id, "📊 <b>Scanner Status</b>\n\n" + "\n".join(lines))
 
     async def _cmd_pause(self, chat_id: str) -> None:
         from engine import scheduler
         scheduler.set_queue_paused(True)
         scheduler.set_loops_paused(True)
-        await self._send(chat_id, "All scans paused — queue and loops stopped.")
+        await self._send(chat_id, "⏸️ <b>All scans paused</b>\nQueue and loops stopped.")
 
     async def _cmd_resume(self, chat_id: str) -> None:
         from engine import scheduler
         scheduler.set_queue_paused(False)
         scheduler.set_loops_paused(False)
-        await self._send(chat_id, "Queue and loops resumed.")
+        await self._send(chat_id, "▶️ <b>Resumed</b>\nQueue and loops running.")
 
     async def _cmd_loops(self, chat_id: str, sub: str) -> None:
         from engine import scheduler
         if sub == "pause":
             scheduler.set_loops_paused(True)
-            await self._send(chat_id, "Loops paused.")
+            await self._send(chat_id, "⏸️ <b>Loops paused.</b>")
         elif sub == "resume":
             scheduler.set_loops_paused(False)
-            await self._send(chat_id, "Loops resumed.")
+            await self._send(chat_id, "▶️ <b>Loops resumed.</b>")
         else:
             await self._send(chat_id, "Usage: /loops pause  or  /loops resume")
 
     async def _cmd_help(self, chat_id: str) -> None:
         help_text = (
-            "Available commands:\n"
-            "/status — Active scan, queue, and pause state\n"
-            "/pause — Pause queue and loops\n"
-            "/resume — Resume queue and loops\n"
-            "/loops pause — Pause only auto-loops\n"
-            "/loops resume — Resume only auto-loops\n"
+            "🛠️ <b>Recon Bot Commands</b>\n"
+            "\n"
+            "/status — Active scan, queue &amp; state\n"
+            "/pause — Pause everything\n"
+            "/resume — Resume everything\n"
+            "/loops pause — Pause auto-loops only\n"
+            "/loops resume — Resume auto-loops only\n"
             "/help — This message"
         )
         await self._send(chat_id, help_text)
@@ -458,7 +463,7 @@ class TelegramBot:
         payload: dict = {
             "chat_id": chat_id,
             "text": text,
-            "parse_mode": "Markdown",
+            "parse_mode": "HTML",
         }
         if reply_markup:
             payload["reply_markup"] = reply_markup

@@ -247,23 +247,6 @@ class NucleiTakeoverTool(BaseTool):
                 f["url"],   # matched_at = url
             ))
 
-            notif_id = str(uuid.uuid4())
-            notif_data = json.dumps({
-                "subdomain":   f["subdomain"],
-                "service":     f["service"],
-                "template_id": f["template_id"],
-                "severity":    f["severity"],
-            })
-            notif_rows.append((
-                notif_id,
-                ctx.target_id,
-                ctx.session_id,
-                "takeover_candidate",
-                f"Takeover candidate: {f['subdomain']}",
-                f"{f['service']} — {f['severity'].upper()} — {f['url']}",
-                notif_data,
-            ))
-
         await ctx.db.executemany(
             """
             INSERT INTO nuclei_takeover_results
@@ -274,21 +257,32 @@ class NucleiTakeoverTool(BaseTool):
             """,
             takeover_rows,
         )
-
-        if notif_rows:
-            await ctx.db.executemany(
-                """
-                INSERT INTO notifications
-                    (id, target_id, session_id, type, title, message, data)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                notif_rows,
-            )
-
         await ctx.db.commit()
 
-        # Broadcast WebSocket events for each finding
+        # Dispatch notifications (DB + WS + Telegram) for each finding via notify()
+        from engine.notifier import notify as _notify
         for f in findings:
+            try:
+                await _notify(
+                    notification_type="takeover_candidate",
+                    title=f"Takeover candidate: {f['subdomain']}",
+                    message=f"{f['service']} — {f['severity'].upper()} — {f['url']}",
+                    data={
+                        "subdomain":   f["subdomain"],
+                        "service":     f["service"],
+                        "template_id": f["template_id"],
+                        "severity":    f["severity"],
+                        "url":         f["url"],
+                    },
+                    target_id=ctx.target_id,
+                    session_id=ctx.session_id,
+                )
+            except Exception as exc:
+                log.warning(
+                    "%s nuclei_takeover notify failed: %r",
+                    ctx.session_id[:8], exc,
+                )
+            # WS event for live UI update (separate from the generic notification WS event)
             try:
                 await ws_manager.broadcast(
                     "takeover_found",

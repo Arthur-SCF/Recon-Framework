@@ -49,7 +49,7 @@ An automated domain reconnaissance platform for security professionals, bug boun
 ```bash
 # Clone and navigate
 git clone https://github.com/Arthur-SCF/Recon-Framework.git
-cd RECON_APP
+cd Recon_Framework
 
 # Copy example env and update with your settings
 cp .env.example .env

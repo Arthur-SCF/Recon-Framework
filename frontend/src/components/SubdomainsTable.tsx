@@ -99,7 +99,7 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
           placeholder="Filter subdomains…"
           value={hook.q}
           onChange={(e) => hook.setQ(e.target.value)}
-          className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-56"
+          className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-56"
         />
         <span className="ml-auto text-xs text-muted-foreground">
           {hook.total.toLocaleString()} subdomains

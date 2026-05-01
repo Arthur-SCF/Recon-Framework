@@ -153,7 +153,7 @@ export function Dashboard() {
 
   return (
     <PageTransition>
-    <div className="flex flex-col gap-5 p-6 max-w-6xl mx-auto w-full">
+    <div className="flex flex-col gap-5 p-3 sm:p-6 max-w-6xl mx-auto w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -167,17 +167,17 @@ export function Dashboard() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setImportOpen(true)}
-            className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-colors"
+            className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-colors"
           >
-            <Upload className="h-4 w-4" />
-            Import
+            <Upload className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Import</span>
           </button>
           <button
             onClick={() => setAddOpen(true)}
-            className="flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            <Plus className="h-4 w-4" />
-            Add Target
+            <Plus className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Add Target</span>
           </button>
         </div>
       </div>

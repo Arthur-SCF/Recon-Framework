@@ -120,21 +120,23 @@ export function CloudTable({ targetId }: Props) {
 
       {/* ── Cloud Assets ─────────────────────────────────────────────── */}
       <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Cloud Assets
             <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono normal-case">
               {assets.total}
             </span>
           </h3>
-          <input
-            type="text"
-            value={assets.q}
-            onChange={(e) => assets.setQ(e.target.value)}
-            placeholder="Filter…"
-            className="ml-auto h-7 w-44 rounded-md border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <ExportMenu targetId={targetId} type="cloud" />
+          <div className="ml-auto flex items-center gap-2">
+            <input
+              type="text"
+              value={assets.q}
+              onChange={(e) => assets.setQ(e.target.value)}
+              placeholder="Filter…"
+              className="h-7 w-28 sm:w-44 rounded-md border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <ExportMenu targetId={targetId} type="cloud" />
+          </div>
         </div>
 
         {assets.error && !assets.loading && (
@@ -147,7 +149,7 @@ export function CloudTable({ targetId }: Props) {
           </p>
         ) : (
           <>
-            <div className="rounded-lg border border-border overflow-hidden">
+            <div className="rounded-lg border border-border overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-border bg-muted/30 text-left">
@@ -183,7 +185,7 @@ export function CloudTable({ targetId }: Props) {
 
       {/* ── S3 Buckets ───────────────────────────────────────────────── */}
       <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             S3 Buckets
             <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono normal-case">
@@ -195,7 +197,7 @@ export function CloudTable({ targetId }: Props) {
             value={buckets.q}
             onChange={(e) => buckets.setQ(e.target.value)}
             placeholder="Filter…"
-            className="ml-auto h-7 w-44 rounded-md border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            className="ml-auto h-7 w-28 sm:w-44 rounded-md border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
 
@@ -209,7 +211,7 @@ export function CloudTable({ targetId }: Props) {
           </p>
         ) : (
           <>
-            <div className="rounded-lg border border-border overflow-hidden">
+            <div className="rounded-lg border border-border overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-border bg-muted/30 text-left">

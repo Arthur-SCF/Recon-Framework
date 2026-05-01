@@ -125,7 +125,7 @@ export function ScreenshotGallery({ targetId }: Props) {
           value={hook.q}
           onChange={(e) => hook.setQ(e.target.value)}
           placeholder="Search URL, title, tech…"
-          className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary flex-1 min-w-40"
+          className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary flex-1 min-w-0"
         />
 
         <div className="flex rounded border border-border overflow-hidden text-xs">
@@ -230,7 +230,7 @@ export function ScreenshotGallery({ targetId }: Props) {
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
           <Dialog.Content className={cn(
             "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-            "w-full max-w-4xl rounded-xl border border-border bg-card p-0 shadow-2xl overflow-hidden",
+            "w-[calc(100%-2rem)] max-w-4xl rounded-xl border border-border bg-card p-0 shadow-2xl overflow-hidden",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",

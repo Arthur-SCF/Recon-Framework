@@ -37,7 +37,7 @@ export function HostFilters({
         placeholder="Filter by URL, title, webserver, tech..."
         value={filter}
         onChange={(e) => onFilterChange(e.target.value)}
-        className="flex-1 min-w-48 rounded border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        className="flex-1 min-w-0 rounded border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
       />
       <div className="flex rounded border border-border overflow-hidden text-xs">
         {SCHEMES.map((s) => (

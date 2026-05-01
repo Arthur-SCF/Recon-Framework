@@ -28,7 +28,7 @@ const tabs = [
 export function Settings() {
   return (
     <PageTransition>
-      <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto w-full">
+      <div className="flex flex-col gap-6 p-3 sm:p-6 max-w-3xl mx-auto w-full">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Settings</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -37,22 +37,24 @@ export function Settings() {
         </div>
 
         <Tabs.Root defaultValue="appearance">
-          <Tabs.List className="flex gap-1 border-b border-border">
-            {tabs.map(({ id, label }) => (
-              <Tabs.Trigger
-                key={id}
-                value={id}
-                className={cn(
-                  "px-3 py-2 text-sm transition-colors border-b-2 -mb-px",
-                  "text-muted-foreground border-transparent",
-                  "data-[state=active]:text-foreground data-[state=active]:border-primary",
-                  "hover:text-foreground",
-                )}
-              >
-                {label}
-              </Tabs.Trigger>
-            ))}
-          </Tabs.List>
+          <div className="overflow-x-auto pb-px -mx-0.5 px-0.5">
+            <Tabs.List className="flex gap-1 border-b border-border min-w-max">
+              {tabs.map(({ id, label }) => (
+                <Tabs.Trigger
+                  key={id}
+                  value={id}
+                  className={cn(
+                    "px-3 py-2 text-sm transition-colors border-b-2 -mb-px whitespace-nowrap",
+                    "text-muted-foreground border-transparent",
+                    "data-[state=active]:text-foreground data-[state=active]:border-primary",
+                    "hover:text-foreground",
+                  )}
+                >
+                  {label}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+          </div>
 
           <Tabs.Content value="appearance"><AppearanceTab /></Tabs.Content>
           <Tabs.Content value="telegram"><TelegramTab /></Tabs.Content>

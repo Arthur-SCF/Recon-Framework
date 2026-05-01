@@ -128,7 +128,7 @@ export function WordlistsTab() {
       ) : wordlists.length === 0 ? (
         <p className="text-sm text-muted-foreground">No wordlists found.</p>
       ) : (
-        <div className="rounded-lg border border-border overflow-hidden">
+        <div className="rounded-lg border border-border overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30 text-left">

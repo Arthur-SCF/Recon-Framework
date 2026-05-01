@@ -97,7 +97,7 @@ export function ApiKeysTab() {
         <h3 className="text-sm font-semibold text-foreground">
           Add / Update API Key
         </h3>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">
               Service

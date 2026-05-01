@@ -57,7 +57,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ addToast }}>
       {children}
       {/* Toast container */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto z-50 flex flex-col gap-2 pointer-events-none">
         <AnimatePresence>
           {toasts.map((toast) => (
             <motion.div
@@ -88,7 +88,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
     <div
       className={cn(
         "pointer-events-auto flex items-start gap-3 rounded-lg border bg-card px-4 py-3 shadow-lg",
-        "min-w-[280px] max-w-[380px]",
+        "w-full sm:w-auto sm:min-w-[280px] sm:max-w-[380px]",
         toast.type === "success" && "border-l-4 border-l-emerald-500 border-border/50",
         toast.type === "error"   && "border-l-4 border-l-destructive border-border/50",
         toast.type === "info"    && "border-l-4 border-l-primary border-border/50"

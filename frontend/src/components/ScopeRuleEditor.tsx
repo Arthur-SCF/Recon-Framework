@@ -121,7 +121,7 @@ export function ScopeRuleEditor({ targetId }: Props) {
       </div>
 
       {/* Add form */}
-      <form onSubmit={(e) => void addRule(e)} className="flex gap-2">
+      <form onSubmit={(e) => void addRule(e)} className="flex flex-wrap gap-2">
         <div className="flex overflow-hidden rounded-md border border-border">
           {(["include", "exclude"] as const).map((t) => (
             <button
@@ -216,7 +216,7 @@ export function ScopeRuleEditor({ targetId }: Props) {
       <Dialog.Root open={previewOpen} onOpenChange={setPreviewOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-5 shadow-xl focus:outline-none">
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-5 shadow-xl focus:outline-none max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <Dialog.Title className="text-sm font-semibold text-foreground">
                 Scope Preview

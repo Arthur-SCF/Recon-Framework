@@ -138,7 +138,7 @@ export function StorageTab() {
       {stats.targets.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-sm font-semibold text-foreground">Per-Target Usage</h3>
-          <div className="overflow-hidden rounded-md border border-border">
+          <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border bg-muted/30 text-left">

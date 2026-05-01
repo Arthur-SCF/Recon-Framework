@@ -211,7 +211,7 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
         ) : (
           <>
             {/* Session selectors */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <select
                 value={sessionA}
                 onChange={(e) => setSessionA(e.target.value)}
@@ -223,7 +223,7 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
                 ))}
               </select>
 
-              <span className="text-xs text-muted-foreground shrink-0">vs</span>
+              <span className="text-xs text-muted-foreground shrink-0 text-center sm:text-left">vs</span>
 
               <select
                 value={sessionB}

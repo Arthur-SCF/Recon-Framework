@@ -164,7 +164,7 @@ export function TargetDetail() {
 
   return (
     <PageTransition>
-    <div className="flex flex-col gap-4 p-6 max-w-5xl mx-auto w-full">
+    <div className="flex flex-col gap-4 p-3 sm:p-6 max-w-5xl mx-auto w-full">
 
       {/* Header */}
       <div className="flex items-start gap-3">
@@ -178,7 +178,7 @@ export function TargetDetail() {
                 STATUS_DOT[target?.status ?? "idle"],
               )}
             />
-            <div className="flex flex-1 items-start justify-between gap-4">
+            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Target</p>
                 <h1 className="mt-0.5 text-xl font-semibold text-foreground">
@@ -194,7 +194,7 @@ export function TargetDetail() {
               </div>
 
               {target && (
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex flex-wrap items-center gap-2 sm:pt-1">
                   <button
                     onClick={() => window.open(`/api/v1/targets/${id}/export/report`, "_blank", "noopener")}
                     className="rounded border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"

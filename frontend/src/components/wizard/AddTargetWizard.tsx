@@ -102,9 +102,9 @@ export function AddTargetWizard({ open, onOpenChange, onCreated }: Props) {
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card shadow-2xl outline-none">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card shadow-2xl outline-none flex flex-col max-h-[90dvh]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4 shrink-0">
             <Dialog.Title className="text-base font-semibold text-foreground">
               Add Target
             </Dialog.Title>
@@ -114,12 +114,12 @@ export function AddTargetWizard({ open, onOpenChange, onCreated }: Props) {
           </div>
 
           {/* Progress */}
-          <div className="border-b border-border px-6 py-4">
+          <div className="border-b border-border px-4 sm:px-6 py-4 shrink-0">
             <WizardProgress currentStep={step} />
           </div>
 
           {/* Step content */}
-          <div className="px-6 py-4 min-h-[320px]">
+          <div className="px-4 sm:px-6 py-4 min-h-[200px] overflow-y-auto flex-1">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <WizardStepDomain
@@ -186,7 +186,7 @@ export function AddTargetWizard({ open, onOpenChange, onCreated }: Props) {
           </div>
 
           {/* Footer navigation */}
-          <div className="flex items-center justify-between border-t border-border px-6 py-4">
+          <div className="flex items-center justify-between border-t border-border px-4 sm:px-6 py-4 shrink-0">
             <button
               type="button"
               onClick={() => step > 1 && setStep(step - 1)}

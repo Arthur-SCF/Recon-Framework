@@ -132,24 +132,26 @@ export function TakeoverTable({ targetId }: Props) {
         </div>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
           value={hook.q}
           onChange={(e) => hook.setQ(e.target.value)}
           placeholder="Filter by subdomain…"
-          className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-56"
+          className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-56"
         />
-        <span className="ml-auto text-xs text-muted-foreground">
-          {hook.total} candidate{hook.total !== 1 ? "s" : ""}
-        </span>
-        <button
-          onClick={hook.refresh}
-          className="h-8 rounded-md border border-border px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Refresh
-        </button>
-        <ExportMenu targetId={targetId} type="takeovers" />
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted-foreground">
+            {hook.total} candidate{hook.total !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={hook.refresh}
+            className="h-8 rounded-md border border-border px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Refresh
+          </button>
+          <ExportMenu targetId={targetId} type="takeovers" />
+        </div>
       </div>
 
       {hook.error && !hook.loading && (
@@ -162,7 +164,47 @@ export function TakeoverTable({ targetId }: Props) {
         <div className="py-8 text-center text-sm text-muted-foreground">No results match the current filter.</div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded border border-border">
+          {/* Mobile card view */}
+          <div className="sm:hidden flex flex-col gap-2">
+            {hook.data.map((c) => (
+              <div key={c.id} className="rounded-lg border border-border bg-card p-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <SeverityBadge severity={c.severity} />
+                  <StatusBadge verified={c.verified} />
+                </div>
+                <p className="mt-2 font-mono text-xs text-foreground break-all">{c.subdomain}</p>
+                {(c.service || c.template_id) && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">{c.service || c.template_id}</p>
+                )}
+                {(c.matched_at || c.url) && (
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground truncate">{c.matched_at || c.url}</p>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {c.verified !== 1 && (
+                    <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
+                      className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
+                      Confirm
+                    </button>
+                  )}
+                  {c.verified !== -1 && (
+                    <button onClick={() => void setVerified(c.id, -1)} disabled={updating === c.id}
+                      className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                      False Positive
+                    </button>
+                  )}
+                  {c.verified !== 0 && (
+                    <button onClick={() => void setVerified(c.id, 0)} disabled={updating === c.id}
+                      className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden sm:block overflow-x-auto rounded border border-border">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">

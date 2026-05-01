@@ -222,7 +222,7 @@ export function WebhooksTab() {
           </h3>
 
           {/* Type + Name */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Type</label>
               <select

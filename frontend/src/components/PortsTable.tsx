@@ -126,18 +126,20 @@ export function PortsTable({ targetId }: Props) {
         ))}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
           value={hook.q}
           onChange={(e) => hook.setQ(e.target.value)}
           placeholder="Filter by host, port, or service…"
-          className="w-full max-w-xs rounded-md border border-border bg-input px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full sm:max-w-xs rounded-md border border-border bg-input px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
-        <span className="text-xs text-muted-foreground">
-          {hook.total} result{hook.total !== 1 ? "s" : ""}
-        </span>
-        <ExportMenu targetId={targetId} type="ports" params={tab === "verified" ? { verified: "true" } : undefined} />
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted-foreground">
+            {hook.total} result{hook.total !== 1 ? "s" : ""}
+          </span>
+          <ExportMenu targetId={targetId} type="ports" params={tab === "verified" ? { verified: "true" } : undefined} />
+        </div>
       </div>
 
       {hook.error && !hook.loading && (

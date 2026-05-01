@@ -391,9 +391,9 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
           </div>
         </div>
 
-        {/* Mini bar — clickable segments scroll to group */}
+        {/* Mini bar — clickable segments scroll to group (desktop only) */}
         {groups.length > 0 && (
-          <div className="flex gap-0.5 h-1.5 px-4 pb-2.5">
+          <div className="hidden sm:flex gap-0.5 h-1.5 px-4 pb-2.5">
             {groups.map((group) => {
               const skippable  = group.steps.filter(s => s.skippable);
               const enabled    = skippable.filter(s => s.enabled).length;
@@ -720,16 +720,16 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                   </span>
                 ) : null}
 
-                {/* Execution mode badge */}
+                {/* Execution mode badge — desktop only */}
                 {showExecMode && (
-                  <span className="text-[10px] text-muted-foreground/35 shrink-0">
+                  <span className="hidden sm:inline text-[10px] text-muted-foreground/35 shrink-0">
                     {hasIntraGroupDeps ? "→" : group.parallel ? "∥" : "→"}
                   </span>
                 )}
 
-                {/* ETA */}
+                {/* ETA — desktop only */}
                 {group.enabled && enabledCount > 0 && etaByGroup[group.id] ? (
-                  <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">
+                  <span className="hidden sm:flex items-center gap-0.5 text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">
                     <Clock className="h-2.5 w-2.5" />
                     {fmtSeconds(etaByGroup[group.id])}
                   </span>

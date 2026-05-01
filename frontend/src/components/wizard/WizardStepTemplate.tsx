@@ -111,7 +111,7 @@ export function WizardStepTemplate({
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {templates.map((t) => {
             const selected = template === t.name;
             const meta = BUILTIN_META[t.name];

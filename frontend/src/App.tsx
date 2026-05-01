@@ -79,12 +79,14 @@ export function App() {
           </button>
 
           {/* Breadcrumbs */}
-          <div className="flex-1 pl-2">
+          <div className="flex-1 min-w-0 pl-2">
             <Breadcrumbs />
           </div>
 
-          {/* Global Search */}
-          <GlobalSearch ref={searchRef} />
+          {/* Global Search — hidden on mobile */}
+          <div className="hidden sm:block">
+            <GlobalSearch ref={searchRef} />
+          </div>
 
           {/* WebSocket + API health status */}
           <button
@@ -102,30 +104,30 @@ export function App() {
             {connectionState === "connected" && health === "ok" && (
               <>
                 <Wifi className="h-3.5 w-3.5 text-primary" />
-                <span className="text-primary">Live</span>
+                <span className="hidden sm:inline text-primary">Live</span>
               </>
             )}
             {connectionState === "connected" && health === "degraded" && (
               <>
                 <WifiOff className="h-3.5 w-3.5 text-amber-500" />
-                <span className="text-amber-500">Connection issues</span>
+                <span className="hidden sm:inline text-amber-500">Connection issues</span>
               </>
             )}
             {connectionState === "reconnecting" && (
               <>
                 <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground">Reconnecting…</span>
+                <span className="hidden sm:inline text-muted-foreground">Reconnecting…</span>
               </>
             )}
             {connectionState === "disconnected" && (
               <>
                 <WifiOff className="h-3.5 w-3.5 text-destructive" />
-                <span className="text-destructive">Disconnected</span>
+                <span className="hidden sm:inline text-destructive">Disconnected</span>
               </>
             )}
           </button>
 
-          <ThemeSelector />
+          <div className="hidden sm:block"><ThemeSelector /></div>
           <NotificationBell />
         </header>
 

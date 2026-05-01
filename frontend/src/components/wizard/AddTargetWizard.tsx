@@ -119,7 +119,7 @@ export function AddTargetWizard({ open, onOpenChange, onCreated }: Props) {
           </div>
 
           {/* Step content */}
-          <div className="px-4 sm:px-6 py-4 min-h-[200px] overflow-y-auto flex-1">
+          <div className="px-4 sm:px-6 py-4 min-h-[200px] overflow-x-hidden overflow-y-auto flex-1">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <WizardStepDomain

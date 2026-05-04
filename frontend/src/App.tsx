@@ -78,10 +78,13 @@ export function App() {
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Breadcrumbs */}
-          <div className="flex-1 min-w-0 pl-2">
+          {/* Breadcrumbs — hidden on mobile */}
+          <div className="hidden sm:block flex-1 min-w-0 pl-2">
             <Breadcrumbs />
           </div>
+
+          {/* Mobile spacer */}
+          <div className="sm:hidden flex-1" />
 
           {/* Global Search */}
           <GlobalSearch ref={searchRef} />

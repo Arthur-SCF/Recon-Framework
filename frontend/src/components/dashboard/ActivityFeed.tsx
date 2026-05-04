@@ -30,7 +30,7 @@ export function ActivityFeed() {
   const recent = notifications.slice(0, 10);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-4 min-w-0 overflow-hidden">
       <p className="text-xs font-medium text-foreground mb-3">Recent Activity</p>
 
       {error && <InlineError message={error} onRetry={retry} compact />}

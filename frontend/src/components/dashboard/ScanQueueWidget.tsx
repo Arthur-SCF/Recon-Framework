@@ -101,16 +101,16 @@ export function ScanQueueWidget() {
   }
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-4 min-w-0 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-foreground shrink-0">
           <Activity className="h-3.5 w-3.5 text-primary" />
           Scan Queue
         </div>
 
         {/* Pause/resume buttons */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {/* Pause manual queue — shown when items are queued or queue is paused */}
           {(hasAnyQueued || queuePaused) && (
             <button

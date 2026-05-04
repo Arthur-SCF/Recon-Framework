@@ -251,19 +251,19 @@ export function ScreenshotGallery({ targetId }: Props) {
                   <button
                     onClick={() => setSelected((i) => i !== null ? Math.max(0, i - 1) : null)}
                     disabled={selected === 0}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 disabled:opacity-30 transition"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 disabled:opacity-30 transition"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => setSelected((i) => i !== null ? Math.min(filtered.length - 1, i + 1) : null)}
                     disabled={selected === filtered.length - 1}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 disabled:opacity-30 transition"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 disabled:opacity-30 transition"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
 
-                  <Dialog.Close className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 transition">
+                  <Dialog.Close className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition">
                     <X className="h-4 w-4" />
                   </Dialog.Close>
                 </div>

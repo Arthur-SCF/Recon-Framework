@@ -18,9 +18,9 @@ const items = [
 
 export function FlowLegend() {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-card/60 backdrop-blur-sm px-3 py-1.5 shadow-sm shadow-black/20">
+    <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 max-w-full rounded-xl border border-white/[0.06] bg-card/60 backdrop-blur-sm px-2.5 py-1.5 shadow-sm shadow-black/20">
       {items.map(({ icon, label }) => (
-        <span key={label} className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40">
+        <span key={label} className="flex items-center gap-1 text-[10px] text-muted-foreground/40 whitespace-nowrap">
           {icon}
           {label}
         </span>

@@ -104,10 +104,10 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={copy}
-      className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
       title="Copy"
     >
-      {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
 }
@@ -181,7 +181,7 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
               href={`https://www.whois.com/whois/${hostname}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
               title="Whois lookup"
             >
               <Search className="h-3.5 w-3.5" />
@@ -190,14 +190,14 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
               href={host.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
               title="Open in browser"
             >
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
             <Dialog.Close
               onClick={onClose}
-              className="shrink-0 rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
             >
               <X className="h-4 w-4" />
             </Dialog.Close>

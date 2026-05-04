@@ -240,8 +240,10 @@ export function Dashboard() {
 
           {/* Scan queue + Activity feed */}
           <div className="grid gap-3 lg:grid-cols-3">
-            <ScanQueueWidget />
-            <div className="lg:col-span-2">
+            <div className="min-w-0">
+              <ScanQueueWidget />
+            </div>
+            <div className="lg:col-span-2 min-w-0">
               <ActivityFeed />
             </div>
           </div>

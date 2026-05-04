@@ -209,14 +209,14 @@ export const GlobalSearch = forwardRef<GlobalSearchHandle>((_, ref) => {
           onFocus={() => { if (results && hasResults(results)) setOpen(true); }}
           onKeyDown={(e) => { if (e.key === "Escape") { setOpen(false); inputRef.current?.blur(); } }}
           placeholder="Search… (/)"
-          className="h-8 w-56 rounded-md border border-border bg-background pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:w-72 transition-[width] duration-200"
+          className="h-8 w-28 sm:w-56 rounded-md border border-border bg-background pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:w-44 sm:focus:w-72 transition-[width] duration-200"
         />
       </div>
 
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="absolute right-0 top-full mt-1.5 w-80 rounded-lg border border-border bg-card shadow-xl z-50 max-h-96 overflow-y-auto"
+          className="absolute right-0 top-full mt-1.5 w-[calc(100vw-1.5rem)] sm:w-80 max-w-[20rem] rounded-lg border border-border bg-card shadow-xl z-50 max-h-96 overflow-y-auto"
         >
           {empty ? (
             <p className="py-8 text-center text-xs text-muted-foreground">

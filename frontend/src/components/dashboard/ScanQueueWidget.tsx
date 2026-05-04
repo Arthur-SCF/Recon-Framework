@@ -125,9 +125,9 @@ export function ScanQueueWidget() {
               title={queuePaused ? "Resume all scans (queue + loops)" : "Pause everything — queue and loops"}
             >
               {queuePaused ? (
-                <><PlayCircle className="h-3 w-3" /> Resume queue</>
+                <><PlayCircle className="h-3 w-3" /> <span className="hidden sm:inline">Resume queue</span><span className="sm:hidden">Resume</span></>
               ) : (
-                <><PauseCircle className="h-3 w-3" /> Pause queue</>
+                <><PauseCircle className="h-3 w-3" /> <span className="hidden sm:inline">Pause queue</span><span className="sm:hidden">Pause</span></>
               )}
             </button>
           )}
@@ -146,9 +146,9 @@ export function ScanQueueWidget() {
               title={loopsPaused ? "Resume all loops" : "Stop all loops (current scan finishes normally)"}
             >
               {loopsPaused ? (
-                <><PlayCircle className="h-3 w-3" /> Resume loops</>
+                <><PlayCircle className="h-3 w-3" /> <span className="hidden sm:inline">Resume loops</span><span className="sm:hidden">Loops</span></>
               ) : (
-                <><PauseCircle className="h-3 w-3" /> Stop loops</>
+                <><PauseCircle className="h-3 w-3" /> <span className="hidden sm:inline">Stop loops</span><span className="sm:hidden">Loops</span></>
               )}
             </button>
           )}

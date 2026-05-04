@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Target } from "@/types/api";
 
 interface Crumb {
@@ -42,21 +43,21 @@ export function Breadcrumbs() {
   if (crumbs.length <= 1) return null;
 
   return (
-    <nav className="flex items-center gap-1 text-xs text-muted-foreground">
+    <nav className="flex items-center gap-1 text-xs text-muted-foreground min-w-0 truncate">
       {crumbs.map((crumb, i) => {
         const isLast = i === crumbs.length - 1;
         return (
-          <span key={i} className="flex items-center gap-1">
-            {i > 0 && <ChevronRight className="h-3 w-3" />}
+          <span key={i} className="inline-flex items-center gap-1 shrink-0 min-w-0">
+            {i > 0 && <ChevronRight className="h-3 w-3 shrink-0" />}
             {crumb.to && !isLast ? (
               <Link
                 to={crumb.to}
-                className="hover:text-primary transition-colors"
+                className="hover:text-primary transition-colors truncate"
               >
                 {crumb.label}
               </Link>
             ) : (
-              <span className={isLast ? "text-foreground font-medium" : ""}>
+              <span className={cn("truncate", isLast && "text-foreground font-medium")}>
                 {crumb.label}
               </span>
             )}

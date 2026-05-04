@@ -122,10 +122,15 @@ export function NotificationBell() {
           </div>
 
           {/* Type filter */}
-          <div className="flex gap-1 px-3 py-1.5 border-b border-border overflow-x-auto">
+          <div className="flex gap-1.5 px-3 py-2 border-b border-border overflow-x-auto scrollbar-thin">
             <button
               onClick={() => setActiveType(null)}
-              className={`px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap ${!activeType ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
+              className={cn(
+                "shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-colors",
+                !activeType
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
             >
               All
             </button>
@@ -133,7 +138,12 @@ export function NotificationBell() {
               <button
                 key={t}
                 onClick={() => setActiveType(activeType === t ? null : t)}
-                className={`px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap ${activeType === t ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
+                className={cn(
+                  "shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-colors",
+                  activeType === t
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
               >
                 {t.replace(/_/g, " ")}
               </button>

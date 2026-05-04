@@ -23,7 +23,7 @@ export function ThemeSelector() {
         <DropdownMenu.Content
           align="end"
           sideOffset={8}
-          className="z-50 w-64 rounded-[var(--radius)] border border-border bg-card p-2 shadow-xl"
+          className="z-50 w-[calc(100vw-1.5rem)] sm:w-64 max-w-[16rem] rounded-[var(--radius)] border border-border bg-card p-2 shadow-xl"
         >
           {/* Theme list */}
           <p className="px-2 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">

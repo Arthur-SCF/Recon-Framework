@@ -243,22 +243,24 @@ export function TargetDetail() {
       {/* Tabs */}
       {target && (
         <Tabs.Root key={id} defaultValue="pipeline">
-          <Tabs.List className="flex flex-wrap gap-1 border-b border-border">
-            {visibleTabs.map(({ id: tabId, label }) => (
-              <Tabs.Trigger
-                key={tabId}
-                value={tabId}
-                className={cn(
-                  "px-3 py-2 text-sm transition-colors border-b-2 -mb-px",
-                  "text-muted-foreground border-transparent",
-                  "data-[state=active]:text-foreground data-[state=active]:border-primary",
-                  "hover:text-foreground",
-                )}
-              >
-                {label}
-              </Tabs.Trigger>
-            ))}
-          </Tabs.List>
+          <div className="overflow-x-auto pb-px -mx-0.5 px-0.5">
+            <Tabs.List className="flex gap-1 border-b border-border min-w-max">
+              {visibleTabs.map(({ id: tabId, label }) => (
+                <Tabs.Trigger
+                  key={tabId}
+                  value={tabId}
+                  className={cn(
+                    "px-3 py-2 text-sm transition-colors border-b-2 -mb-px whitespace-nowrap",
+                    "text-muted-foreground border-transparent",
+                    "data-[state=active]:text-foreground data-[state=active]:border-primary",
+                    "hover:text-foreground",
+                  )}
+                >
+                  {label}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+          </div>
 
           {visibleTabs.map(({ id: tabId, label }) => (
             <Tabs.Content key={tabId} value={tabId} className="pt-4">

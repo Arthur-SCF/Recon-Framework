@@ -83,10 +83,8 @@ export function App() {
             <Breadcrumbs />
           </div>
 
-          {/* Global Search — hidden on mobile */}
-          <div className="hidden sm:block">
-            <GlobalSearch ref={searchRef} />
-          </div>
+          {/* Global Search */}
+          <GlobalSearch ref={searchRef} />
 
           {/* WebSocket + API health status */}
           <button
@@ -127,12 +125,12 @@ export function App() {
             )}
           </button>
 
-          <div className="hidden sm:block"><ThemeSelector /></div>
+          <ThemeSelector />
           <NotificationBell />
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background">
           <Outlet />
         </main>
       </div>

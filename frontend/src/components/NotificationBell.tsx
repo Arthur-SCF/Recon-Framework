@@ -84,7 +84,7 @@ export function NotificationBell() {
         <Popover.Content
           align="end"
           sideOffset={8}
-          className="z-50 w-80 rounded-lg border border-border bg-popover shadow-xl outline-none"
+          className="z-50 w-[calc(100vw-1.5rem)] sm:w-80 max-w-[20rem] rounded-lg border border-border bg-popover shadow-xl outline-none"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-3 py-2.5">

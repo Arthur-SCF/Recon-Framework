@@ -97,7 +97,7 @@ export function WizardStepOptions({
         <label className="mb-2 block text-xs font-medium text-foreground">
           Wildcard Policy
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {WILDCARD_CARDS.map((w) => {
             const selected = wildcardPolicy === w.id;
             return (

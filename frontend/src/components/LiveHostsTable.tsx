@@ -347,7 +347,7 @@ export function LiveHostsTable({ targetId, hosts: controlledHosts, onHostClick }
                   {isExpanded && (
                     <tr key={`${host.id}-detail`} className="bg-muted/10 border-b border-border/50">
                       <td colSpan={7} className="px-4 py-3">
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-xs md:grid-cols-3 lg:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                           <Detail label="Host"       value={host.host} />
                           <Detail label="Port"       value={host.port} />
                           <Detail label="Final URL"  value={host.final_url} mono />
@@ -411,7 +411,7 @@ export function LiveHostsTable({ targetId, hosts: controlledHosts, onHostClick }
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>Page {page + 1} of {totalPages}</span>
           <div className="flex items-center gap-1">
             <button

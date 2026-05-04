@@ -132,7 +132,7 @@ export function WizardStepReview({
         <div className="border-t border-border" />
 
         {/* Wildcard + Priority */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-3">
             <div className="rounded-md bg-primary/10 p-2 shrink-0">
               <Shield className="h-4 w-4 text-primary" />
@@ -158,7 +158,7 @@ export function WizardStepReview({
         <div className="border-t border-border" />
 
         {/* Scan Mode + Schedule */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-3">
             <div className="rounded-md bg-primary/10 p-2 shrink-0">
               {scanMode === "loop" ? (

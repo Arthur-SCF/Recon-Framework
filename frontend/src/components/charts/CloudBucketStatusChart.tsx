@@ -33,7 +33,7 @@ export function CloudBucketStatusChart({ buckets }: Props) {
 
   return (
     <ChartCard title="S3 Bucket Summary">
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {tiles.map((t) => (
           <div key={t.label} className="text-center">
             <div className={`text-lg font-semibold ${t.color}`}>{t.value}</div>

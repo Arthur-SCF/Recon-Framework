@@ -151,7 +151,7 @@ export function ScopeRuleEditor({ targetId }: Props) {
           value={pattern}
           onChange={(e) => setPattern(e.target.value)}
           placeholder="*.staging.example.com"
-          className="flex-1 rounded-md border border-border bg-input px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full sm:flex-1 sm:min-w-0 sm:w-auto rounded-md border border-border bg-input px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
         <button
           type="submit"

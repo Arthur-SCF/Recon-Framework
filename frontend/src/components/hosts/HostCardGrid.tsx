@@ -37,7 +37,7 @@ export function HostCardGrid({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>Page {page + 1} of {totalPages} ({hosts.length} hosts)</span>
           <div className="flex items-center gap-1">
             <button

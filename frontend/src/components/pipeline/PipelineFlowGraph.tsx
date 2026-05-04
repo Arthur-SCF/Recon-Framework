@@ -147,7 +147,7 @@ export function PipelineFlowGraph({
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent shrink-0" />
 
       {/* ── Phase stepper strip ─────────────────────────────────────────── */}
-      <div className="flex items-start px-5 py-4 border-b border-white/[0.05] bg-white/[0.015] overflow-x-auto gap-0">
+      <div className="flex items-start px-3 sm:px-5 py-4 border-b border-white/[0.05] bg-white/[0.015] overflow-x-auto gap-0">
         {visiblePhases.map((phase, i) => {
           const phaseGroups = groupsByPhase.get(phase.id) ?? [];
           const phaseRuns   = phaseGroups.flatMap((g) => groupRuns.get(g.id) ?? []);

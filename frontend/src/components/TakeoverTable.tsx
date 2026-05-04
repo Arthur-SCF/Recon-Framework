@@ -263,7 +263,7 @@ export function TakeoverTable({ targetId }: Props) {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
               <span>Page {hook.page} of {totalPages}</span>
               <div className="flex items-center gap-1">
                 <button onClick={() => hook.setPage(hook.page - 1)} disabled={hook.page <= 1}

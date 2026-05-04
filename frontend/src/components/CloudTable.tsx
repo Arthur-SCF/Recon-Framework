@@ -48,7 +48,7 @@ function Paginator({ page, total, perPage, onPage }: { page: number; total: numb
   const totalPages = Math.ceil(total / perPage);
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1">
       <span>Page {page} of {totalPages} ({total.toLocaleString()} total)</span>
       <div className="flex items-center gap-1">
         <button onClick={() => onPage(page - 1)} disabled={page <= 1}

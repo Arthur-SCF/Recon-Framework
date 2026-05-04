@@ -246,7 +246,7 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
                   <>
                     {/* Summary delta */}
                     {(compareData.session_a.subdomain_total > 0 || compareData.session_b.subdomain_total > 0) && (
-                      <div className="flex gap-3 rounded-md bg-muted/20 border border-border px-3 py-2 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 rounded-md bg-muted/20 border border-border px-3 py-2 text-xs text-muted-foreground">
                         <span>
                           Scan A: <strong className="text-foreground">{compareData.session_a.subdomain_total.toLocaleString()}</strong> subdomains
                         </span>
@@ -268,8 +268,8 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
                     )}
 
                     {/* Event counts table */}
-                    <div className="overflow-hidden rounded-md border border-border">
-                      <table className="w-full text-xs">
+                    <div className="overflow-x-auto rounded-md border border-border">
+                      <table className="w-full min-w-[420px] text-xs">
                         <thead>
                           <tr className="border-b border-border bg-muted/30 text-left">
                             <th className="px-3 py-2 text-muted-foreground font-medium">Event</th>

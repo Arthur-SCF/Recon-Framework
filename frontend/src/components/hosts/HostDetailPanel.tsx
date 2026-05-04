@@ -69,9 +69,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3">
+    <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
       <span className="text-xs text-muted-foreground shrink-0">{label}</span>
-      <span className="text-xs text-foreground text-right font-mono break-all">{value}</span>
+      <span className="text-xs text-foreground sm:text-right font-mono break-all">{value}</span>
     </div>
   );
 }

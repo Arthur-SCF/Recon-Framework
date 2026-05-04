@@ -71,7 +71,7 @@ function TimeInput({
         const [h, m] = e.target.value.split(":").map(Number);
         if (!isNaN(h) && !isNaN(m)) onChange(h, m);
       }}
-      className="w-24 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+      className="w-28 sm:w-24 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
     />
   );
 }

@@ -16,11 +16,13 @@ import uuid
 
 from engine.pipeline.base import BaseTool, StepContext, StepResult, OutputStatus
 from engine.pipeline.dedup import normalize_subdomain
-from engine.storage import run_subprocess, save_raw_output
+from engine.storage import DATA_ROOT, run_subprocess, save_raw_output
 
 log = logging.getLogger("engine.tools.alterx")
 
 _AGGRESSIVE_PATTERNS = "/app/wordlists/patterns/patterns-aggressive.yaml"
+_TMP_DIR             = DATA_ROOT / "tmp"
+MAX_ALTERX_INPUT     = 5_000   # Skip permutation if subdomain count exceeds this
 
 
 class AlterxTool(BaseTool):
@@ -82,9 +84,22 @@ class AlterxTool(BaseTool):
                 data={"permutations": [], "count": 0},
             )
 
-        subdomains = [r["subdomain"] for r in rows]
+        subdomains  = [r["subdomain"] for r in rows]
+        max_input   = int(ctx.config.get("max_input", MAX_ALTERX_INPUT))
+        if len(subdomains) > max_input:
+            log.warning(
+                "%s alterx: %d subdomains exceeds max_input=%d — skipping to avoid resource exhaustion",
+                ctx.session_id[:8], len(subdomains), max_input,
+            )
+            return StepResult(
+                status=OutputStatus.SKIPPED,
+                result_count=0,
+                data={"permutations": [], "count": 0,
+                      "skipped_reason": f"input_too_large:{len(subdomains)}"},
+            )
 
-        tmp_fd, tmp_path = tempfile.mkstemp(prefix="alterx_input_", suffix=".txt", dir="/tmp")
+        _TMP_DIR.mkdir(parents=True, exist_ok=True)
+        tmp_fd, tmp_path = tempfile.mkstemp(prefix="alterx_input_", suffix=".txt", dir=str(_TMP_DIR))
         try:
             with os.fdopen(tmp_fd, "w") as fh:
                 fh.write("\n".join(subdomains))

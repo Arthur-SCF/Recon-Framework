@@ -672,6 +672,39 @@ def _live_host_row(r) -> dict:
 
 _LIVE_HOST_SORT = {"url", "status_code", "first_seen", "last_seen", "response_time"}
 
+_STATUS_CODE_BUCKET = {
+    range(200, 300): "2xx",
+    range(300, 400): "3xx",
+    range(400, 500): "4xx",
+    range(500, 600): "5xx",
+}
+
+
+def _status_bucket(code: int | None) -> str:
+    if code is None:
+        return "other"
+    for r, label in _STATUS_CODE_BUCKET.items():
+        if code in r:
+            return label
+    return "other"
+
+
+@router.get("/targets/{target_id}/live-hosts/stats")
+async def live_hosts_stats(
+    target_id: str,
+    db: Database = Depends(get_db),
+):
+    await _require_target(target_id, db)
+    rows = await db.fetchall(
+        "SELECT status_code, COUNT(*) AS n FROM live_hosts WHERE target_id = ? GROUP BY status_code",
+        (target_id,),
+    )
+    by_status: dict[str, int] = {}
+    for r in rows:
+        bucket = _status_bucket(r["status_code"])
+        by_status[bucket] = by_status.get(bucket, 0) + r["n"]
+    return {"by_status_code": by_status}
+
 
 @router.get("/targets/{target_id}/live-hosts")
 async def list_live_hosts(
@@ -681,7 +714,9 @@ async def list_live_hosts(
     q: Optional[str] = Query(None),
     sort_by: Optional[str] = Query(None),
     sort_dir: str = Query("desc", pattern="^(asc|desc)$"),
-    status_code: Optional[int] = None,
+    status_code: Optional[int] = Query(None),
+    status_code_gte: Optional[int] = Query(None),
+    status_code_lte: Optional[int] = Query(None),
     scheme: Optional[str] = Query(None),
     has_screenshot: Optional[bool] = Query(None),
     db: Database = Depends(get_db),
@@ -695,6 +730,13 @@ async def list_live_hosts(
     if status_code is not None:
         where += " AND status_code = ?"
         params.append(status_code)
+    elif status_code_gte is not None or status_code_lte is not None:
+        if status_code_gte is not None:
+            where += " AND status_code >= ?"
+            params.append(status_code_gte)
+        if status_code_lte is not None:
+            where += " AND status_code <= ?"
+            params.append(status_code_lte)
     if scheme is not None:
         where += " AND scheme = ?"
         params.append(scheme)

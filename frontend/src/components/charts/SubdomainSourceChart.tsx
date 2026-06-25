@@ -21,12 +21,12 @@ export function SubdomainSourceChart({ stats }: Props) {
     <ChartCard title="Subdomain Sources">
       <ResponsiveContainer width="100%" height={data.length * 28 + 20}>
         <BarChart data={data} layout="vertical" margin={{ left: 80, right: 12, top: 4, bottom: 4 }}>
-          <XAxis type="number" hide />
+          <XAxis type="number" hide domain={[0, "dataMax"]} />
           <YAxis type="category" dataKey="source" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={75} />
           <Tooltip
             contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 12, borderRadius: "6px" }}
           />
-          <Bar dataKey="count" fill={TECH_PALETTE[0]} radius={[0, 4, 4, 0]} />
+          <Bar dataKey="count" fill={TECH_PALETTE[0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>

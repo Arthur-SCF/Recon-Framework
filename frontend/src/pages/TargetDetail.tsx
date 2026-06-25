@@ -103,6 +103,15 @@ export function TargetDetail() {
     if (res.ok) setTarget(await res.json() as Target);
   }, [id]);
 
+  const refreshPipelineStepIds = useCallback(async () => {
+    if (!id) return;
+    const res = await fetch(`/api/v1/targets/${id}/pipeline`);
+    if (!res.ok) return;
+    const data = await res.json() as PipelineGroup[];
+    const ids = new Set<string>(data.flatMap((g) => g.steps.map((s) => s.step_id)));
+    setPipelineStepIds(ids);
+  }, [id]);
+
   // Re-fetch target status on any scan lifecycle event for this target
   useWsSubscribe(
     ["scan_started", "scan_completed", "scan_error", "scan_paused",
@@ -274,7 +283,12 @@ export function TargetDetail() {
                     onDequeued={() => void refreshSchedulerState()}
                   />
                 ) : tabId === "config" ? (
-                  <TargetConfig targetId={id!} currentTemplate={target.pipeline_template} onTemplateChanged={(tpl) => setTarget((t) => t ? { ...t, pipeline_template: tpl } : t)} />
+                  <TargetConfig
+                    targetId={id!}
+                    currentTemplate={target.pipeline_template}
+                    onTemplateChanged={(tpl) => setTarget((t) => t ? { ...t, pipeline_template: tpl } : t)}
+                    onPipelineChanged={() => void refreshPipelineStepIds()}
+                  />
                 ) : tabId === "subdomains" ? (
                   <SubdomainsTable targetId={id!} />
                 ) : tabId === "hosts" ? (

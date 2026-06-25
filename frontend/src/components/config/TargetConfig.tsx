@@ -102,9 +102,11 @@ interface Props {
   targetId: string;
   currentTemplate?: string;
   onTemplateChanged?: (templateName: string) => void;
+  /** Called after any operation that adds or removes steps from the pipeline. */
+  onPipelineChanged?: () => void;
 }
 
-export function TargetConfig({ targetId, currentTemplate = "standard", onTemplateChanged }: Props) {
+export function TargetConfig({ targetId, currentTemplate = "standard", onTemplateChanged, onPipelineChanged }: Props) {
   const { actionFetch } = useActionFetch();
   const [groups,       setGroups]       = useState<PipelineGroup[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -128,10 +130,10 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
 
   useEffect(() => { setSelected(currentTemplate); }, [currentTemplate]);
 
-  const fetchPipeline = useCallback(async () => {
+  const fetchPipeline = useCallback(async (): Promise<PipelineGroup[]> => {
     const res = await fetch(`/api/v1/targets/${targetId}/pipeline`);
+    const data: PipelineGroup[] = res.ok ? (await res.json()) as PipelineGroup[] : [];
     if (res.ok) {
-      const data = (await res.json()) as PipelineGroup[];
       setGroups(data);
       if (!initialExpanded.current) {
         setOpenGroups(new Set(data.map(g => g.id)));
@@ -141,10 +143,11 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
     setLoading(false);
     void fetch(`/api/v1/targets/${targetId}/pipeline/eta`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.per_group) setEtaByGroup(data.per_group as Record<string, number>);
+      .then(d => {
+        if (d?.per_group) setEtaByGroup(d.per_group as Record<string, number>);
       })
-      .catch(() => {/* non-critical */});
+      .catch(() => {});
+    return data;
   }, [targetId]);
 
   useEffect(() => { void fetchPipeline(); }, [fetchPipeline]);
@@ -200,6 +203,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
       });
       if (!res) return;
       onTemplateChanged?.(selected);
+      onPipelineChanged?.();
       initialExpanded.current = false;
       setSettingsOpen(false);
       await fetchPipeline();
@@ -234,6 +238,20 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
     });
   }
 
+  async function handleStepUpdated() {
+    const fresh = await fetchPipeline();
+    for (const group of fresh) {
+      const skippable = group.steps.filter(s => s.skippable);
+      if (skippable.length === 0) continue;
+      const hasEnabled = skippable.some(s => s.enabled);
+      if (group.enabled && !hasEnabled) {
+        await handleGroupUpdate(group.id, { enabled: false });
+      } else if (!group.enabled && hasEnabled) {
+        await handleGroupUpdate(group.id, { enabled: true });
+      }
+    }
+  }
+
   async function handleDeleteGroup(groupId: string) {
     setDeleteGroupId(null);
     const res = await actionFetch(`/api/v1/targets/${targetId}/pipeline/groups/${groupId}`, {
@@ -242,6 +260,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
       errorPrefix: "Delete group failed",
     });
     if (!res) return;
+    onPipelineChanged?.();
     await fetchPipeline();
   }
 
@@ -297,7 +316,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
         })
       ));
       if (results.some(r => r === null)) return;
-      await fetchPipeline();
+      await handleStepUpdated();
     } finally {
       setApplyingPreset(null);
     }
@@ -317,6 +336,8 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
       });
       if (!res) return;
       setSaveTemplateName("");
+      const tplRes = await fetch("/api/v1/pipeline/templates");
+      if (tplRes.ok) setTemplates(await tplRes.json() as PipelineTemplate[]);
     } finally {
       setSavingTemplate(false);
     }
@@ -409,7 +430,9 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                   title={
                     lockedOnly
                       ? `${group.name}: always runs (mandatory)`
-                      : `${group.name}: ${enabled}/${skippable.length} steps enabled`
+                      : !group.enabled
+                        ? `${group.name}: disabled`
+                        : `${group.name}: ${enabled}/${skippable.length} steps enabled`
                   }
                   className={cn(
                     "flex-1 rounded-sm transition-colors hover:opacity-70",
@@ -830,7 +853,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                                 targetId={targetId}
                                 step={step}
                                 label={stepMeta[step.step_id]?.label}
-                                onUpdated={fetchPipeline}
+                                onUpdated={handleStepUpdated}
                                 depWarning={getDepWarning(step.step_id)}
                               />
                             ))}
@@ -841,7 +864,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                                   mutexSteps.map(s => [s.step_id, stepMeta[s.step_id]?.label ?? s.step_id])
                                 )}
                                 targetId={targetId}
-                                onUpdated={fetchPipeline}
+                                onUpdated={handleStepUpdated}
                                 depWarning={mutexDepWarning}
                               />
                             )}

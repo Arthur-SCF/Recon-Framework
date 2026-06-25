@@ -6,7 +6,6 @@ import { InlineError } from "@/components/ui/InlineError";
 import { useServerPagination, type PaginationParams } from "@/lib/useServerPagination";
 import type { PaginatedResponse } from "@/types/api";
 import { SubdomainSourceChart } from "@/components/charts/SubdomainSourceChart";
-import { SubdomainGrowthChart } from "@/components/charts/SubdomainGrowthChart";
 import { useWsSubscribe } from "@/hooks/useWebSocket";
 
 type SortDir = "asc" | "desc" | null;
@@ -43,7 +42,9 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
   useEffect(() => {
     fetch(`/api/v1/targets/${targetId}/subdomains/stats`)
       .then((r) => r.json())
-      .then((d) => setStats(d.by_source ?? []))
+      .then((d) => setStats(
+        Object.entries(d.by_source ?? {}).map(([source, count]) => ({ source, count: count as number }))
+      ))
       .catch(() => {});
   }, [targetId]);
 
@@ -86,9 +87,8 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
     <div className="flex flex-col gap-3">
       {/* Charts */}
       {stats.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div className="mb-3">
           <SubdomainSourceChart stats={stats} />
-          <SubdomainGrowthChart series={[]} />
         </div>
       )}
 

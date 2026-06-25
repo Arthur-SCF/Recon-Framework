@@ -1,4 +1,4 @@
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExportMenu } from "@/components/ExportMenu";
 
@@ -10,6 +10,8 @@ interface HostFiltersProps {
   onFilterChange: (value: string) => void;
   schemeFilter: SchemeFilter;
   onSchemeChange: (scheme: SchemeFilter) => void;
+  statusFilter?: string | null;
+  onStatusFilterClear?: () => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   filteredCount: number;
@@ -24,6 +26,8 @@ export function HostFilters({
   onFilterChange,
   schemeFilter,
   onSchemeChange,
+  statusFilter,
+  onStatusFilterClear,
   viewMode,
   onViewModeChange,
   filteredCount,
@@ -39,6 +43,18 @@ export function HostFilters({
         onChange={(e) => onFilterChange(e.target.value)}
         className="flex-1 min-w-0 rounded border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
       />
+
+      {statusFilter && onStatusFilterClear && (
+        <button
+          onClick={onStatusFilterClear}
+          className="flex items-center gap-1 rounded border border-primary/40 bg-primary/10 px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+          title="Clear status filter"
+        >
+          {statusFilter}
+          <X className="h-3 w-3" />
+        </button>
+      )}
+
       <div className="flex rounded border border-border overflow-hidden text-xs">
         {SCHEMES.map((s) => (
           <button
@@ -56,7 +72,6 @@ export function HostFilters({
         ))}
       </div>
 
-      {/* View toggle */}
       <div className="flex rounded border border-border overflow-hidden">
         <button
           onClick={() => onViewModeChange("table")}

@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { useTableSort, type SortDir } from "@/lib/useTableSort";
 import type { LiveHost } from "@/types/api";
 
-type LiveHostCol = "url" | "code" | "title" | "webserver" | "rt";
+export type LiveHostCol = "url" | "code" | "title" | "webserver" | "rt";
 
 function SortIcon({ dir }: { dir: SortDir }) {
   if (dir === "asc")  return <ArrowUp   className="h-3 w-3" />;
@@ -32,6 +32,12 @@ interface Props {
   hosts?: LiveHost[];
   /** When provided, clicking a row opens the host detail panel instead of expanding inline. */
   onHostClick?: (host: LiveHost) => void;
+  /** Controlled-mode sort: when set, column header clicks call this instead of local sort. */
+  onSort?: (col: LiveHostCol | null, dir: "asc" | "desc" | null) => void;
+  /** Current sort column from the server-paginated parent. */
+  controlledSortBy?: string | null;
+  /** Current sort direction from the server-paginated parent. */
+  controlledSortDir?: "asc" | "desc";
 }
 
 // Status code → colour
@@ -77,7 +83,14 @@ function TechBadge({ tech }: { tech: string }) {
   );
 }
 
-export function LiveHostsTable({ targetId, hosts: controlledHosts, onHostClick }: Props) {
+export function LiveHostsTable({
+  targetId,
+  hosts: controlledHosts,
+  onHostClick,
+  onSort,
+  controlledSortBy,
+  controlledSortDir,
+}: Props) {
   const [ownHosts, setOwnHosts] = useState<LiveHost[]>([]);
   const [loading, setLoading] = useState(!controlledHosts);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -89,17 +102,37 @@ export function LiveHostsTable({ targetId, hosts: controlledHosts, onHostClick }
   const [page, setPage] = useState(0);
   const { sort, toggle } = useTableSort<LiveHostCol>();
 
-  // Controlled mode: hosts come from parent (LiveHostsView handles fetch + filter)
   const isControlled = controlledHosts !== undefined;
   const hosts = isControlled ? controlledHosts : ownHosts;
+
+  function handleColumnClick(col: LiveHostCol) {
+    if (isControlled && onSort) {
+      if (controlledSortBy !== col) {
+        onSort(col, "asc");
+      } else if (controlledSortDir === "asc") {
+        onSort(col, "desc");
+      } else {
+        onSort(null, null);
+      }
+    } else {
+      toggle(col);
+    }
+  }
+
+  function getColDir(col: LiveHostCol): SortDir {
+    if (isControlled && onSort) {
+      return controlledSortBy === col ? (controlledSortDir ?? null) : null;
+    }
+    return sort.col === col ? sort.dir : null;
+  }
 
   const load = useCallback(() => {
     if (isControlled) return;
     setLoading(true);
     void fetch(`/api/v1/targets/${targetId}/live-hosts`)
-      .then((r) => (r.ok ? (r.json() as Promise<LiveHost[]>) : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((data) => {
-        setOwnHosts(data);
+      .then((r) => (r.ok ? (r.json() as Promise<{ data: LiveHost[] }>) : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((res) => {
+        setOwnHosts(res.data);
         setFetchError(null);
         setLoading(false);
       })
@@ -136,17 +169,19 @@ export function LiveHostsTable({ targetId, hosts: controlledHosts, onHostClick }
   useEffect(() => { setPage(0); }, [filter, schemeFilter, sort]);
 
   const sorted = useMemo(() => {
+    // In controlled mode the server already sorted — no local sort needed.
+    if (isControlled) return filtered;
     if (!sort.col || !sort.dir) return filtered;
     return [...filtered].sort((a, b) => {
       let cmp = 0;
-      if (sort.col === "url")       cmp = a.url.localeCompare(b.url);
-      else if (sort.col === "code") cmp = (a.status_code ?? -1) - (b.status_code ?? -1);
-      else if (sort.col === "title") cmp = (a.title ?? "").localeCompare(b.title ?? "");
+      if (sort.col === "url")            cmp = a.url.localeCompare(b.url);
+      else if (sort.col === "code")      cmp = (a.status_code ?? -1) - (b.status_code ?? -1);
+      else if (sort.col === "title")     cmp = (a.title ?? "").localeCompare(b.title ?? "");
       else if (sort.col === "webserver") cmp = (a.webserver ?? "").localeCompare(b.webserver ?? "");
-      else if (sort.col === "rt")   cmp = (a.response_time ?? -1) - (b.response_time ?? -1);
+      else if (sort.col === "rt")        cmp = (a.response_time ?? -1) - (b.response_time ?? -1);
       return sort.dir === "asc" ? cmp : -cmp;
     });
-  }, [filtered, sort]);
+  }, [filtered, sort, isControlled]);
 
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -215,22 +250,22 @@ export function LiveHostsTable({ targetId, hosts: controlledHosts, onHostClick }
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
-              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggle("url")}>
-                <span className="inline-flex items-center gap-1">URL <SortIcon dir={sort.col === "url" ? sort.dir : null} /></span>
+              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("url")}>
+                <span className="inline-flex items-center gap-1">URL <SortIcon dir={getColDir("url")} /></span>
               </th>
-              <th className="px-3 py-2 font-medium w-14 text-center cursor-pointer select-none hover:text-foreground" onClick={() => toggle("code")}>
-                <span className="inline-flex items-center justify-center gap-1">Code <SortIcon dir={sort.col === "code" ? sort.dir : null} /></span>
+              <th className="px-3 py-2 font-medium w-14 text-center cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("code")}>
+                <span className="inline-flex items-center justify-center gap-1">Code <SortIcon dir={getColDir("code")} /></span>
               </th>
-              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggle("title")}>
-                <span className="inline-flex items-center gap-1">Title <SortIcon dir={sort.col === "title" ? sort.dir : null} /></span>
+              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("title")}>
+                <span className="inline-flex items-center gap-1">Title <SortIcon dir={getColDir("title")} /></span>
               </th>
-              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => toggle("webserver")}>
-                <span className="inline-flex items-center gap-1">Webserver <SortIcon dir={sort.col === "webserver" ? sort.dir : null} /></span>
+              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("webserver")}>
+                <span className="inline-flex items-center gap-1">Webserver <SortIcon dir={getColDir("webserver")} /></span>
               </th>
               <th className="px-3 py-2 font-medium">Tech</th>
               <th className="px-3 py-2 font-medium">Security</th>
-              <th className="px-3 py-2 font-medium w-16 text-right cursor-pointer select-none hover:text-foreground" onClick={() => toggle("rt")}>
-                <span className="inline-flex items-center justify-end gap-1">RT <SortIcon dir={sort.col === "rt" ? sort.dir : null} /></span>
+              <th className="px-3 py-2 font-medium w-16 text-right cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("rt")}>
+                <span className="inline-flex items-center justify-end gap-1">RT <SortIcon dir={getColDir("rt")} /></span>
               </th>
             </tr>
           </thead>

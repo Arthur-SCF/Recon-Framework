@@ -319,6 +319,11 @@ export interface StorageStats {
   targets: { domain: string; used_bytes: number }[];
 }
 
+// ── Live Host Stats ────────────────────────────────────────────────────────────
+export interface LiveHostStats {
+  by_status_code: Record<string, number>;
+}
+
 // ── Subdomain Stats ────────────────────────────────────────────────────────────
 export interface SubdomainStats {
   total: number;

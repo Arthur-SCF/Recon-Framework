@@ -46,10 +46,24 @@ export function DynamicParamForm({ stepId, overrides, onChange, disabled }: Prop
   const advanced = schema.filter(p => p.bucket === "advanced");
   const danger   = schema.filter(p => p.bucket === "danger");
 
-  const modifiedCount = Object.keys(overrides).length;
+  const modifiedCount = schema.filter(p => {
+    if (!(p.key in overrides)) return false;
+    const v = overrides[p.key];
+    if (v === undefined) return false;
+    if (typeof v === "object" || typeof p.default === "object") {
+      return JSON.stringify(v) !== JSON.stringify(p.default ?? null);
+    }
+    return v !== p.default;
+  }).length;
 
   function handleChange(key: string, value: unknown) {
-    onChange({ ...overrides, [key]: value });
+    if (value === undefined) {
+      const next = { ...overrides };
+      delete next[key];
+      onChange(next);
+    } else {
+      onChange({ ...overrides, [key]: value });
+    }
   }
 
   function resetAll() {

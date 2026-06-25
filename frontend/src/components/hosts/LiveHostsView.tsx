@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWsSubscribe } from "@/hooks/useWebSocket";
-import type { LiveHost } from "@/types/api";
-import type { PaginatedResponse } from "@/types/api";
+import type { LiveHost, LiveHostStats, PaginatedResponse } from "@/types/api";
 import { SkeletonRows } from "@/components/Skeleton";
 import { LiveHostsTable } from "@/components/LiveHostsTable";
 import { HostCardGrid } from "./HostCardGrid";
@@ -10,26 +9,45 @@ import { HostDetailPanel } from "./HostDetailPanel";
 import { StatusCodeChart } from "@/components/charts/StatusCodeChart";
 import { TechDistributionChart } from "@/components/charts/TechDistributionChart";
 import { useServerPagination, type PaginationParams } from "@/lib/useServerPagination";
+import type { LiveHostCol } from "@/components/LiveHostsTable";
 
 interface LiveHostsViewProps {
   targetId: string;
 }
 
-export function LiveHostsView({ targetId }: LiveHostsViewProps) {
-  const [schemeFilter, setSchemeFilter] = useState<"all" | "https" | "http">("all");
-  const [viewMode,     setViewMode]     = useState<"table" | "grid">("table");
-  const [selectedHost, setSelectedHost] = useState<LiveHost | null>(null);
-  const [page,         setPage]         = useState(0); // grid page (0-based)
+const COL_TO_SORT_KEY: Record<string, string> = {
+  code: "status_code",
+  rt: "response_time",
+};
+const SORT_KEY_TO_COL: Record<string, string> = {
+  status_code: "code",
+  response_time: "rt",
+};
 
-  // Reset local state when target changes
+const BUCKET_RANGES: Record<string, { gte: number; lte: number }> = {
+  "2xx": { gte: 200, lte: 299 },
+  "3xx": { gte: 300, lte: 399 },
+  "4xx": { gte: 400, lte: 499 },
+  "5xx": { gte: 500, lte: 599 },
+};
+
+export function LiveHostsView({ targetId }: LiveHostsViewProps) {
+  const [schemeFilter,  setSchemeFilter]  = useState<"all" | "https" | "http">("all");
+  const [statusFilter,  setStatusFilter]  = useState<string | null>(null);
+  const [viewMode,      setViewMode]      = useState<"table" | "grid">("table");
+  const [selectedHost,  setSelectedHost]  = useState<LiveHost | null>(null);
+  const [page,          setPage]          = useState(0);
+  const [hostStats,     setHostStats]     = useState<LiveHostStats | null>(null);
+
   useEffect(() => {
     setPage(0);
     setSelectedHost(null);
     setSchemeFilter("all");
+    setStatusFilter(null);
   }, [targetId]);
 
-  // Ref so fetchFn stays stable while still seeing current scheme
   const schemeRef = useRef<"all" | "https" | "http">("all");
+  const statusRef = useRef<string | null>(null);
 
   const fetchFn = useCallback((params: PaginationParams) => {
     const url = new URL(`/api/v1/targets/${targetId}/live-hosts`, window.location.origin);
@@ -39,6 +57,11 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
     if (params.sortBy) url.searchParams.set("sort_by", params.sortBy);
     url.searchParams.set("sort_dir", params.sortDir);
     if (schemeRef.current !== "all") url.searchParams.set("scheme", schemeRef.current);
+    const bucket = statusRef.current;
+    if (bucket && BUCKET_RANGES[bucket]) {
+      url.searchParams.set("status_code_gte", String(BUCKET_RANGES[bucket].gte));
+      url.searchParams.set("status_code_lte", String(BUCKET_RANGES[bucket].lte));
+    }
     return fetch(url.toString()).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json() as Promise<PaginatedResponse<LiveHost>>;
@@ -47,17 +70,36 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
 
   const hook = useServerPagination<LiveHost>(fetchFn, { perPage: 100 });
 
-  // When scheme changes: update ref then force a re-fetch
+  const fetchStats = useCallback(() => {
+    void fetch(`/api/v1/targets/${targetId}/live-hosts/stats`)
+      .then((r) => (r.ok ? r.json() as Promise<LiveHostStats> : null))
+      .then((s) => { if (s) setHostStats(s); })
+      .catch(() => {});
+  }, [targetId]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
   useEffect(() => {
     schemeRef.current = schemeFilter;
+    hook.setPage(1);
     hook.refresh();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schemeFilter]);
 
-  // WebSocket: refresh on new_hosts events for this target
-  useWsSubscribe("new_hosts", () => hook.refresh(), targetId);
+  useEffect(() => {
+    statusRef.current = statusFilter;
+    hook.setPage(1);
+    hook.refresh();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
 
-  // 30s fallback stale-data safety net
+  useWsSubscribe("new_hosts", () => {
+    hook.refresh();
+    fetchStats();
+  }, targetId);
+
   useEffect(() => {
     const interval = setInterval(() => hook.refresh(), 30_000);
     return () => clearInterval(interval);
@@ -68,7 +110,7 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
     return <SkeletonRows count={8} />;
   }
 
-  if (!hook.loading && hook.total === 0 && !hook.q && schemeFilter === "all") {
+  if (!hook.loading && hook.total === 0 && !hook.q && schemeFilter === "all" && !statusFilter) {
     return (
       <div className="py-8 text-center text-sm text-muted-foreground">
         No live hosts yet. Run a scan to discover them.
@@ -78,10 +120,13 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Charts — use current page data */}
-      {hook.data.length > 0 && (
+      {hostStats && (
         <div className="grid gap-3 md:grid-cols-2">
-          <StatusCodeChart hosts={hook.data} />
+          <StatusCodeChart
+            stats={hostStats.by_status_code}
+            activeBucket={statusFilter}
+            onBucketClick={setStatusFilter}
+          />
           <TechDistributionChart hosts={hook.data} />
         </div>
       )}
@@ -91,6 +136,8 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
         onFilterChange={hook.setQ}
         schemeFilter={schemeFilter}
         onSchemeChange={setSchemeFilter}
+        statusFilter={statusFilter}
+        onStatusFilterClear={() => setStatusFilter(null)}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         filteredCount={hook.data.length}
@@ -99,7 +146,20 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
       />
 
       {viewMode === "table" ? (
-        <LiveHostsTable targetId={targetId} hosts={hook.data} onHostClick={setSelectedHost} />
+        <LiveHostsTable
+          targetId={targetId}
+          hosts={hook.data}
+          onHostClick={setSelectedHost}
+          onSort={(col, dir) => {
+            if (col === null || dir === null) {
+              hook.setSort("", "desc");
+            } else {
+              hook.setSort(COL_TO_SORT_KEY[col] ?? col, dir);
+            }
+          }}
+          controlledSortBy={(hook.sortBy ? (SORT_KEY_TO_COL[hook.sortBy] ?? hook.sortBy) : hook.sortBy) as LiveHostCol | null}
+          controlledSortDir={hook.sortDir}
+        />
       ) : (
         <HostCardGrid
           hosts={hook.data}
@@ -110,7 +170,6 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
         />
       )}
 
-      {/* Pagination bar */}
       {hook.total > hook.perPage && (
         <div className="flex items-center justify-between gap-2 pt-1 text-sm text-muted-foreground">
           <span>

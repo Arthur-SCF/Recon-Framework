@@ -1,12 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Camera, ChevronLeft, ChevronRight, ImageOff, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { LiveHost } from "@/types/api";
+import type { LiveHost, PaginatedResponse } from "@/types/api";
 import { ExportMenu } from "./ExportMenu";
 import { InlineError } from "@/components/ui/InlineError";
 import { useServerPagination, type PaginationParams } from "@/lib/useServerPagination";
-import type { PaginatedResponse } from "@/types/api";
 
 interface Props {
   targetId: string;
@@ -14,6 +13,14 @@ interface Props {
 
 type StatusRange = "all" | "2xx" | "3xx" | "4xx" | "5xx";
 type Scheme = "all" | "https" | "http";
+
+const STATUS_RANGES: Record<StatusRange, { gte: number; lte: number } | null> = {
+  "all": null,
+  "2xx": { gte: 200, lte: 299 },
+  "3xx": { gte: 300, lte: 399 },
+  "4xx": { gte: 400, lte: 499 },
+  "5xx": { gte: 500, lte: 599 },
+};
 
 function statusColor(code: number | null): string {
   if (!code) return "bg-muted text-muted-foreground";
@@ -67,12 +74,21 @@ export function ScreenshotGallery({ targetId }: Props) {
   const [scheme,   setScheme]   = useState<Scheme>("all");
   const [selected, setSelected] = useState<number | null>(null);
 
+  const statusRef = useRef<StatusRange>("all");
+  const schemeRef = useRef<Scheme>("all");
+
   const fetchFn = useCallback((params: PaginationParams) => {
     const url = new URL(`/api/v1/targets/${targetId}/live-hosts`, window.location.origin);
     url.searchParams.set("has_screenshot", "true");
     url.searchParams.set("page",     String(params.page));
     url.searchParams.set("per_page", String(params.perPage));
     if (params.q) url.searchParams.set("q", params.q);
+    const range = STATUS_RANGES[statusRef.current];
+    if (range) {
+      url.searchParams.set("status_code_gte", String(range.gte));
+      url.searchParams.set("status_code_lte", String(range.lte));
+    }
+    if (schemeRef.current !== "all") url.searchParams.set("scheme", schemeRef.current);
     return fetch(url.toString()).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json() as Promise<PaginatedResponse<LiveHost>>;
@@ -81,19 +97,21 @@ export function ScreenshotGallery({ targetId }: Props) {
 
   const hook = useServerPagination<LiveHost>(fetchFn, { perPage: 24 });
 
-  // Client-side status/scheme filtering on top of the paginated data
-  const filtered = useMemo(() => {
-    return hook.data.filter((h) => {
-      const matchStatus =
-        status === "all" ||
-        (status === "2xx" && h.status_code != null && h.status_code >= 200 && h.status_code < 300) ||
-        (status === "3xx" && h.status_code != null && h.status_code >= 300 && h.status_code < 400) ||
-        (status === "4xx" && h.status_code != null && h.status_code >= 400 && h.status_code < 500) ||
-        (status === "5xx" && h.status_code != null && h.status_code >= 500);
-      const matchScheme = scheme === "all" || h.scheme === scheme;
-      return matchStatus && matchScheme;
-    });
-  }, [hook.data, status, scheme]);
+  useEffect(() => {
+    statusRef.current = status;
+    setSelected(null);
+    hook.setPage(1);
+    hook.refresh();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  useEffect(() => {
+    schemeRef.current = scheme;
+    setSelected(null);
+    hook.setPage(1);
+    hook.refresh();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheme]);
 
   const totalPages = Math.ceil(hook.total / hook.perPage);
 
@@ -105,7 +123,7 @@ export function ScreenshotGallery({ targetId }: Props) {
     );
   }
 
-  if (!hook.loading && hook.total === 0 && !hook.q) {
+  if (!hook.loading && hook.total === 0 && !hook.q && status === "all" && scheme === "all") {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
         <Camera className="h-10 w-10 opacity-30" />
@@ -114,11 +132,10 @@ export function ScreenshotGallery({ targetId }: Props) {
     );
   }
 
-  const current = selected !== null ? filtered[selected] : null;
+  const current = selected !== null ? hook.data[selected] : null;
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
@@ -154,7 +171,7 @@ export function ScreenshotGallery({ targetId }: Props) {
 
         <ExportMenu targetId={targetId} type="screenshots" />
         <span className="ml-auto text-xs text-muted-foreground">
-          {filtered.length} / {hook.total}
+          {hook.total.toLocaleString()} screenshots
         </span>
       </div>
 
@@ -162,11 +179,11 @@ export function ScreenshotGallery({ targetId }: Props) {
         <InlineError message={hook.error} onRetry={hook.refresh} />
       )}
 
-      {filtered.length === 0 ? (
+      {hook.data.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">No results match the current filter.</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {filtered.map((host, idx) => (
+          {hook.data.map((host, idx) => (
             <button
               key={host.id}
               onClick={() => setSelected(idx)}
@@ -198,7 +215,6 @@ export function ScreenshotGallery({ targetId }: Props) {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
@@ -224,7 +240,6 @@ export function ScreenshotGallery({ targetId }: Props) {
         </div>
       )}
 
-      {/* Lightbox */}
       <Dialog.Root open={selected !== null} onOpenChange={(o) => { if (!o) setSelected(null); }}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
@@ -256,8 +271,8 @@ export function ScreenshotGallery({ targetId }: Props) {
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => setSelected((i) => i !== null ? Math.min(filtered.length - 1, i + 1) : null)}
-                    disabled={selected === filtered.length - 1}
+                    onClick={() => setSelected((i) => i !== null ? Math.min(hook.data.length - 1, i + 1) : null)}
+                    disabled={selected === hook.data.length - 1}
                     className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 disabled:opacity-30 transition"
                   >
                     <ChevronRight className="h-5 w-5" />
@@ -289,7 +304,7 @@ export function ScreenshotGallery({ targetId }: Props) {
                     </div>
                   )}
                   <p className="text-[10px] text-muted-foreground/50">
-                    {selected !== null ? `${selected + 1} / ${filtered.length}` : ""}
+                    {selected !== null ? `${selected + 1} / ${hook.data.length}` : ""}
                     {current.webserver ? ` · ${current.webserver}` : ""}
                   </p>
                 </div>

@@ -35,7 +35,7 @@ export function FieldRenderer({ descriptor, value, onChange, disabled }: Props) 
   const modified = isValueModified(value, defaultVal);
 
   function emit(v: unknown) { onChange(key, v); }
-  function reset() { onChange(key, defaultVal); }
+  function reset() { onChange(key, undefined); }
 
   // ── Bool — horizontal layout ───────────────────────────────────────────────
   if (type === "bool") {

@@ -82,8 +82,14 @@ export function useConfigShortcuts({ onExpandAll, onCollapseAll, enabled = true 
         stableCallbacks.current.onExpandAll();
         break;
       }
-      case "c":
+      case "c": {
+        e.preventDefault();
+        stableCallbacks.current.onCollapseAll();
+        break;
+      }
       case "Escape": {
+        // If a modal dialog is open, let it handle its own Escape — don't collapse groups.
+        if (document.querySelector('[role="dialog"][aria-modal="true"]')) break;
         e.preventDefault();
         stableCallbacks.current.onCollapseAll();
         break;

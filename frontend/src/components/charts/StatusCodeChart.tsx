@@ -1,32 +1,18 @@
-import { useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import type { LiveHost } from "@/types/api";
 import { STATUS_COLORS } from "@/lib/chartTheme";
 import { ChartCard } from "./ChartCard";
+import { cn } from "@/lib/utils";
 
-interface StatusCodeChartProps {
-  hosts: LiveHost[];
+interface Props {
+  stats: Record<string, number>;
+  activeBucket?: string | null;
+  onBucketClick?: (bucket: string | null) => void;
 }
 
-function bucketLabel(code: number): string {
-  if (code >= 200 && code < 300) return "2xx";
-  if (code >= 300 && code < 400) return "3xx";
-  if (code >= 400 && code < 500) return "4xx";
-  if (code >= 500) return "5xx";
-  return "other";
-}
-
-export function StatusCodeChart({ hosts }: StatusCodeChartProps) {
-  const data = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const h of hosts) {
-      const bucket = h.status_code ? bucketLabel(h.status_code) : "other";
-      counts[bucket] = (counts[bucket] ?? 0) + 1;
-    }
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [hosts]);
+export function StatusCodeChart({ stats, activeBucket, onBucketClick }: Props) {
+  const data = Object.entries(stats)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
 
   if (data.length === 0) {
     return (
@@ -51,11 +37,18 @@ export function StatusCodeChart({ hosts }: StatusCodeChartProps) {
               outerRadius={65}
               paddingAngle={2}
               strokeWidth={0}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={onBucketClick ? (entry: any) => {
+                const bucket = String(entry?.name ?? "");
+                if (bucket) onBucketClick(bucket === activeBucket ? null : bucket);
+              } : undefined}
+              style={onBucketClick ? { cursor: "pointer" } : undefined}
             >
               {data.map((entry) => (
                 <Cell
                   key={entry.name}
                   fill={STATUS_COLORS[entry.name] ?? STATUS_COLORS.other}
+                  opacity={activeBucket && activeBucket !== entry.name ? 0.4 : 1}
                 />
               ))}
             </Pie>
@@ -71,17 +64,27 @@ export function StatusCodeChart({ hosts }: StatusCodeChartProps) {
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Legend */}
         <div className="flex flex-col gap-1.5">
           {data.map((d) => (
-            <div key={d.name} className="flex items-center gap-2 text-xs">
+            <button
+              key={d.name}
+              onClick={onBucketClick ? () => onBucketClick(d.name === activeBucket ? null : d.name) : undefined}
+              disabled={!onBucketClick}
+              className={cn(
+                "flex items-center gap-2 text-xs text-left transition-opacity",
+                onBucketClick && "hover:opacity-100 cursor-pointer",
+                activeBucket && activeBucket !== d.name && "opacity-40",
+              )}
+            >
               <span
                 className="h-2.5 w-2.5 rounded-sm shrink-0"
                 style={{ backgroundColor: STATUS_COLORS[d.name] ?? STATUS_COLORS.other }}
               />
-              <span className="text-muted-foreground">{d.name}</span>
+              <span className={cn("text-muted-foreground", activeBucket === d.name && "text-foreground font-medium")}>
+                {d.name}
+              </span>
               <span className="font-medium text-foreground">{d.value}</span>
-            </div>
+            </button>
           ))}
         </div>
       </div>

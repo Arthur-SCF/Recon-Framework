@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Loader2, ExternalLink, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExportMenu } from "@/components/ExportMenu";
@@ -24,6 +25,8 @@ interface Subdomain {
   last_seen: string;
   is_live: boolean;
   consolidated_in: string[] | null;
+  target_id?: string;
+  asset_domain?: string;
 }
 
 function relativeTime(iso: string): string {
@@ -36,21 +39,31 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export function SubdomainsTable({ targetId }: { targetId: string }) {
+interface SubdomainsTableProps {
+  targetId?: string;
+  /** Override the endpoint base; defaults to /targets/${targetId}. Program views pass /programs/${id}. */
+  endpointBase?: string;
+  /** Render an extra "Asset" column bound to row.asset_domain (program-aggregated view). */
+  showAsset?: boolean;
+}
+
+export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: SubdomainsTableProps) {
+  const base = endpointBase ?? `/targets/${targetId}`;
   const [stats, setStats] = useState<{ source: string; count: number }[]>([]);
 
   useEffect(() => {
+    if (showAsset || !targetId) return;
     fetch(`/api/v1/targets/${targetId}/subdomains/stats`)
       .then((r) => r.json())
       .then((d) => setStats(
         Object.entries(d.by_source ?? {}).map(([source, count]) => ({ source, count: count as number }))
       ))
       .catch(() => {});
-  }, [targetId]);
+  }, [targetId, showAsset]);
 
   const fetchFn = useCallback(
     (params: PaginationParams) => {
-      const url = new URL(`/api/v1/targets/${targetId}/subdomains`, window.location.origin);
+      const url = new URL(`/api/v1${base}/subdomains`, window.location.origin);
       url.searchParams.set("page",     String(params.page));
       url.searchParams.set("per_page", String(params.perPage));
       if (params.q)      url.searchParams.set("q",        params.q);
@@ -110,7 +123,7 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
         >
           Refresh
         </button>
-        <ExportMenu targetId={targetId} type="subdomains" />
+        {!showAsset && targetId && <ExportMenu targetId={targetId} type="subdomains" />}
       </div>
 
       {hook.error && !hook.loading && (
@@ -144,6 +157,18 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
                     </a>
                   </div>
                 </div>
+                {showAsset && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    Asset:{" "}
+                    {row.target_id ? (
+                      <Link to={`/target/${row.target_id}`} className="font-mono text-primary hover:underline">
+                        {row.asset_domain ?? "—"}
+                      </Link>
+                    ) : (
+                      <span className="font-mono">{row.asset_domain ?? "—"}</span>
+                    )}
+                  </p>
+                )}
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {(row.sources ?? []).map((src) => (
                     <span key={src} className="rounded px-1 py-0.5 text-[10px] bg-primary/10 text-primary border border-primary/20">{src}</span>
@@ -164,6 +189,7 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
                   <th className="px-3 py-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("subdomain")}>
                     <span className="inline-flex items-center gap-1">Subdomain <SortIcon dir={hook.sortBy === "subdomain" ? hook.sortDir : null} /></span>
                   </th>
+                  {showAsset && <th className="px-3 py-2 font-medium text-muted-foreground">Asset</th>}
                   <th className="px-3 py-2 font-medium text-muted-foreground">Sources</th>
                   <th className="px-3 py-2 font-medium text-muted-foreground">Round</th>
                   <th className="px-3 py-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("is_live")}>
@@ -189,6 +215,17 @@ export function SubdomainsTable({ targetId }: { targetId: string }) {
                     )}
                   >
                     <td className="px-3 py-1.5 font-mono text-foreground">{row.subdomain}</td>
+                    {showAsset && (
+                      <td className="px-3 py-1.5">
+                        {row.target_id ? (
+                          <Link to={`/target/${row.target_id}`} className="font-mono text-primary hover:underline">
+                            {row.asset_domain ?? "—"}
+                          </Link>
+                        ) : (
+                          <span className="font-mono text-muted-foreground">{row.asset_domain ?? "—"}</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-3 py-1.5">
                       <div className="flex flex-wrap gap-1">
                         {(row.sources ?? []).map((src) => (

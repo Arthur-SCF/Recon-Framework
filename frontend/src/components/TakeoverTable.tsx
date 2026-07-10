@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ShieldAlert, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InlineError } from "@/components/ui/InlineError";
@@ -28,10 +29,15 @@ interface TakeoverCandidate {
   severity: string | null;
   matched_at: string | null;
   verified: number;
+  asset_domain?: string;
 }
 
 interface Props {
-  targetId: string;
+  targetId?: string;
+  /** Override the endpoint base; defaults to /targets/${targetId}. Program views pass /programs/${id}. */
+  endpointBase?: string;
+  /** Render an extra "Asset" column bound to row.asset_domain (program-aggregated view). */
+  showAsset?: boolean;
 }
 
 const SEVERITY_CLASS: Record<string, string> = {
@@ -64,11 +70,12 @@ function StatusBadge({ verified }: { verified: number }) {
   return <span className="inline-flex items-center rounded bg-yellow-950 px-1.5 py-0.5 text-[10px] font-medium text-yellow-300">⚠ Unverified</span>;
 }
 
-export function TakeoverTable({ targetId }: Props) {
+export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Props) {
+  const base = endpointBase ?? `/targets/${targetId}`;
   const [updating, setUpdating] = useState<string | null>(null);
 
   const fetchFn = useCallback((params: PaginationParams) => {
-    const url = new URL(`/api/v1/targets/${targetId}/takeovers`, window.location.origin);
+    const url = new URL(`/api/v1${base}/takeovers`, window.location.origin);
     url.searchParams.set("page",     String(params.page));
     url.searchParams.set("per_page", String(params.perPage));
     if (params.q)      url.searchParams.set("q",       params.q);
@@ -78,7 +85,7 @@ export function TakeoverTable({ targetId }: Props) {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json() as Promise<PaginatedResponse<TakeoverCandidate>>;
     });
-  }, [targetId]);
+  }, [base]);
 
   const hook = useServerPagination<TakeoverCandidate>(fetchFn, { sortBy: "severity", sortDir: "desc" });
 
@@ -150,7 +157,7 @@ export function TakeoverTable({ targetId }: Props) {
           >
             Refresh
           </button>
-          <ExportMenu targetId={targetId} type="takeovers" />
+          {!showAsset && targetId && <ExportMenu targetId={targetId} type="takeovers" />}
         </div>
       </div>
 
@@ -173,32 +180,46 @@ export function TakeoverTable({ targetId }: Props) {
                   <StatusBadge verified={c.verified} />
                 </div>
                 <p className="mt-2 font-mono text-xs text-foreground break-all">{c.subdomain}</p>
+                {showAsset && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    Asset:{" "}
+                    {c.target_id ? (
+                      <Link to={`/target/${c.target_id}`} className="font-mono text-primary hover:underline">
+                        {c.asset_domain ?? "—"}
+                      </Link>
+                    ) : (
+                      <span className="font-mono">{c.asset_domain ?? "—"}</span>
+                    )}
+                  </p>
+                )}
                 {(c.service || c.template_id) && (
                   <p className="mt-1 text-[10px] text-muted-foreground">{c.service || c.template_id}</p>
                 )}
                 {(c.matched_at || c.url) && (
                   <p className="mt-1 font-mono text-[10px] text-muted-foreground truncate">{c.matched_at || c.url}</p>
                 )}
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {c.verified !== 1 && (
-                    <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
-                      className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
-                      Confirm
-                    </button>
-                  )}
-                  {c.verified !== -1 && (
-                    <button onClick={() => void setVerified(c.id, -1)} disabled={updating === c.id}
-                      className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                      False Positive
-                    </button>
-                  )}
-                  {c.verified !== 0 && (
-                    <button onClick={() => void setVerified(c.id, 0)} disabled={updating === c.id}
-                      className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                      Reset
-                    </button>
-                  )}
-                </div>
+                {!showAsset && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {c.verified !== 1 && (
+                      <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
+                        className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
+                        Confirm
+                      </button>
+                    )}
+                    {c.verified !== -1 && (
+                      <button onClick={() => void setVerified(c.id, -1)} disabled={updating === c.id}
+                        className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                        False Positive
+                      </button>
+                    )}
+                    {c.verified !== 0 && (
+                      <button onClick={() => void setVerified(c.id, 0)} disabled={updating === c.id}
+                        className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -214,10 +235,11 @@ export function TakeoverTable({ targetId }: Props) {
                   <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("subdomain")}>
                     <span className="inline-flex items-center gap-1">Subdomain <SortIcon dir={hook.sortBy === "subdomain" ? hook.sortDir : null} /></span>
                   </th>
+                  {showAsset && <th className="px-3 py-2 font-medium">Asset</th>}
                   <th className="px-3 py-2 font-medium">Service</th>
                   <th className="px-3 py-2 font-medium">Matched At</th>
                   <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium text-right">Actions</th>
+                  {!showAsset && <th className="px-3 py-2 font-medium text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -227,6 +249,17 @@ export function TakeoverTable({ targetId }: Props) {
                     <td className="px-3 py-2">
                       <span className="font-mono text-xs text-foreground">{c.subdomain}</span>
                     </td>
+                    {showAsset && (
+                      <td className="px-3 py-2">
+                        {c.target_id ? (
+                          <Link to={`/target/${c.target_id}`} className="font-mono text-xs text-primary hover:underline">
+                            {c.asset_domain ?? "—"}
+                          </Link>
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground">{c.asset_domain ?? "—"}</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-3 py-2">
                       <span className="text-xs text-muted-foreground">{c.service || c.template_id || "—"}</span>
                     </td>
@@ -234,28 +267,30 @@ export function TakeoverTable({ targetId }: Props) {
                       <span className="font-mono text-xs text-muted-foreground truncate max-w-xs block">{c.matched_at || c.url || "—"}</span>
                     </td>
                     <td className="px-3 py-2"><StatusBadge verified={c.verified} /></td>
-                    <td className="px-3 py-2 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {c.verified !== 1 && (
-                          <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
-                            className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
-                            Confirm
-                          </button>
-                        )}
-                        {c.verified !== -1 && (
-                          <button onClick={() => void setVerified(c.id, -1)} disabled={updating === c.id}
-                            className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                            False Positive
-                          </button>
-                        )}
-                        {c.verified !== 0 && (
-                          <button onClick={() => void setVerified(c.id, 0)} disabled={updating === c.id}
-                            className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                            Reset
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                    {!showAsset && (
+                      <td className="px-3 py-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {c.verified !== 1 && (
+                            <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
+                              className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
+                              Confirm
+                            </button>
+                          )}
+                          {c.verified !== -1 && (
+                            <button onClick={() => void setVerified(c.id, -1)} disabled={updating === c.id}
+                              className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                              False Positive
+                            </button>
+                          )}
+                          {c.verified !== 0 && (
+                            <button onClick={() => void setVerified(c.id, 0)} disabled={updating === c.id}
+                              className="rounded border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

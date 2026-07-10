@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { ExportMenu } from "@/components/ExportMenu";
 import { InlineError } from "@/components/ui/InlineError";
 import {
@@ -38,6 +39,8 @@ interface Props {
   controlledSortBy?: string | null;
   /** Current sort direction from the server-paginated parent. */
   controlledSortDir?: "asc" | "desc";
+  /** Render an extra "Asset" column bound to host.asset_domain (program-aggregated view). */
+  showAsset?: boolean;
 }
 
 // Status code → colour
@@ -90,6 +93,7 @@ export function LiveHostsTable({
   onSort,
   controlledSortBy,
   controlledSortDir,
+  showAsset = false,
 }: Props) {
   const [ownHosts, setOwnHosts] = useState<LiveHost[]>([]);
   const [loading, setLoading] = useState(!controlledHosts);
@@ -253,6 +257,7 @@ export function LiveHostsTable({
               <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("url")}>
                 <span className="inline-flex items-center gap-1">URL <SortIcon dir={getColDir("url")} /></span>
               </th>
+              {showAsset && <th className="px-3 py-2 font-medium">Asset</th>}
               <th className="px-3 py-2 font-medium w-14 text-center cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("code")}>
                 <span className="inline-flex items-center justify-center gap-1">Code <SortIcon dir={getColDir("code")} /></span>
               </th>
@@ -312,6 +317,19 @@ export function LiveHostsTable({
                         )}
                       </div>
                     </td>
+
+                    {/* Asset */}
+                    {showAsset && (
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                        {host.target_id ? (
+                          <Link to={`/target/${host.target_id}`} className="font-mono text-xs text-primary hover:underline">
+                            {host.asset_domain ?? "—"}
+                          </Link>
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground">{host.asset_domain ?? "—"}</span>
+                        )}
+                      </td>
+                    )}
 
                     {/* Status code */}
                     <td className="px-3 py-2 text-center">
@@ -381,7 +399,7 @@ export function LiveHostsTable({
                   {/* Expanded detail row */}
                   {isExpanded && (
                     <tr key={`${host.id}-detail`} className="bg-muted/10 border-b border-border/50">
-                      <td colSpan={7} className="px-4 py-3">
+                      <td colSpan={showAsset ? 8 : 7} className="px-4 py-3">
                         <div className="grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                           <Detail label="Host"       value={host.host} />
                           <Detail label="Port"       value={host.port} />
@@ -422,12 +440,12 @@ export function LiveHostsTable({
                         {host.screenshot_path && (
                           <div className="mt-3">
                             <a
-                              href={`/api/v1/targets/${targetId}/hosts/${host.id}/screenshot`}
+                              href={`/api/v1/targets/${showAsset ? host.target_id : targetId}/hosts/${host.id}/screenshot`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
                               <img
-                                src={`/api/v1/targets/${targetId}/hosts/${host.id}/screenshot`}
+                                src={`/api/v1/targets/${showAsset ? host.target_id : targetId}/hosts/${host.id}/screenshot`}
                                 alt={`Screenshot of ${host.url}`}
                                 className="max-w-xs rounded border border-border hover:opacity-90 transition-opacity"
                               />

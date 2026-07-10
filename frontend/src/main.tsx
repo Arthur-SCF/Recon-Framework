@@ -9,10 +9,12 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { App } from "./App";
 
-const Dashboard    = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })));
-const TargetDetail = lazy(() => import("./pages/TargetDetail").then((m) => ({ default: m.TargetDetail })));
-const Settings     = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
-const NotFound     = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
+const Dashboard     = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })));
+const TargetDetail  = lazy(() => import("./pages/TargetDetail").then((m) => ({ default: m.TargetDetail })));
+const Programs      = lazy(() => import("./pages/Programs").then((m) => ({ default: m.Programs })));
+const ProgramDetail = lazy(() => import("./pages/ProgramDetail").then((m) => ({ default: m.ProgramDetail })));
+const Settings      = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
+const NotFound      = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
 import "./index.css";
 
@@ -61,6 +63,8 @@ const router = createBrowserRouter([
     children: [
       { index: true,                      element: <Suspense fallback={PageSpinner}><Dashboard /></Suspense> },
       { path: "target/:id",               element: <Suspense fallback={PageSpinner}><TargetDetail /></Suspense> },
+      { path: "programs",                 element: <Suspense fallback={PageSpinner}><Programs /></Suspense> },
+      { path: "program/:id",              element: <Suspense fallback={PageSpinner}><ProgramDetail /></Suspense> },
       { path: "settings",                 element: <Suspense fallback={PageSpinner}><Settings /></Suspense> },
       { path: "*",                         element: <Suspense fallback={PageSpinner}><NotFound /></Suspense> },
     ],

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
+  FolderKanban,
   Settings,
   Zap,
   PanelLeftClose,
@@ -16,6 +17,7 @@ const STORAGE_KEY = "sidebar-collapsed";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/programs", label: "Programs", icon: FolderKanban },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

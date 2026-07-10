@@ -23,6 +23,8 @@ export interface Target {
   schedule_hour: number;
   schedule_minute: number;
   pause_on_failure: boolean;
+  program_id: string | null;
+  config_source: "inherit" | "override";
 }
 
 export interface TargetCreate {
@@ -40,6 +42,85 @@ export interface TargetCreate {
   schedule_weekday?: number;
   schedule_hour?: number;
   schedule_minute?: number;
+}
+
+// ── Programs ──────────────────────────────────────────────────────────────────
+export type NotifyScope = "program" | "asset";
+
+export interface Program {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  notify_scope: NotifyScope;
+  pipeline_template: string;
+  scan_priority: number;
+  rescan_interval: number;
+  manual_only: boolean;
+  loop: boolean;
+  wildcard_policy: "skip" | "force" | "ask";
+  retention_runs: number;
+  schedule_mode: ScheduleMode;
+  schedule_days: number;
+  schedule_weekday: number;
+  schedule_hour: number;
+  schedule_minute: number;
+  asset_count: number;
+}
+
+export interface ProgramCreate {
+  name: string;
+  description?: string;
+  notify_scope?: NotifyScope;
+  pipeline_template?: string;
+  scan_priority?: number;
+  rescan_interval?: number;
+  manual_only?: boolean;
+  loop?: boolean;
+  wildcard_policy?: "skip" | "force" | "ask";
+  retention_runs?: number;
+  schedule_mode?: ScheduleMode;
+  schedule_days?: number;
+  schedule_weekday?: number;
+  schedule_hour?: number;
+  schedule_minute?: number;
+}
+
+export interface ProgramScanSession {
+  id: string;
+  program_id: string;
+  started_at: string;
+  finished_at: string | null;
+  status: string;
+  asset_total: number;
+  asset_done: number;
+  stats: Record<string, number> | null;
+}
+
+export interface ProgramAsset {
+  id: string;
+  domain: string;
+  status: string;
+  config_source: "inherit" | "override";
+  last_scan_at: string | null;
+  scan_count: number;
+}
+
+export interface ProgramScanResult {
+  program_session_id: string;
+  queued: number;
+  asset_total: number;
+}
+
+export interface ProgramAssignResult {
+  assigned: number;
+  not_found: string[];
+}
+
+export interface ProgramStats {
+  totals: { assets: number; subdomains: number; hosts: number; takeovers: number };
+  by_asset: { target_id: string; domain: string; subdomains: number; hosts: number }[];
+  status_dist: { bucket: string; count: number }[];
 }
 
 // ── Scope Rules ───────────────────────────────────────────────────────────────
@@ -171,6 +252,7 @@ export interface PipelineGroup {
 export interface LiveHost {
   id: string;
   target_id: string;
+  asset_domain?: string;
   subdomain_id: string | null;
   url: string;
   status_code: number | null;

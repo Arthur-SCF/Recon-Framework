@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Loader2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ExportMenu } from "@/components/ExportMenu";
 import { InlineError } from "@/components/ui/InlineError";
@@ -22,12 +23,18 @@ interface PortEntry {
   protocol:        string;
   service:         string | null;
   service_version: string | null;
-  standard:        boolean;
+  standard?:       boolean;
   subdomains:      string[];
+  target_id?:      string;
+  asset_domain?:   string;
 }
 
 interface Props {
-  targetId: string;
+  targetId?: string;
+  /** Override the endpoint base; defaults to /targets/${targetId}. Program views pass /programs/${id}. */
+  endpointBase?: string;
+  /** Render an extra "Asset" column bound to row.asset_domain (program-aggregated view). */
+  showAsset?: boolean;
 }
 
 const SERVICE_STYLE: Record<string, string> = {
@@ -57,22 +64,23 @@ function ServiceBadge({ service }: { service: string }) {
 
 const SUBDOMAIN_PREVIEW = 3;
 
-export function PortsTable({ targetId }: Props) {
+export function PortsTable({ targetId, endpointBase, showAsset = false }: Props) {
+  const base = endpointBase ?? `/targets/${targetId}`;
   const [tab, setTab] = useState<PortTab>("verified");
 
   const fetchFn = useCallback((params: PaginationParams) => {
-    const url = new URL(`/api/v1/targets/${targetId}/ports`, window.location.origin);
+    const url = new URL(`/api/v1${base}/ports`, window.location.origin);
     url.searchParams.set("page",     String(params.page));
     url.searchParams.set("per_page", String(params.perPage));
     if (params.q)      url.searchParams.set("q",       params.q);
     if (params.sortBy) url.searchParams.set("sort_by", params.sortBy);
     url.searchParams.set("sort_dir", params.sortDir);
-    if (tab === "verified") url.searchParams.set("has_service", "true");
+    if (!showAsset && tab === "verified") url.searchParams.set("has_service", "true");
     return fetch(url.toString()).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json() as Promise<PaginatedResponse<PortEntry>>;
     });
-  }, [targetId, tab]);
+  }, [base, tab, showAsset]);
 
   const hook = useServerPagination<PortEntry>(fetchFn, { sortBy: "host", sortDir: "asc" });
 
@@ -110,21 +118,23 @@ export function PortsTable({ targetId }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {/* Tab strip */}
-      <div className="flex gap-1 border-b border-border">
-        {(["verified", "all"] as PortTab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => switchTab(t)}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px capitalize ${
-              tab === t
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t === "verified" ? "Verified" : "All"}
-          </button>
-        ))}
-      </div>
+      {!showAsset && (
+        <div className="flex gap-1 border-b border-border">
+          {(["verified", "all"] as PortTab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => switchTab(t)}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px capitalize ${
+                tab === t
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t === "verified" ? "Verified" : "All"}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <input
@@ -138,7 +148,9 @@ export function PortsTable({ targetId }: Props) {
           <span className="text-xs text-muted-foreground">
             {hook.total} result{hook.total !== 1 ? "s" : ""}
           </span>
-          <ExportMenu targetId={targetId} type="ports" params={tab === "verified" ? { verified: "true" } : undefined} />
+          {!showAsset && targetId && (
+            <ExportMenu targetId={targetId} type="ports" params={tab === "verified" ? { verified: "true" } : undefined} />
+          )}
         </div>
       </div>
 
@@ -165,6 +177,18 @@ export function PortsTable({ targetId }: Props) {
                       <span className="text-[10px] text-muted-foreground uppercase">{p.protocol}</span>
                     </div>
                   </div>
+                  {showAsset && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Asset:{" "}
+                      {p.target_id ? (
+                        <Link to={`/target/${p.target_id}`} className="font-mono text-primary hover:underline">
+                          {p.asset_domain ?? "—"}
+                        </Link>
+                      ) : (
+                        <span className="font-mono">{p.asset_domain ?? "—"}</span>
+                      )}
+                    </p>
+                  )}
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     {p.service && <ServiceBadge service={p.service} />}
                     {preview.map((s) => (
@@ -186,6 +210,7 @@ export function PortsTable({ targetId }: Props) {
                 <th className="cursor-pointer px-3 py-2 font-medium text-muted-foreground hover:text-foreground select-none" onClick={() => handleSort("host")}>
                   <span className="inline-flex items-center gap-1">Host <SortIcon dir={hook.sortBy === "host" ? hook.sortDir : null} /></span>
                 </th>
+                {showAsset && <th className="px-3 py-2 font-medium text-muted-foreground">Asset</th>}
                 <th className="px-3 py-2 font-medium text-muted-foreground">IP</th>
                 <th className="px-3 py-2 font-medium text-muted-foreground">Subdomains</th>
                 <th className="cursor-pointer px-3 py-2 font-medium text-muted-foreground hover:text-foreground select-none" onClick={() => handleSort("port")}>
@@ -195,7 +220,7 @@ export function PortsTable({ targetId }: Props) {
                 <th className="cursor-pointer px-3 py-2 font-medium text-muted-foreground hover:text-foreground select-none" onClick={() => handleSort("service")}>
                   <span className="inline-flex items-center gap-1">Service <SortIcon dir={hook.sortBy === "service" ? hook.sortDir : null} /></span>
                 </th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Standard</th>
+                {!showAsset && <th className="px-3 py-2 font-medium text-muted-foreground">Standard</th>}
               </tr>
             </thead>
             <tbody>
@@ -206,6 +231,17 @@ export function PortsTable({ targetId }: Props) {
                 return (
                   <tr key={rowKey} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                     <td className="px-3 py-2 font-mono text-foreground">{p.host}</td>
+                    {showAsset && (
+                      <td className="px-3 py-2">
+                        {p.target_id ? (
+                          <Link to={`/target/${p.target_id}`} className="font-mono text-xs text-primary hover:underline">
+                            {p.asset_domain ?? "—"}
+                          </Link>
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground">{p.asset_domain ?? "—"}</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                       {p.ip ?? <span className="text-muted-foreground/30">—</span>}
                     </td>
@@ -237,13 +273,15 @@ export function PortsTable({ targetId }: Props) {
                         <span className="text-muted-foreground/30 text-[10px]">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2">
-                      {p.standard ? (
-                        <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">standard</span>
-                      ) : (
-                        <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-400">non-standard</span>
-                      )}
-                    </td>
+                    {!showAsset && (
+                      <td className="px-3 py-2">
+                        {p.standard ? (
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">standard</span>
+                        ) : (
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-400">non-standard</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}

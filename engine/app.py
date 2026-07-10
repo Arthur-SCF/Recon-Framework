@@ -17,6 +17,7 @@ from engine.logging_setup import setup_logging
 from engine.middleware import RequestIDMiddleware, _request_id_ctx
 from engine.websocket import ws_manager, websocket_endpoint, set_allowed_origins
 from engine.api import health, targets, scope, notifications
+from engine.api import programs as programs_api
 from engine.api import settings as settings_api
 from engine.api import scans, pipeline_config, scheduler_api
 from engine.api import wordlists_api
@@ -258,6 +259,7 @@ def create_app() -> FastAPI:
     # Routers
     app.include_router(health.router,         prefix="/api/v1")
     app.include_router(targets.router,        prefix="/api/v1")
+    app.include_router(programs_api.router,   prefix="/api/v1")
     app.include_router(scope.router,          prefix="/api/v1")
     app.include_router(notifications.router,  prefix="/api/v1")
     app.include_router(settings_api.router,   prefix="/api/v1")

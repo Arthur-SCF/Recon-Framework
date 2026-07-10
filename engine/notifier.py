@@ -22,6 +22,11 @@ log = logging.getLogger("engine.notifier")
 _TELEGRAM_BASE = "https://api.telegram.org/bot{token}/sendMessage"
 
 
+_NOISY_TYPES = frozenset(
+    {"new_hosts", "host_changed", "host_gone", "host_returned", "scan_complete"}
+)
+
+
 async def notify(
     *,
     notification_type: str,
@@ -29,6 +34,7 @@ async def notify(
     message: str | None = None,
     data: dict | None = None,
     target_id: str | None = None,
+    program_id: str | None = None,
     session_id: str | None = None,
 ) -> str | None:
     """
@@ -37,6 +43,11 @@ async def notify(
     notification_type must be one of:
       new_subdomains | new_hosts | host_changed | host_gone | host_returned |
       takeover_candidate | scan_complete | scan_error | system | step_error
+
+    program_id is auto-resolved from target_id when omitted. Under a program's
+    'program' notify_scope, noisy per-asset events are persisted and pushed to
+    the in-app feed but held back from Telegram/webhooks — the program-scan
+    rollup delivers a single external summary instead.
     """
     from engine.db import get_db
     from engine.websocket import ws_manager
@@ -44,18 +55,34 @@ async def notify(
     notif_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
 
-    # 1. Persist to database
     try:
         db = await get_db()
+    except Exception:
+        log.exception("notify: database unavailable")
+        return None
+
+    if program_id is None and target_id:
+        try:
+            prow = await db.fetchone(
+                "SELECT program_id FROM targets WHERE id = ?", (target_id,)
+            )
+            if prow:
+                program_id = prow["program_id"]
+        except Exception:
+            log.debug("notify: could not resolve program for target %s", target_id)
+
+    # 1. Persist to database
+    try:
         await db.execute(
             """
             INSERT INTO notifications
-                (id, target_id, session_id, type, title, message, data, is_read, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
+                (id, target_id, program_id, session_id, type, title, message, data, is_read, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
             """,
             (
                 notif_id,
                 target_id,
+                program_id,
                 session_id,
                 notification_type,
                 title,
@@ -69,7 +96,7 @@ async def notify(
         log.exception("Failed to persist notification")
         return None
 
-    # 2. WebSocket broadcast
+    # 2. WebSocket broadcast — the in-app feed is never suppressed
     try:
         await ws_manager.broadcast(
             event_type="notification",
@@ -79,6 +106,7 @@ async def notify(
                 "title": title,
                 "message": message,
                 "data": data,
+                "program_id": program_id,
             },
             target_id=target_id,
             session_id=session_id,
@@ -87,13 +115,44 @@ async def notify(
         log.exception("Failed to broadcast notification over WebSocket")
         # Non-fatal — DB write succeeded
 
-    # 3. Telegram
-    try:
-        await _maybe_send_telegram(notification_type, title, message, data)
-    except Exception:
-        log.exception("Telegram notification failed")
+    # 3. External dispatch (Telegram + webhooks) unless suppressed by program scope
+    if not await _suppress_external(db, notification_type, program_id, data):
+        try:
+            await _maybe_send_telegram(notification_type, title, message, data)
+        except Exception:
+            log.exception("Telegram notification failed")
+        try:
+            from engine.api.webhooks import dispatch_webhooks, VALID_EVENTS
+            if notification_type in VALID_EVENTS:
+                import asyncio as _asyncio
+                _asyncio.create_task(
+                    dispatch_webhooks(db, notification_type, title, message or "", data)
+                )
+        except Exception:
+            log.exception("Webhook dispatch failed")
 
     return notif_id
+
+
+async def _suppress_external(
+    db, notification_type: str, program_id: str | None, data: dict | None
+) -> bool:
+    """
+    True when a per-asset event should skip Telegram/webhooks because its
+    program uses 'program' notify_scope. The program-scan rollup (which carries
+    data['program']) is never suppressed.
+    """
+    if not program_id or notification_type not in _NOISY_TYPES:
+        return False
+    if (data or {}).get("program"):
+        return False
+    try:
+        row = await db.fetchone(
+            "SELECT notify_scope FROM programs WHERE id = ?", (program_id,)
+        )
+    except Exception:
+        return False
+    return bool(row) and row["notify_scope"] == "program"
 
 
 def _h(s: str) -> str:
@@ -110,11 +169,26 @@ def _build_telegram_text(
     """Build a richly formatted HTML message for each notification type."""
     d = data or {}
 
+    if notification_type == "scan_complete" and d.get("program"):
+        program    = _h(str(d.get("program", "")))
+        assets     = d.get("assets", 0)
+        discovered = d.get("discovered", 0)
+        changed    = d.get("changed", 0)
+        gone       = d.get("gone", 0)
+        return (
+            f"✅ <b>Program scan complete</b> — <code>{program}</code>\n"
+            f"\n"
+            f"📦 <b>{assets}</b> asset(s)  ·  "
+            f"🆕 <b>{discovered}</b> discovered  ·  "
+            f"🔄 <b>{changed}</b> changed  ·  "
+            f"💀 <b>{gone}</b> gone"
+        )
+
     if notification_type == "scan_complete":
         discovered = d.get("discovered", 0)
         changed    = d.get("changed", 0)
         gone       = d.get("gone", 0)
-        domain     = title.split(" — ", 1)[-1] if " — " in title else title
+        domain     = d.get("domain") or (title.split(" — ", 1)[-1] if " — " in title else title)
         return (
             f"✅ <b>Scan complete</b> — <code>{_h(domain)}</code>\n"
             f"\n"

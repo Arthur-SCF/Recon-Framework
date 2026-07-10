@@ -181,6 +181,203 @@ class TargetOut(BaseModel):
     schedule_hour: int = 0
     schedule_minute: int = 0
     pause_on_failure: bool = False
+    program_id: str | None = None
+    config_source: str = "override"   # 'inherit' | 'override'
+
+
+# ── Programs (folders of wildcard assets) ─────────────────────────────────────
+
+NOTIFY_SCOPES = {"program", "asset"}
+CONFIG_SOURCES = {"inherit", "override"}
+
+
+class ProgramCreate(BaseModel):
+    name: str
+    description: str | None = None
+    notify_scope: Literal["program", "asset"] = "program"
+    # Default scan/policy config inherited by assets (config_source='inherit').
+    pipeline_template: str = "standard"
+    scan_priority: int = 5
+    rescan_interval: int = 24
+    manual_only: bool = False
+    loop: bool = False
+    wildcard_policy: str = "skip"
+    retention_runs: int = 5
+    schedule_mode: ScheduleMode = "hourly"
+    schedule_days: int = 1
+    schedule_weekday: int = 0
+    schedule_hour: int = 0
+    schedule_minute: int = 0
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        v = v.strip()
+        if not v or len(v) > 80:
+            raise ValueError("name must be 1–80 chars")
+        return v
+
+    @field_validator("scan_priority")
+    @classmethod
+    def validate_priority(cls, v: int) -> int:
+        if not 1 <= v <= 10:
+            raise ValueError("scan_priority must be 1–10")
+        return v
+
+    @field_validator("wildcard_policy")
+    @classmethod
+    def validate_wildcard(cls, v: str) -> str:
+        if v not in WILDCARD_POLICIES:
+            raise ValueError(f"wildcard_policy must be one of {WILDCARD_POLICIES}")
+        return v
+
+    @field_validator("retention_runs")
+    @classmethod
+    def validate_retention(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("retention_runs must be >= 1")
+        return v
+
+    @field_validator("schedule_weekday")
+    @classmethod
+    def validate_weekday(cls, v: int) -> int:
+        if not 0 <= v <= 6:
+            raise ValueError("schedule_weekday must be 0–6 (0=Monday)")
+        return v
+
+    @field_validator("schedule_hour")
+    @classmethod
+    def validate_hour(cls, v: int) -> int:
+        if not 0 <= v <= 23:
+            raise ValueError("schedule_hour must be 0–23")
+        return v
+
+    @field_validator("schedule_minute")
+    @classmethod
+    def validate_minute(cls, v: int) -> int:
+        if not 0 <= v <= 59:
+            raise ValueError("schedule_minute must be 0–59")
+        return v
+
+    @model_validator(mode="after")
+    def check_scan_mode(self) -> "ProgramCreate":
+        if self.loop and self.manual_only:
+            raise ValueError("loop and manual_only are mutually exclusive")
+        return self
+
+
+class ProgramUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    notify_scope: Literal["program", "asset"] | None = None
+    pipeline_template: str | None = None
+    scan_priority: int | None = None
+    rescan_interval: int | None = None
+    manual_only: bool | None = None
+    loop: bool | None = None
+    wildcard_policy: str | None = None
+    retention_runs: int | None = None
+    schedule_mode: ScheduleMode | None = None
+    schedule_days: int | None = None
+    schedule_weekday: int | None = None
+    schedule_hour: int | None = None
+    schedule_minute: int | None = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str | None) -> str | None:
+        if v is not None:
+            v = v.strip()
+            if not v or len(v) > 80:
+                raise ValueError("name must be 1–80 chars")
+        return v
+
+    @field_validator("scan_priority")
+    @classmethod
+    def validate_priority(cls, v: int | None) -> int | None:
+        if v is not None and not 1 <= v <= 10:
+            raise ValueError("scan_priority must be 1–10")
+        return v
+
+    @field_validator("wildcard_policy")
+    @classmethod
+    def validate_wildcard(cls, v: str | None) -> str | None:
+        if v is not None and v not in WILDCARD_POLICIES:
+            raise ValueError(f"wildcard_policy must be one of {WILDCARD_POLICIES}")
+        return v
+
+    @field_validator("schedule_weekday")
+    @classmethod
+    def validate_weekday(cls, v: int | None) -> int | None:
+        if v is not None and not 0 <= v <= 6:
+            raise ValueError("schedule_weekday must be 0–6 (0=Monday)")
+        return v
+
+    @field_validator("schedule_hour")
+    @classmethod
+    def validate_hour(cls, v: int | None) -> int | None:
+        if v is not None and not 0 <= v <= 23:
+            raise ValueError("schedule_hour must be 0–23")
+        return v
+
+    @field_validator("schedule_minute")
+    @classmethod
+    def validate_minute(cls, v: int | None) -> int | None:
+        if v is not None and not 0 <= v <= 59:
+            raise ValueError("schedule_minute must be 0–59")
+        return v
+
+    @model_validator(mode="after")
+    def check_scan_mode(self) -> "ProgramUpdate":
+        if self.loop and self.manual_only:
+            raise ValueError("loop and manual_only are mutually exclusive")
+        return self
+
+
+class ProgramOut(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    created_at: str
+    notify_scope: str
+    pipeline_template: str = "standard"
+    scan_priority: int
+    rescan_interval: int
+    manual_only: bool
+    loop: bool
+    wildcard_policy: str
+    retention_runs: int
+    schedule_mode: ScheduleMode = "hourly"
+    schedule_days: int = 1
+    schedule_weekday: int = 0
+    schedule_hour: int = 0
+    schedule_minute: int = 0
+    asset_count: int = 0
+
+
+class ProgramAssignAssets(BaseModel):
+    target_ids: list[str]
+    config_source: Literal["inherit", "override"] = "inherit"
+
+    @field_validator("target_ids")
+    @classmethod
+    def validate_ids(cls, v: list[str]) -> list[str]:
+        if not v:
+            raise ValueError("target_ids must not be empty")
+        if len(v) > 500:
+            raise ValueError("Cannot assign more than 500 assets at once")
+        return v
+
+
+class ProgramScanSessionOut(BaseModel):
+    id: str
+    program_id: str
+    started_at: str
+    finished_at: str | None
+    status: str
+    asset_total: int
+    asset_done: int
+    stats: dict | None
 
 
 # ── Scope Rules ───────────────────────────────────────────────────────────────
@@ -245,6 +442,7 @@ class ScopeRuleOut(BaseModel):
 class NotificationOut(BaseModel):
     id: str
     target_id: str | None
+    program_id: str | None = None
     session_id: str | None
     type: str
     title: str

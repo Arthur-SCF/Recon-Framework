@@ -130,14 +130,19 @@ class WildcardCheckAction(BaseAction):
     async def _notify(self, ctx: StepContext, policy: str, ips: set) -> None:
         """Write a notification row for the wildcard detection event."""
         try:
+            prow = await ctx.db.fetchone(
+                "SELECT program_id FROM targets WHERE id = ?", (ctx.target_id,)
+            )
+            program_id = prow["program_id"] if prow else None
             await ctx.db.execute(
                 """
-                INSERT INTO notifications (id, target_id, type, title, message, created_at)
-                VALUES (?, ?, 'wildcard', 'Wildcard DNS detected', ?, ?)
+                INSERT INTO notifications (id, target_id, program_id, type, title, message, created_at)
+                VALUES (?, ?, ?, 'wildcard', 'Wildcard DNS detected', ?, ?)
                 """,
                 (
                     str(uuid.uuid4()),
                     ctx.target_id,
+                    program_id,
                     f"Wildcard DNS on {ctx.domain} (policy={policy}). "
                     f"Resolving IPs: {', '.join(sorted(ips))}",
                     _now(),

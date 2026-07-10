@@ -21,6 +21,7 @@ Crash recovery:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -311,6 +312,138 @@ async def recover_running_sessions(db) -> None:
     log.info("Crash recovery: %d session(s) marked as paused", len(rows))
 
 
+# ── Program-scan rollup reconciler ──────────────────────────────────────────────
+
+_TERMINAL_STATUSES = ("completed", "error", "cancelled")
+
+
+async def reconcile_program_runs(db) -> None:
+    """
+    Advance each running program-scan rollup and emit one program-level summary
+    when all its assets finish. Runs off the tick loop (like report dispatch);
+    it never touches the pick/preempt logic.
+    """
+    runs = await db.fetchall(
+        """
+        SELECT id, program_id, started_at, asset_total
+        FROM program_scan_sessions WHERE status = 'running'
+        """,
+        (),
+    )
+    if not runs:
+        return
+
+    for run in runs:
+        members = await db.fetchall(
+            """
+            SELECT id, target_id, status, session_id
+            FROM program_scan_assets WHERE program_session_id = ?
+            """,
+            (run["id"],),
+        )
+        done = 0
+        for m in members:
+            if m["status"] in _TERMINAL_STATUSES:
+                done += 1
+                continue
+
+            if m["session_id"]:
+                sess = await db.fetchone(
+                    "SELECT id, status FROM scan_sessions WHERE id = ?", (m["session_id"],)
+                )
+            else:
+                sess = await db.fetchone(
+                    """
+                    SELECT id, status FROM scan_sessions
+                    WHERE target_id = ? AND started_at >= ?
+                    ORDER BY started_at DESC LIMIT 1
+                    """,
+                    (m["target_id"], run["started_at"]),
+                )
+
+            if not sess:
+                continue
+            if sess["status"] in _TERMINAL_STATUSES:
+                await db.execute(
+                    "UPDATE program_scan_assets SET status = ?, session_id = ? WHERE id = ?",
+                    (sess["status"], sess["id"], m["id"]),
+                )
+                done += 1
+            elif m["session_id"] != sess["id"] or m["status"] != "running":
+                await db.execute(
+                    "UPDATE program_scan_assets SET status = 'running', session_id = ? WHERE id = ?",
+                    (sess["id"], m["id"]),
+                )
+
+        await db.execute(
+            "UPDATE program_scan_sessions SET asset_done = ? WHERE id = ?",
+            (done, run["id"]),
+        )
+        # Finalize on normal completion, OR when every surviving member is
+        # terminal / all members were deleted mid-run — otherwise a deleted
+        # asset (member row cascades away, asset_total does not) leaves the run
+        # stuck 'running' forever and its rollup notification never fires.
+        all_survivors_terminal = done >= len(members)
+        if done >= run["asset_total"] or all_survivors_terminal:
+            await _finalize_program_run(db, run)
+
+    await db.commit()
+
+
+async def _finalize_program_run(db, run) -> None:
+    """Sum child-session stats, close the rollup, and fire one summary notification."""
+    sessions = await db.fetchall(
+        """
+        SELECT session_id FROM program_scan_assets
+        WHERE program_session_id = ? AND session_id IS NOT NULL
+        """,
+        (run["id"],),
+    )
+    new_subs = discovered = changed = gone = 0
+    for s in sessions:
+        srow = await db.fetchone(
+            "SELECT stats FROM scan_sessions WHERE id = ?", (s["session_id"],)
+        )
+        if not srow or not srow["stats"]:
+            continue
+        try:
+            st = json.loads(srow["stats"])
+        except (ValueError, TypeError):
+            continue
+        new_subs   += st.get("new_subdomains", 0) or 0
+        discovered += st.get("new_hosts", 0) or 0
+        changed    += st.get("changed_hosts", 0) or 0
+        gone       += st.get("gone_hosts", 0) or 0
+
+    stats = {
+        "new_subdomains": new_subs, "discovered": discovered,
+        "changed": changed, "gone": gone,
+    }
+    prow = await db.fetchone("SELECT name FROM programs WHERE id = ?", (run["program_id"],))
+    name = prow["name"] if prow else "program"
+
+    await db.execute(
+        """
+        UPDATE program_scan_sessions
+        SET status = 'completed', finished_at = ?, asset_done = asset_total, stats = ?
+        WHERE id = ?
+        """,
+        (_now(), json.dumps(stats), run["id"]),
+    )
+
+    try:
+        from engine.notifier import notify
+        await notify(
+            notification_type="scan_complete",
+            title=f"Program scan complete — {name}",
+            message=f"{run['asset_total']} asset(s) scanned",
+            data={"program": name, "assets": run["asset_total"], **stats},
+            program_id=run["program_id"],
+        )
+    except Exception as exc:
+        log.error("Program rollup notification failed: %s", exc)
+
+
 # ── Tick loop ──────────────────────────────────────────────────────────────────
 
 async def _tick_loop(db) -> None:
@@ -333,6 +466,11 @@ async def _tick_loop(db) -> None:
             raise
         except Exception as exc:
             log.error("Scheduler tick error: %s", exc, exc_info=True)
+
+        try:
+            await reconcile_program_runs(db)
+        except Exception as exc:
+            log.error("Program run reconcile error: %s", exc)
 
         # Check report schedules every 6 ticks = 60 seconds
         _report_tick += 1

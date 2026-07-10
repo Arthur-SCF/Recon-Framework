@@ -61,6 +61,8 @@ def _row_to_target(row, tags: list[str] | None = None) -> TargetOut:
         schedule_hour=row["schedule_hour"] if row["schedule_hour"] is not None else 0,
         schedule_minute=row["schedule_minute"] if row["schedule_minute"] is not None else 0,
         pause_on_failure=bool(row["pause_on_failure"]) if row["pause_on_failure"] is not None else False,
+        program_id=row["program_id"] if "program_id" in row.keys() else None,
+        config_source=(row["config_source"] if "config_source" in row.keys() else None) or "override",
     )
 
 
@@ -399,6 +401,19 @@ async def update_target(
     if body.pause_on_failure is not None:
         updates.append("pause_on_failure = ?")
         params.append(1 if body.pause_on_failure else 0)
+
+    # Detach an inheriting asset on edit, else propagate_program_config later
+    # silently overwrites the change. Tags/pause_on_failure are never inherited.
+    _inherited_edits = (
+        body.scan_priority, body.rescan_interval, body.manual_only, body.loop,
+        body.wildcard_policy, body.retention_runs, body.schedule_mode,
+        body.schedule_days, body.schedule_weekday, body.schedule_hour,
+        body.schedule_minute,
+    )
+    current_source = row["config_source"] if "config_source" in row.keys() else "override"
+    if current_source == "inherit" and any(v is not None for v in _inherited_edits):
+        updates.append("config_source = ?")
+        params.append("override")
 
     if updates or body.tags is not None:
         async with db.transaction():

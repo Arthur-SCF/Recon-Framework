@@ -447,7 +447,7 @@ async def create_backup_endpoint() -> BackupEntry:
         entry = await create_backup(get_settings().db_path)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Backup failed: {exc}") from exc
-    enforce_retention(keep=10)
+    enforce_retention(keep=3)
     return BackupEntry(**entry)
 
 

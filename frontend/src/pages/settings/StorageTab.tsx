@@ -197,7 +197,7 @@ export function StorageTab() {
           </button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Hot backups of recon.db. Auto-created after each scan. Last 10 kept.
+          Hot backups of recon.db. Auto-created after each scan. Last 3 kept.
         </p>
         {backupMsg && <p className="text-xs text-muted-foreground">{backupMsg}</p>}
         {backups.length === 0 ? (

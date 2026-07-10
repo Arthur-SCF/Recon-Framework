@@ -40,40 +40,66 @@ def list_backups() -> list[dict]:
     return entries
 
 
+def _cleanup_stale() -> None:
+    """
+    Keep BACKUP_DIR holding only finished .db.gz files by clearing intermediates
+    left behind by interrupted runs. Safe to call before every backup:
+      • *.db.tmp / *.db.tmp-journal — in-progress snapshot from this module
+      • *.db-journal                — orphaned SQLite journal from a failed backup
+    """
+    if not BACKUP_DIR.exists():
+        return
+    for f in BACKUP_DIR.iterdir():
+        if f.name.endswith((".db.tmp", ".db.tmp-journal", ".db-journal")):
+            try:
+                f.unlink(missing_ok=True)
+            except OSError as exc:
+                log.warning("Failed to remove stale backup artifact %s: %s", f.name, exc)
+
+
 async def create_backup(db_path: str) -> dict:
     """
     Hot backup via aiosqlite backup API, then gzip-compressed.
     Saves as backups/recon_{YYYYMMDD_HHMMSS}.db.gz
+
+    The uncompressed snapshot is written to a temporary .db.tmp file (never
+    listed as a backup) and is always removed — even on cancellation or error —
+    so BACKUP_DIR only ever holds finished .db.gz files.
     Returns the backup entry dict.
     """
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    _cleanup_stale()
     ts       = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    raw_dest = BACKUP_DIR / f"recon_{ts}.db"
+    tmp_dest = BACKUP_DIR / f"recon_{ts}.db.tmp"
     gz_dest  = BACKUP_DIR / f"recon_{ts}.db.gz"
+    success  = False
     try:
         src = await aiosqlite.connect(db_path)
-        dst = await aiosqlite.connect(str(raw_dest))
+        dst = await aiosqlite.connect(str(tmp_dest))
         try:
             await src.backup(dst)
         finally:
             await dst.close()
             await src.close()
 
-        with raw_dest.open("rb") as f_in, gzip.open(gz_dest, "wb", compresslevel=6) as f_out:
+        with tmp_dest.open("rb") as f_in, gzip.open(gz_dest, "wb", compresslevel=6) as f_out:
             shutil.copyfileobj(f_in, f_out)
-        raw_dest.unlink()
 
         size = gz_dest.stat().st_size
         log.info("Backup created: %s (%d bytes compressed)", gz_dest.name, size)
+        success = True
         return {"filename": gz_dest.name, "size_bytes": size, "created_at": ts}
     except Exception as exc:
         log.error("Backup failed: %s", exc)
-        raw_dest.unlink(missing_ok=True)
-        gz_dest.unlink(missing_ok=True)
         raise
+    finally:
+        tmp_dest.unlink(missing_ok=True)
+        (BACKUP_DIR / f"{tmp_dest.name}-journal").unlink(missing_ok=True)
+        if not success:
+            gz_dest.unlink(missing_ok=True)  # drop partial/corrupt .gz from an interrupted run
 
 
-def enforce_retention(keep: int = 10) -> int:
+def enforce_retention(keep: int = 3) -> int:
     """Delete oldest backups beyond `keep`. Returns count deleted."""
     entries = list_backups()
     to_delete = entries[keep:]

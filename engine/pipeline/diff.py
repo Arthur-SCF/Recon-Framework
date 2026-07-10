@@ -292,7 +292,7 @@ class DiffAction(BaseAction):
             from engine import backup as _backup
             from engine.config import get_settings as _get_settings
             asyncio.create_task(_backup.create_backup(_get_settings().db_path))
-            _backup.enforce_retention(keep=10)
+            _backup.enforce_retention(keep=3)
         except Exception:
             pass  # backup errors must never block scan completion
 

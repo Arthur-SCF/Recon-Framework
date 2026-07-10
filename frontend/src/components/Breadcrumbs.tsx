@@ -14,9 +14,12 @@ export function Breadcrumbs() {
   const { id } = useParams<{ id: string }>();
   const [targetDomain, setTargetDomain] = useState<string | null>(null);
 
-  // Fetch target domain if on a target detail page
+  const path = location.pathname;
+  const needsTargetDomain =
+    path.startsWith("/target/") || path.includes("/pipeline/edit");
+
   useEffect(() => {
-    if (!id) {
+    if (!id || !needsTargetDomain) {
       setTargetDomain(null);
       return;
     }
@@ -24,11 +27,9 @@ export function Breadcrumbs() {
       .then((r) => (r.ok ? (r.json() as Promise<Target>) : null))
       .then((t) => setTargetDomain(t?.domain ?? null))
       .catch(() => setTargetDomain(null));
-  }, [id]);
+  }, [id, needsTargetDomain]);
 
   const crumbs: Crumb[] = [{ label: "Dashboard", to: "/" }];
-
-  const path = location.pathname;
 
   if (path.includes("/pipeline/edit") && id) {
     crumbs.push({ label: targetDomain ?? id, to: `/target/${id}` });

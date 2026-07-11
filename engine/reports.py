@@ -68,12 +68,12 @@ async def generate_report(
     # ── New subdomains ─────────────────────────────────────────────────────────
     if target_id:
         sub_rows = await db.fetchall(
-            "SELECT subdomain FROM subdomains WHERE target_id = ? AND first_seen >= ? ORDER BY first_seen DESC LIMIT 20",
+            "SELECT subdomain FROM subdomains WHERE target_id = ? AND in_scope = 1 AND first_seen >= ? ORDER BY first_seen DESC LIMIT 20",
             (target_id, since_iso),
         )
     else:
         sub_rows = await db.fetchall(
-            "SELECT subdomain FROM subdomains WHERE first_seen >= ? ORDER BY first_seen DESC LIMIT 20",
+            "SELECT subdomain FROM subdomains WHERE in_scope = 1 AND first_seen >= ? ORDER BY first_seen DESC LIMIT 20",
             (since_iso,),
         )
     lines.append(f"## New Subdomains ({len(sub_rows)})")

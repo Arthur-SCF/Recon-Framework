@@ -120,11 +120,11 @@ class NucleiTakeoverTool(BaseTool):
     async def run(self, ctx: StepContext) -> StepResult:
         # Collect all subdomains + live host URLs as scan targets
         sub_rows = await ctx.db.fetchall(
-            "SELECT subdomain FROM subdomains WHERE target_id = ?",
+            "SELECT subdomain FROM subdomains WHERE target_id = ? AND in_scope = 1",
             (ctx.target_id,),
         )
         host_rows = await ctx.db.fetchall(
-            "SELECT url FROM live_hosts WHERE target_id = ?",
+            "SELECT url FROM live_hosts WHERE target_id = ? AND in_scope = 1",
             (ctx.target_id,),
         )
 

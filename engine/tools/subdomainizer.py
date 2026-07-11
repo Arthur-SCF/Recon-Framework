@@ -29,7 +29,7 @@ async def _select_url(ctx: StepContext) -> str | None:
         """
         SELECT url, status_code, scheme, host, content_length, title
         FROM live_hosts
-        WHERE target_id = ?
+        WHERE target_id = ? AND in_scope = 1
         """,
         (ctx.target_id,),
     )

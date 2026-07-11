@@ -71,7 +71,7 @@ class GoWitnessTool(BaseTool):
 
     async def run(self, ctx: StepContext) -> StepResult:
         rows = await ctx.db.fetchall(
-            "SELECT id, url FROM live_hosts WHERE target_id = ? ORDER BY first_seen",
+            "SELECT id, url FROM live_hosts WHERE target_id = ? AND in_scope = 1 ORDER BY first_seen",
             (ctx.target_id,),
         )
         if not rows:

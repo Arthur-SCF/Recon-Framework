@@ -24,15 +24,15 @@ async def get_stats_overview(db: Database = Depends(get_db)) -> dict:
         running_scans = (await db.fetchone(
             "SELECT COUNT(*) AS c FROM targets WHERE status = 'running'"
         ))["c"]
-        total_subdomains = (await db.fetchone("SELECT COUNT(*) AS c FROM subdomains"))["c"]
-        total_hosts = (await db.fetchone("SELECT COUNT(*) AS c FROM live_hosts"))["c"]
+        total_subdomains = (await db.fetchone("SELECT COUNT(*) AS c FROM subdomains WHERE in_scope = 1"))["c"]
+        total_hosts = (await db.fetchone("SELECT COUNT(*) AS c FROM live_hosts WHERE in_scope = 1"))["c"]
 
         # ── Last 7 days ───────────────────────────────────────────────────────────
         new_subdomains_7d = (await db.fetchone(
-            "SELECT COUNT(*) AS c FROM subdomains WHERE first_seen >= datetime('now','-7 days')"
+            "SELECT COUNT(*) AS c FROM subdomains WHERE in_scope = 1 AND first_seen >= datetime('now','-7 days')"
         ))["c"]
         new_hosts_7d = (await db.fetchone(
-            "SELECT COUNT(*) AS c FROM live_hosts WHERE first_seen >= datetime('now','-7 days')"
+            "SELECT COUNT(*) AS c FROM live_hosts WHERE in_scope = 1 AND first_seen >= datetime('now','-7 days')"
         ))["c"]
         hosts_gone_7d = (await db.fetchone(
             """SELECT COUNT(*) AS c FROM live_hosts_history
@@ -78,7 +78,8 @@ async def get_stats_overview(db: Database = Depends(get_db)) -> dict:
         tech_rows = await db.fetchall(
             """SELECT value AS tech, COUNT(*) AS count
                FROM live_hosts, json_each(live_hosts.tech)
-               WHERE live_hosts.tech IS NOT NULL
+               WHERE live_hosts.in_scope = 1
+                 AND live_hosts.tech IS NOT NULL
                  AND live_hosts.tech != '[]'
                GROUP BY value
                ORDER BY count DESC LIMIT 15"""
@@ -89,7 +90,7 @@ async def get_stats_overview(db: Database = Depends(get_db)) -> dict:
         status_rows = await db.fetchall(
             """SELECT status_code, COUNT(*) AS count
                FROM live_hosts
-               WHERE status_code IS NOT NULL
+               WHERE in_scope = 1 AND status_code IS NOT NULL
                GROUP BY status_code
                ORDER BY count DESC LIMIT 20"""
         )

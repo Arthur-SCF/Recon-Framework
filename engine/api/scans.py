@@ -339,7 +339,7 @@ async def get_step_results(
         rows = await db.fetchall(
             """
             SELECT subdomain FROM subdomains
-            WHERE target_id = ? AND consolidated_in LIKE ?
+            WHERE target_id = ? AND in_scope = 1 AND consolidated_in LIKE ?
             ORDER BY subdomain
             LIMIT 2000
             """,
@@ -512,7 +512,7 @@ async def list_subdomains(
     await _require_target(target_id, db)
 
     sort_col = sort_by if sort_by in _SUBDOMAIN_SORT else "first_seen"
-    where = "WHERE target_id = ?"
+    where = "WHERE target_id = ? AND in_scope = 1"
     params: list = [target_id]
     if q:
         where += " AND subdomain LIKE ?"
@@ -567,16 +567,16 @@ async def get_subdomain_stats(target_id: str, db: Database = Depends(get_db)):
     """Counts of subdomains by live status, source tool, and consolidation round."""
     await _require_target(target_id, db)
     total = (await db.fetchone(
-        "SELECT COUNT(*) n FROM subdomains WHERE target_id = ?", (target_id,)
+        "SELECT COUNT(*) n FROM subdomains WHERE target_id = ? AND in_scope = 1", (target_id,)
     ))["n"]
     live = (await db.fetchone(
-        "SELECT COUNT(*) n FROM subdomains WHERE target_id = ? AND is_live = 1", (target_id,)
+        "SELECT COUNT(*) n FROM subdomains WHERE target_id = ? AND in_scope = 1 AND is_live = 1", (target_id,)
     ))["n"]
     src_rows = await db.fetchall(
         """
         SELECT json_each.value AS src, COUNT(*) AS cnt
         FROM subdomains, json_each(sources)
-        WHERE target_id = ?
+        WHERE target_id = ? AND in_scope = 1
         GROUP BY src ORDER BY cnt DESC
         """,
         (target_id,),
@@ -585,7 +585,7 @@ async def get_subdomain_stats(target_id: str, db: Database = Depends(get_db)):
         """
         SELECT json_each.value AS rnd, COUNT(*) AS cnt
         FROM subdomains, json_each(consolidated_in)
-        WHERE target_id = ?
+        WHERE target_id = ? AND in_scope = 1
         GROUP BY rnd
         """,
         (target_id,),
@@ -696,7 +696,7 @@ async def live_hosts_stats(
 ):
     await _require_target(target_id, db)
     rows = await db.fetchall(
-        "SELECT status_code, COUNT(*) AS n FROM live_hosts WHERE target_id = ? GROUP BY status_code",
+        "SELECT status_code, COUNT(*) AS n FROM live_hosts WHERE target_id = ? AND in_scope = 1 GROUP BY status_code",
         (target_id,),
     )
     by_status: dict[str, int] = {}
@@ -724,7 +724,7 @@ async def list_live_hosts(
     await _require_target(target_id, db)
 
     sort_col = sort_by if sort_by in _LIVE_HOST_SORT else "first_seen"
-    where = "WHERE target_id = ?"
+    where = "WHERE target_id = ? AND in_scope = 1"
     params: list = [target_id]
 
     if status_code is not None:
@@ -771,7 +771,7 @@ async def get_live_host(
     """Full detail for a single live host."""
     await _require_target(target_id, db)
     row = await db.fetchone(
-        _LIVE_HOST_SELECT + " WHERE id = ? AND target_id = ?",
+        _LIVE_HOST_SELECT + " WHERE id = ? AND target_id = ? AND in_scope = 1",
         (host_id, target_id),
     )
     if not row:

@@ -38,7 +38,7 @@ class DiffAction(BaseAction):
     async def execute(self, ctx: StepContext) -> dict:
         # ── Load current session's live hosts ─────────────────────────────────
         current_rows = await ctx.db.fetchall(
-            "SELECT * FROM live_hosts WHERE target_id = ?",
+            "SELECT * FROM live_hosts WHERE target_id = ? AND in_scope = 1",
             (ctx.target_id,),
         )
         current = {row["url"]: dict(row) for row in current_rows}
@@ -73,6 +73,7 @@ class DiffAction(BaseAction):
                 FROM live_hosts_history lhh
                 JOIN live_hosts lh ON lh.id = lhh.live_host_id
                 WHERE lhh.session_id = ? AND lhh.target_id = ?
+                  AND lh.in_scope = 1
                 """,
                 (prev_session_id, ctx.target_id),
             )
@@ -97,7 +98,7 @@ class DiffAction(BaseAction):
             # Gone: was in previous session, not in current
             for url in gone_urls:
                 lh_row = await ctx.db.fetchone(
-                    "SELECT * FROM live_hosts WHERE target_id = ? AND url = ?",
+                    "SELECT * FROM live_hosts WHERE target_id = ? AND url = ? AND in_scope = 1",
                     (ctx.target_id, url),
                 )
                 if lh_row:

@@ -21,7 +21,7 @@ import uuid
 from engine.pipeline.base import BaseAction, StepContext
 
 log = logging.getLogger("engine.pipe.consolidate")
-from engine.pipeline.dedup import normalize_subdomain, apply_scope_rules
+from engine.pipeline.dedup import normalize_subdomain, is_in_scope
 
 
 # Maps step_id → (table_name, subdomain_column)
@@ -107,19 +107,21 @@ class ConsolidateAction(BaseAction):
             if norm:
                 normalized.setdefault(norm, set()).update(sources)
 
-        # ── Apply scope rules ─────────────────────────────────────────────────
+        # ── Load scope rules (applied per-subdomain, non-destructively) ───────
         scope_rows = await ctx.db.fetchall(
             "SELECT rule_type, pattern, priority FROM scope_rules WHERE target_id = ?",
             (ctx.target_id,),
         )
         scope_rules = [dict(r) for r in scope_rows]
-        in_scope = apply_scope_rules(set(normalized.keys()), scope_rules, ctx.domain)
 
         # ── Upsert into unified subdomains table ──────────────────────────────
-        new_count   = 0
-        total_count = 0
+        new_count      = 0
+        total_count    = 0
+        in_scope_count = 0
 
-        for sub in in_scope:
+        for sub in normalized:
+            sub_scope = 1 if is_in_scope(sub, scope_rules) else 0
+            in_scope_count += sub_scope
             sources = sorted(normalized.get(sub, set()))
             sources_json = json.dumps(sources)
 
@@ -129,7 +131,6 @@ class ConsolidateAction(BaseAction):
             )
 
             if existing:
-                # Merge sources and mark this round
                 existing_sources = set(json.loads(existing["sources"] or "[]"))
                 merged_sources   = json.dumps(sorted(existing_sources | set(sources)))
 
@@ -140,19 +141,19 @@ class ConsolidateAction(BaseAction):
                 await ctx.db.execute(
                     """
                     UPDATE subdomains
-                    SET sources = ?, consolidated_in = ?, last_seen = datetime('now')
+                    SET sources = ?, consolidated_in = ?, in_scope = ?,
+                        last_seen = datetime('now')
                     WHERE id = ?
                     """,
-                    (merged_sources, rounds_json, existing["id"]),
+                    (merged_sources, rounds_json, sub_scope, existing["id"]),
                 )
             else:
-                # New subdomain
                 await ctx.db.execute(
                     """
                     INSERT INTO subdomains
                         (id, target_id, subdomain, sources, consolidated_in,
-                         first_session, is_live)
-                    VALUES (?, ?, ?, ?, ?, ?, 0)
+                         first_session, is_live, in_scope)
+                    VALUES (?, ?, ?, ?, ?, ?, 0, ?)
                     """,
                     (
                         str(uuid.uuid4()),
@@ -161,6 +162,7 @@ class ConsolidateAction(BaseAction):
                         sources_json,
                         json.dumps([round_num]),
                         ctx.session_id,
+                        sub_scope,
                     ),
                 )
                 new_count += 1
@@ -172,7 +174,7 @@ class ConsolidateAction(BaseAction):
         log.info(
             "%s: %d new, %d total (from %d raw, %d normalized, %d in scope)",
             round_key, new_count, total_count,
-            len(raw_subdomains), len(normalized), len(in_scope),
+            len(raw_subdomains), len(normalized), in_scope_count,
         )
 
         return {

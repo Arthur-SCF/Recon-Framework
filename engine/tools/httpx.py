@@ -27,6 +27,7 @@ import tempfile
 import uuid
 
 from engine.pipeline.base import BaseTool, StepContext, StepResult, OutputStatus
+from engine.pipeline.dedup import is_in_scope
 
 log = logging.getLogger("engine.tools.httpx")
 from engine.pipeline.dedup import normalize_url
@@ -265,7 +266,7 @@ class HttpxTool(BaseTool):
         """
         if round_key == "r1":
             rows = await ctx.db.fetchall(
-                "SELECT subdomain FROM subdomains WHERE target_id = ?",
+                "SELECT subdomain FROM subdomains WHERE target_id = ? AND in_scope = 1",
                 (ctx.target_id,),
             )
         else:
@@ -274,6 +275,7 @@ class HttpxTool(BaseTool):
                 """
                 SELECT subdomain FROM subdomains
                 WHERE target_id = ?
+                  AND in_scope = 1
                   AND first_session = ?
                   AND consolidated_in LIKE ?
                 """,
@@ -318,9 +320,16 @@ class HttpxTool(BaseTool):
         if not hosts:
             return
 
+        scope_rows = await ctx.db.fetchall(
+            "SELECT rule_type, pattern FROM scope_rules WHERE target_id = ?",
+            (ctx.target_id,),
+        )
+        scope_rules = [dict(r) for r in scope_rows]
+
         for host in hosts:
             url      = host["url"]
             host_str = host.get("host", "")
+            host_scope = 1 if is_in_scope(host_str, scope_rules) else 0
 
             # Find matching subdomain record for FK
             sub_row = await ctx.db.fetchone(
@@ -349,6 +358,7 @@ class HttpxTool(BaseTool):
                         a_records = ?, aaaa_records = ?,
                         response_hash = ?, header_hash = ?, response_time = ?,
                         has_csp = ?, has_xfo = ?, has_xcto = ?, has_hsts = ?,
+                        in_scope = ?,
                         last_seen = datetime('now'),
                         last_status = ?, last_title = ?
                     WHERE id = ?
@@ -365,6 +375,7 @@ class HttpxTool(BaseTool):
                         json.dumps(host["a_records"]), json.dumps(host["aaaa_records"]),
                         host["response_hash"], host["header_hash"], host["response_time"],
                         host["has_csp"], host["has_xfo"], host["has_xcto"], host["has_hsts"],
+                        host_scope,
                         host["status_code"], host["title"],
                         existing["id"],
                     ),
@@ -382,6 +393,7 @@ class HttpxTool(BaseTool):
                         cname, cdn, cdn_name, a_records, aaaa_records,
                         response_hash, header_hash, response_time,
                         has_csp, has_xfo, has_xcto, has_hsts,
+                        in_scope,
                         last_status, last_title
                     ) VALUES (
                         ?, ?, ?, ?,
@@ -393,6 +405,7 @@ class HttpxTool(BaseTool):
                         ?, ?, ?, ?, ?,
                         ?, ?, ?,
                         ?, ?, ?, ?,
+                        ?,
                         ?, ?
                     )
                     """,
@@ -408,6 +421,7 @@ class HttpxTool(BaseTool):
                         json.dumps(host["a_records"]), json.dumps(host["aaaa_records"]),
                         host["response_hash"], host["header_hash"], host["response_time"],
                         host["has_csp"], host["has_xfo"], host["has_xcto"], host["has_hsts"],
+                        host_scope,
                         host["status_code"], host["title"],
                     ),
                 )

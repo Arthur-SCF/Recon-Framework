@@ -117,7 +117,7 @@ class NaabuTool(BaseTool):
     async def run(self, ctx: StepContext) -> StepResult:
         # Fetch live hosts with their A records for CDN deduplication
         rows = await ctx.db.fetchall(
-            "SELECT DISTINCT host, a_records FROM live_hosts WHERE target_id = ?",
+            "SELECT DISTINCT host, a_records FROM live_hosts WHERE target_id = ? AND in_scope = 1",
             (ctx.target_id,),
         )
         if not rows:

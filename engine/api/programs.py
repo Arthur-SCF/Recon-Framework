@@ -375,7 +375,7 @@ async def program_subdomains(
         return _paginate([], 0, page, per_page)
 
     ph = ",".join("?" * len(ids))
-    where = f"WHERE target_id IN ({ph})"
+    where = f"WHERE target_id IN ({ph}) AND in_scope = 1"
     params: list = list(ids)
     if q:
         where += " AND subdomain LIKE ?"
@@ -430,7 +430,7 @@ async def program_live_hosts(
         return _paginate([], 0, page, per_page)
 
     ph = ",".join("?" * len(ids))
-    where = f"WHERE target_id IN ({ph})"
+    where = f"WHERE target_id IN ({ph}) AND in_scope = 1"
     params: list = list(ids)
     if status_code is not None:
         where += " AND status_code = ?"
@@ -591,22 +591,22 @@ async def program_stats(program_id: str, db: Database = Depends(get_db)) -> dict
     ph = ",".join("?" * len(ids))
     t = tuple(ids)
     total_subs = (await db.fetchone(
-        f"SELECT COUNT(*) AS n FROM subdomains WHERE target_id IN ({ph})", t
+        f"SELECT COUNT(*) AS n FROM subdomains WHERE target_id IN ({ph}) AND in_scope = 1", t
     ))["n"]
     total_hosts = (await db.fetchone(
-        f"SELECT COUNT(*) AS n FROM live_hosts WHERE target_id IN ({ph})", t
+        f"SELECT COUNT(*) AS n FROM live_hosts WHERE target_id IN ({ph}) AND in_scope = 1", t
     ))["n"]
     total_takeovers = (await db.fetchone(
         f"SELECT COUNT(*) AS n FROM nuclei_takeover_results WHERE target_id IN ({ph})", t
     ))["n"]
 
     sub_rows = await db.fetchall(
-        f"SELECT target_id, COUNT(*) AS n FROM subdomains WHERE target_id IN ({ph}) GROUP BY target_id",
+        f"SELECT target_id, COUNT(*) AS n FROM subdomains WHERE target_id IN ({ph}) AND in_scope = 1 GROUP BY target_id",
         t,
     )
     sub_by_target = {r["target_id"]: r["n"] for r in sub_rows}
     host_rows = await db.fetchall(
-        f"SELECT target_id, COUNT(*) AS n FROM live_hosts WHERE target_id IN ({ph}) GROUP BY target_id",
+        f"SELECT target_id, COUNT(*) AS n FROM live_hosts WHERE target_id IN ({ph}) AND in_scope = 1 GROUP BY target_id",
         t,
     )
     host_by_target = {r["target_id"]: r["n"] for r in host_rows}
@@ -624,7 +624,7 @@ async def program_stats(program_id: str, db: Database = Depends(get_db)) -> dict
     status_rows = await db.fetchall(
         f"""
         SELECT status_code, COUNT(*) AS n FROM live_hosts
-        WHERE target_id IN ({ph}) AND status_code IS NOT NULL
+        WHERE target_id IN ({ph}) AND in_scope = 1 AND status_code IS NOT NULL
         GROUP BY status_code ORDER BY n DESC LIMIT 20
         """,
         t,

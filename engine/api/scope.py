@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from engine.db import Database, get_db
 from engine.api.schemas import ScopeRuleCreate, ScopeRuleOut, ScopeRuleUpdate
+from engine.pipeline.scope_service import reapply_scope
 
 log = logging.getLogger("engine.api.scope")
 router = APIRouter(tags=["scope"])
@@ -70,6 +71,8 @@ async def create_scope_rule(
             """,
             (rule_id, target_id, body.rule_type, body.pattern, body.priority, now),
         )
+    # Make the rule take effect on already-discovered data (the bug being fixed).
+    await reapply_scope(db, target_id)
     row = await db.fetchone("SELECT * FROM scope_rules WHERE id = ?", (rule_id,))
     return _row_to_rule(row)
 
@@ -99,6 +102,7 @@ async def update_scope_rule(
         async with db.transaction():
             await db.execute(f"UPDATE scope_rules SET {set_clause} WHERE id = ?", tuple(values))  # noqa: S608
 
+    await reapply_scope(db, target_id)
     row = await db.fetchone("SELECT * FROM scope_rules WHERE id = ?", (rule_id,))
     return _row_to_rule(row)
 
@@ -149,3 +153,4 @@ async def delete_scope_rule(
         raise HTTPException(status_code=404, detail="Scope rule not found")
     async with db.transaction():
         await db.execute("DELETE FROM scope_rules WHERE id = ?", (rule_id,))
+    await reapply_scope(db, target_id)

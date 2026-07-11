@@ -136,6 +136,12 @@ async def lifespan(app: FastAPI):
     set_db(db)
     log.info("Database ready: %s", settings.db_path)
 
+    try:
+        from engine.pipeline.scope_service import reapply_scope_all
+        await reapply_scope_all(db)
+    except Exception as exc:
+        log.warning("Could not reapply scope rules on startup: %s", exc)
+
     # Start WebSocket manager
     ws_manager.start()
 
@@ -197,10 +203,10 @@ async def lifespan(app: FastAPI):
         row = await db.fetchone("SELECT COUNT(*) AS n FROM targets")
         if row:
             targets_total.set(row["n"])
-        row = await db.fetchone("SELECT COUNT(*) AS n FROM subdomains")
+        row = await db.fetchone("SELECT COUNT(*) AS n FROM subdomains WHERE in_scope = 1")
         if row:
             subdomains_total.set(row["n"])
-        row = await db.fetchone("SELECT COUNT(*) AS n FROM live_hosts")
+        row = await db.fetchone("SELECT COUNT(*) AS n FROM live_hosts WHERE in_scope = 1")
         if row:
             live_hosts_total.set(row["n"])
     except Exception as exc:

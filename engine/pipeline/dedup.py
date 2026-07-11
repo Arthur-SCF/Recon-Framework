@@ -101,43 +101,53 @@ def normalize_url(raw_url: str) -> str:
     return f"{scheme}://{netloc}{path}{query}"
 
 
-def apply_scope_rules(
-    subdomains: set[str],
-    scope_rules: list[dict],
-    base_domain: str,
-) -> set[str]:
+def is_in_scope(host: str, scope_rules: list[dict]) -> bool:
     """
-    Filter a set of normalized subdomains through scope rules.
+    Decide whether a single host (a subdomain or a live-host hostname) is in
+    scope under a target's scope rules.
 
-    Rules are evaluated in priority order (higher priority = evaluated first).
-    First matching rule wins (include → keep, exclude → drop).
-    If no rules exist, all subdomains pass.
-    If only exclude rules exist, non-matching subdomains pass.
-    If include rules exist, only matching subdomains pass (whitelist mode).
+    Semantics (match the user-facing include/exclude model):
+      • include match   → in scope. ``include`` is a keep-in-scope OVERRIDE and
+                          always wins over ``exclude``, so ``priority`` is not
+                          consulted (it is vestigial under this model).
+      • exclude match   → out of scope.
+      • no rule matches → in scope. There is NO whitelist mode: adding an
+                          ``include`` rule does not drop everything it fails to
+                          match — it only adds/keeps what it matches.
+      • no rules at all → in scope.
+
+    Patterns are shell globs (fnmatch), e.g. ``*.staging.example.com`` or
+    ``admin.example.com``, matched against the normalized lowercase host.
     """
     import fnmatch
 
     if not scope_rules:
+        return True
+
+    matched_exclude = False
+    for rule in scope_rules:
+        pattern = rule.get("pattern")
+        if not pattern:
+            continue
+        if fnmatch.fnmatch(host, pattern):
+            if rule.get("rule_type") == "include":
+                return True          # include always wins
+            if rule.get("rule_type") == "exclude":
+                matched_exclude = True
+    return not matched_exclude
+
+
+def apply_scope_rules(
+    subdomains: set[str],
+    scope_rules: list[dict],
+    base_domain: str | None = None,
+) -> set[str]:
+    """
+    Return the subset of ``subdomains`` that is in scope.
+
+    Thin wrapper over :func:`is_in_scope`, retained for the scope-preview
+    endpoint. ``base_domain`` is unused (kept for signature compatibility).
+    """
+    if not scope_rules:
         return subdomains
-
-    sorted_rules = sorted(scope_rules, key=lambda r: -r.get("priority", 0))
-    has_include = any(r["rule_type"] == "include" for r in sorted_rules)
-
-    result: set[str] = set()
-    for sub in subdomains:
-        matched_rule = None
-        for rule in sorted_rules:
-            pattern = rule["pattern"]
-            if fnmatch.fnmatch(sub, pattern):
-                matched_rule = rule
-                break
-
-        if matched_rule is None:
-            # No rule matched: pass if no include rules exist
-            if not has_include:
-                result.add(sub)
-        elif matched_rule["rule_type"] == "include":
-            result.add(sub)
-        # exclude: drop silently
-
-    return result
+    return {sub for sub in subdomains if is_in_scope(sub, scope_rules)}

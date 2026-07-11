@@ -105,7 +105,7 @@ class KatanaTool(BaseTool):
 
         # Fetch live host URLs for input
         rows = await ctx.db.fetchall(
-            "SELECT url FROM live_hosts WHERE target_id = ? ORDER BY first_seen",
+            "SELECT url FROM live_hosts WHERE target_id = ? AND in_scope = 1 ORDER BY first_seen",
             (ctx.target_id,),
         )
         if not rows:

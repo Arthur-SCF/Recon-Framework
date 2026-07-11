@@ -77,7 +77,7 @@ async def global_search(
                 SELECT s.id, s.subdomain, s.is_live, s.target_id, t.domain AS target_domain
                 FROM subdomains s
                 JOIN targets t ON t.id = s.target_id
-                WHERE s.subdomain LIKE ?
+                WHERE s.subdomain LIKE ? AND s.in_scope = 1
                 ORDER BY s.is_live DESC, s.subdomain
                 LIMIT ?
                 """,
@@ -102,7 +102,7 @@ async def global_search(
                        h.target_id, t.domain AS target_domain
                 FROM live_hosts h
                 JOIN targets t ON t.id = h.target_id
-                WHERE h.url LIKE ? OR h.title LIKE ?
+                WHERE (h.url LIKE ? OR h.title LIKE ?) AND h.in_scope = 1
                 ORDER BY h.url
                 LIMIT ?
                 """,

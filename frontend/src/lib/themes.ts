@@ -12,8 +12,8 @@ export const THEMES: ThemeConfig[] = [
   {
     id: "neon-recon",
     label: "Neon Recon",
-    description: "Electric blue & emerald — built for hacking",
-    swatch: { bg: "#060b12", primary: "#0ea5e9", accent: "#34d399" },
+    description: "Electric cyan on a command-deck substrate",
+    swatch: { bg: "#070b11", primary: "#34bdf2", accent: "#34d399" },
   },
   {
     id: "eslinks",

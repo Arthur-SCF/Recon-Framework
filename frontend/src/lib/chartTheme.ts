@@ -26,25 +26,25 @@ export function useChartColors() {
   }, [theme, dark]); // re-compute when theme or dark mode changes
 }
 
-/** Fixed semantic colors for HTTP status codes. */
+/** HTTP status colors — aligned to the DESIGN.md severity ramp (dark). */
 export const STATUS_COLORS: Record<string, string> = {
   "2xx": "#34d399",
-  "3xx": "#60a5fa",
+  "3xx": "#38bdf8",
   "4xx": "#fbbf24",
-  "5xx": "#f87171",
-  other: "#94a3b8",
+  "5xx": "#fb5c74",
+  other: "#7e8da0",
 };
 
-/** Fixed palette for top-N tech items. */
+/** Categorical tech palette — led by the brand accent + severity hues. */
 export const TECH_PALETTE = [
+  "#34bdf2",
   "#34d399",
-  "#60a5fa",
-  "#a78bfa",
+  "#818cf8",
+  "#c084fc",
   "#f472b6",
   "#fbbf24",
   "#fb923c",
   "#38bdf8",
-  "#4ade80",
-  "#c084fc",
-  "#f87171",
+  "#5eead4",
+  "#fb7185",
 ];

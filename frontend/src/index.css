@@ -30,8 +30,20 @@
   --color-destructive:            var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border:                 var(--border);
+  --color-border-subtle:          var(--border-subtle);
   --color-input:                  var(--input);
   --color-ring:                   var(--ring);
+
+  /* Extended surfaces + text (precision "Operator" system) */
+  --color-surface-hover:          var(--surface-hover);
+  --color-faint-foreground:       var(--faint-foreground);
+
+  /* Severity ramp — the semantic color language (shared across themes) */
+  --color-sev-info:               var(--sev-info);
+  --color-sev-low:                var(--sev-low);
+  --color-sev-medium:             var(--sev-medium);
+  --color-sev-high:               var(--sev-high);
+  --color-sev-critical:           var(--sev-critical);
 
   --font-sans: var(--font-family-sans);
   --font-mono: var(--font-family-mono);
@@ -44,6 +56,8 @@ html {
   font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Geometric alternates + slashed zero — the "engineered" character */
+  font-feature-settings: "cv01", "ss03", "zero";
 }
 
 body {
@@ -53,6 +67,35 @@ body {
 
 * {
   border-color: var(--border);
+}
+
+/* ═══════════════════════════════════════════════════
+   SHARED TOKENS — severity ramp + derived surfaces
+   Defined once here so all four themes speak the same
+   semantic language. Derived tokens use color-mix so
+   each theme computes them from its own palette.
+   ═══════════════════════════════════════════════════ */
+:root {
+  --sev-info:     #0284c7;
+  --sev-low:      #059669;
+  --sev-medium:   #d97706;
+  --sev-high:     #ea580c;
+  --sev-critical: #e11d48;
+
+  --border-subtle:      color-mix(in srgb, var(--border) 55%, var(--background));
+  --surface-hover:      color-mix(in srgb, var(--foreground) 5%, var(--card));
+  --faint-foreground:   color-mix(in srgb, var(--muted-foreground) 62%, transparent);
+}
+
+.dark {
+  --sev-info:     #38bdf8;
+  --sev-low:      #34d399;
+  --sev-medium:   #fbbf24;
+  --sev-high:     #fb923c;
+  --sev-critical: #fb5c74;
+
+  --surface-hover:    color-mix(in srgb, var(--foreground) 7%, var(--card));
+  --faint-foreground: color-mix(in srgb, var(--muted-foreground) 58%, transparent);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -75,46 +118,47 @@ body {
   --primary-foreground:     #ffffff;
   --secondary:              #059669;
   --secondary-foreground:   #ffffff;
-  --muted:                  #dbeafe;
-  --muted-foreground:       #1e4d7a;
-  --accent:                 #bae6fd;
+  --muted:                  #e4eef9;
+  --muted-foreground:       #47617e;
+  --accent:                 #d6ecfb;
   --accent-foreground:      #0c2340;
   --destructive:            #e11d48;
   --destructive-foreground: #ffffff;
-  --border:                 #bfdbfe;
-  --input:                  #dbeafe;
+  --border:                 #d3e2f2;
+  --input:                  #e3eefb;
   --ring:                   #0369a1;
 
-  --radius:           0.375rem;
+  --radius:           0.5rem;
   --font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-family-mono: "JetBrains Mono", ui-monospace, "Courier New", monospace;
 }
 
 [data-theme="neon-recon"].dark,
 :root.dark {
-  /* Dark — the real personality */
-  --background:             #060b12;
-  --foreground:             #e0f2fe;
-  --card:                   #0a1520;
-  --card-foreground:        #e0f2fe;
-  --popover:                #0a1520;
-  --popover-foreground:     #e0f2fe;
-  --sidebar:                #070e18;
-  --sidebar-foreground:     #e0f2fe;
-  --sidebar-border:         #1e3a50;
-  --primary:                #0ea5e9;
-  --primary-foreground:     #001e36;
+  /* Dark — the real personality: precision command-deck substrate */
+  --background:             #070b11;
+  --foreground:             #e7eef7;
+  --card:                   #0c121b;
+  --card-foreground:        #e7eef7;
+  --popover:                #10171f;
+  --popover-foreground:     #e7eef7;
+  --sidebar:                #090d14;
+  --sidebar-foreground:     #e7eef7;
+  --sidebar-border:         #1a2431;
+  --primary:                #34bdf2;
+  --primary-foreground:     #04121c;
   --secondary:              #10b981;
-  --secondary-foreground:   #001f14;
-  --muted:                  #0c1826;
-  --muted-foreground:       #4a8fa8;
-  --accent:                 #0e2537;
-  --accent-foreground:      #7dd3fc;
-  --destructive:            #f43f5e;
-  --destructive-foreground: #fff1f2;
-  --border:                 #1e3a50;
-  --input:                  #0f1f2d;
-  --ring:                   #0ea5e9;
+  --secondary-foreground:   #04140d;
+  --muted:                  #0f1720;
+  --muted-foreground:       #7e8da0;
+  --accent:                 #0f2130;
+  --accent-foreground:      #c3e8fb;
+  --destructive:            #fb5c74;
+  --destructive-foreground: #1a0308;
+  --border:                 #1a2431;
+  --input:                  #101a25;
+  --ring:                   #34bdf2;
+  --surface-hover:          #141d28;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -307,12 +351,56 @@ button[class*="bg-primary"]:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-/* Smooth card hover shadows — theme-aware */
+/* Card hover — precision: border brighten + tonal step, no material shadow */
 .card-hover {
-  transition: all 200ms ease;
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
 }
 .card-hover:hover {
-  box-shadow: 0 4px 12px -2px var(--border);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  background-color: var(--surface-hover);
+}
+
+/* ── Operator surface + signal utilities ──────────────────
+   .panel      default container (card bg + hairline border)
+   .panel-hover interactive container hover (border + tonal)
+   .deck-grid  faint blueprint grid, edge-masked — empty/hero only
+   .led        status dot with a soft same-color halo
+   ───────────────────────────────────────────────────────── */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.panel-hover {
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+.panel-hover:hover {
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  background-color: var(--surface-hover);
+}
+.deck-grid {
+  background-image:
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, transparent 70%);
+          mask-image: radial-gradient(ellipse at center, #000 0%, transparent 70%);
+}
+.led {
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* ── Command-deck chrome ──────────────────────────────────
+   .deck-rail-glow  soft accent glow for the active-nav "power rail"
+   .instrument-cluster  inset control-panel grouping for top-bar controls
+   ───────────────────────────────────────────────────────── */
+.deck-rail-glow {
+  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--primary) 60%, transparent);
+}
+.instrument-cluster {
+  background: color-mix(in srgb, var(--background) 55%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--foreground) 4%, transparent);
 }
 
 /* ── Range slider — theme-compliant ───────────────────────

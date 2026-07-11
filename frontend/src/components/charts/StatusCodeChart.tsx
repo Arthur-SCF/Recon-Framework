@@ -80,10 +80,10 @@ export function StatusCodeChart({ stats, activeBucket, onBucketClick }: Props) {
                 className="h-2.5 w-2.5 rounded-sm shrink-0"
                 style={{ backgroundColor: STATUS_COLORS[d.name] ?? STATUS_COLORS.other }}
               />
-              <span className={cn("text-muted-foreground", activeBucket === d.name && "text-foreground font-medium")}>
+              <span className={cn("font-mono text-muted-foreground", activeBucket === d.name && "text-foreground font-medium")}>
                 {d.name}
               </span>
-              <span className="font-medium text-foreground">{d.value}</span>
+              <span className="font-mono font-semibold tabular-nums text-foreground">{d.value}</span>
             </button>
           ))}
         </div>

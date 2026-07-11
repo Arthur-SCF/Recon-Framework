@@ -43,10 +43,10 @@ export function PipelineFlow({ targetId, wildcardPolicy, isQueued = false, queue
     <div className="flex flex-col gap-3">
       {/* Wildcard detection badge */}
       {wildcardPolicy && wildcardPolicy !== "disabled" && (
-        <div className="flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-card/90 backdrop-blur-xl px-3 py-1.5 text-xs text-muted-foreground w-fit shadow-sm shadow-black/20">
-          <ShieldCheck className="h-3.5 w-3.5 text-green-400" />
+        <div className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground w-fit">
+          <ShieldCheck className="h-3.5 w-3.5 text-sev-low" />
           Wildcard detection active
-          <span className="rounded px-1.5 py-0.5 bg-muted/50 font-medium text-foreground capitalize">
+          <span className="rounded px-1.5 py-0.5 bg-muted/50 font-mono font-medium text-foreground capitalize">
             {wildcardPolicy}
           </span>
         </div>

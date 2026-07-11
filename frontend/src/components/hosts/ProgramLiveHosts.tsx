@@ -41,7 +41,7 @@ export function ProgramLiveHosts({ programId }: { programId: string }) {
           placeholder="Filter by URL, title, webserver…"
           className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-64"
         />
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
           {hook.total.toLocaleString()} host{hook.total !== 1 ? "s" : ""}
         </span>
         <button
@@ -83,17 +83,17 @@ export function ProgramLiveHosts({ programId }: { programId: string }) {
 
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>
+          <span className="font-mono tabular-nums">
             Showing {(hook.page - 1) * hook.perPage + 1}–{Math.min(hook.page * hook.perPage, hook.total)} of {hook.total.toLocaleString()}
           </span>
           <div className="flex items-center gap-1">
             <button onClick={() => hook.setPage(hook.page - 1)} disabled={hook.page <= 1}
-              className="rounded p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors">
+              className="rounded-md p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="px-2">{hook.page} / {totalPages}</span>
+            <span className="px-2 font-mono tabular-nums">{hook.page} / {totalPages}</span>
             <button onClick={() => hook.setPage(hook.page + 1)} disabled={hook.page >= totalPages}
-              className="rounded p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors">
+              className="rounded-md p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>

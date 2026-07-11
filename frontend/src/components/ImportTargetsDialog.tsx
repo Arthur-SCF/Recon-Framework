@@ -112,7 +112,7 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
         <Dialog.Content className={cn(
           "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "w-[calc(100%-2rem)] max-w-lg rounded-xl border border-border bg-card shadow-2xl outline-none",
+          "w-[calc(100%-2rem)] max-w-lg rounded-lg border border-border bg-card shadow-2xl outline-none",
           "max-h-[90vh] overflow-y-auto",
         )}>
           {/* Header */}
@@ -179,9 +179,9 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
             {parsed.length > 0 && (
               <div className="rounded-md border border-border bg-muted/20 px-3 py-2.5 text-xs space-y-1.5">
                 <p className="font-medium text-foreground">
-                  Found {parsed.length} domain{parsed.length !== 1 ? "s" : ""}
+                  Found <span className="font-mono tabular-nums">{parsed.length}</span> domain{parsed.length !== 1 ? "s" : ""}
                   {invalidCount > 0 && (
-                    <span className="ml-2 text-amber-400">· {invalidCount} look invalid</span>
+                    <span className="ml-2 text-sev-medium">· <span className="font-mono tabular-nums">{invalidCount}</span> look invalid</span>
                   )}
                 </p>
                 <p className="text-muted-foreground font-mono leading-relaxed">
@@ -195,7 +195,7 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
             <div className="space-y-3">
               {/* Template */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-foreground">
+                <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   Pipeline Template
                 </label>
                 <select
@@ -213,8 +213,8 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
 
               {/* Tags */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-foreground">
-                  Tags <span className="font-normal text-muted-foreground">(applied to all)</span>
+                <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Tags <span className="font-normal normal-case tracking-normal text-faint-foreground">(applied to all)</span>
                 </label>
                 <TagInput tags={tags} onChange={setTags} placeholder="bug-bounty, high-priority…" />
               </div>
@@ -233,7 +233,7 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
                   manualOnly ? "bg-primary border-primary" : "bg-muted border-border",
                 )}>
                   <div className={cn(
-                    "absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform",
+                    "toggle-thumb absolute top-0.5 h-3 w-3 rounded-full transition-transform",
                     manualOnly ? "translate-x-3" : "translate-x-0.5",
                   )} />
                 </div>
@@ -248,12 +248,12 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
 
             {/* Result */}
             {result && (
-              <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-xs space-y-0.5">
-                <div className="flex items-center gap-1.5 font-medium text-emerald-400">
+              <div className="rounded-md border border-sev-low/30 bg-sev-low/10 px-3 py-2.5 text-xs space-y-0.5">
+                <div className="flex items-center gap-1.5 font-medium text-sev-low">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   Import complete
                 </div>
-                <p className="text-muted-foreground">
+                <p className="font-mono tabular-nums text-muted-foreground">
                   {result.created} created
                   {result.skipped_duplicate > 0 && ` · ${result.skipped_duplicate} duplicate${result.skipped_duplicate !== 1 ? "s" : ""} skipped`}
                   {result.skipped_invalid > 0 && ` · ${result.skipped_invalid} invalid skipped`}
@@ -268,19 +268,19 @@ export function ImportTargetsDialog({ open, onOpenChange, onImported }: Props) {
             {result ? (
               <button
                 onClick={() => handleClose(false)}
-                className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Done
               </button>
             ) : (
               <>
-                <Dialog.Close className="rounded border border-border px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Dialog.Close className="rounded-md border border-border px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Cancel
                 </Dialog.Close>
                 <button
                   onClick={() => void handleSubmit()}
                   disabled={loading || parsed.length === 0}
-                  className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
                   {loading ? (
                     <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Importing…</>

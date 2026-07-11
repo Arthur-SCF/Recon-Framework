@@ -8,19 +8,19 @@ import {
 } from "lucide-react";
 
 const items = [
-  { icon: <Circle        className="h-3 w-3 text-muted-foreground/25" />, label: "Pending"  },
-  { icon: <Loader2       className="h-3 w-3 text-blue-400"            />, label: "Running"  },
-  { icon: <CheckCircle2  className="h-3 w-3 text-green-400"           />, label: "Success"  },
-  { icon: <AlertCircle   className="h-3 w-3 text-red-400"             />, label: "Error"    },
-  { icon: <Clock         className="h-3 w-3 text-yellow-400"          />, label: "Timeout"  },
-  { icon: <MinusCircle   className="h-3 w-3 text-muted-foreground/25" />, label: "Skipped"  },
+  { icon: <Circle        className="h-3 w-3 text-muted-foreground/40" />, label: "Pending"  },
+  { icon: <Loader2       className="h-3 w-3 text-sev-info"            />, label: "Running"  },
+  { icon: <CheckCircle2  className="h-3 w-3 text-sev-low"            />, label: "Success"  },
+  { icon: <AlertCircle   className="h-3 w-3 text-sev-critical"       />, label: "Error"    },
+  { icon: <Clock         className="h-3 w-3 text-sev-medium"         />, label: "Timeout"  },
+  { icon: <MinusCircle   className="h-3 w-3 text-faint-foreground"   />, label: "Skipped"  },
 ];
 
 export function FlowLegend() {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 max-w-full rounded-xl border border-white/[0.06] bg-card/60 backdrop-blur-sm px-2.5 py-1.5 shadow-sm shadow-black/20">
+    <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 max-w-full rounded-lg border border-border bg-card px-2.5 py-1.5">
       {items.map(({ icon, label }) => (
-        <span key={label} className="flex items-center gap-1 text-[10px] text-muted-foreground/40 whitespace-nowrap">
+        <span key={label} className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground whitespace-nowrap">
           {icon}
           {label}
         </span>

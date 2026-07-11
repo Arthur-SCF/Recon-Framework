@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Settings2 } from "lucide-react";
+import { Settings2, AlertTriangle, Diamond } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineStep } from "@/types/api";
 import { PARAM_COMPONENTS, STEP_ACCENT } from "./StepConfigRow";
@@ -114,17 +114,17 @@ export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLab
     <div className="border-b border-border/50 last:border-0">
       {/* Section label */}
       <div className="px-3 pt-2.5 pb-1 flex items-center gap-2">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
           Service Fingerprinting
         </span>
         <span className="text-[10px] text-muted-foreground/60">— choose one</span>
         {depWarning && (
           <span
             title={depWarning}
-            className="ml-auto text-amber-500 cursor-help"
+            className="ml-auto text-sev-medium cursor-help"
             aria-label={depWarning}
           >
-            ⚠
+            <AlertTriangle className="h-3 w-3" />
           </span>
         )}
       </div>
@@ -141,7 +141,7 @@ export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLab
             <div key={step.id}>
               <div className={cn(
                 "flex items-center gap-2.5 px-3 py-2 transition-colors",
-                isSelected ? "bg-muted/20" : "hover:bg-muted/10",
+                isSelected ? "bg-primary/5" : "hover:bg-surface-hover",
                 !isSelected && "opacity-60"
               )}>
                 {/* Radio circle */}
@@ -165,7 +165,9 @@ export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLab
 
                 {/* Modified indicator */}
                 {hasOverrides && (
-                  <span className="text-[10px] text-primary/70" title="Parameters modified from defaults">◆</span>
+                  <span className="text-primary/70" title="Parameters modified from defaults">
+                    <Diamond className="h-2.5 w-2.5 fill-current" />
+                  </span>
                 )}
 
                 {/* Tooltip */}
@@ -188,7 +190,7 @@ export function MutexStepGroup({ steps, targetId, onUpdated, depWarning, stepLab
 
         {/* Neither option */}
         <div className={cn(
-          "flex items-center gap-2.5 px-3 py-2 hover:bg-muted/10 transition-colors",
+          "flex items-center gap-2.5 px-3 py-2 hover:bg-surface-hover transition-colors",
           selected !== null && "opacity-60"
         )}>
           <button

@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { STATUS_COLORS } from "@/lib/chartTheme";
+import { useChartColors } from "@/lib/chartTheme";
 import { ChartCard } from "./ChartCard";
 import type { DiffEvent } from "@/types/api";
 
@@ -24,6 +24,7 @@ interface BucketedPoint {
 }
 
 export function TimelineChart({ targetId }: TimelineChartProps) {
+  const colors = useChartColors();
   const [events, setEvents] = useState<DiffEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,55 +80,55 @@ export function TimelineChart({ targetId }: TimelineChartProps) {
         <AreaChart data={data} margin={{ left: 0, right: 12, top: 4, bottom: 0 }}>
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+            tick={{ fontSize: 10, fill: colors.muted }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+            tick={{ fontSize: 10, fill: colors.muted }}
             tickLine={false}
             axisLine={false}
             width={30}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "var(--card)",
-              border: "1px solid var(--border)",
+              backgroundColor: colors.card,
+              border: `1px solid ${colors.border}`,
               borderRadius: "6px",
               fontSize: "12px",
-              color: "var(--foreground)",
+              color: colors.foreground,
             }}
           />
           <Area
             type="monotone"
             dataKey="discovered"
             stackId="1"
-            stroke={STATUS_COLORS["2xx"]}
-            fill={STATUS_COLORS["2xx"]}
+            stroke="var(--sev-low)"
+            fill="var(--sev-low)"
             fillOpacity={0.3}
           />
           <Area
             type="monotone"
             dataKey="changed"
             stackId="1"
-            stroke={STATUS_COLORS["3xx"]}
-            fill={STATUS_COLORS["3xx"]}
+            stroke="var(--sev-medium)"
+            fill="var(--sev-medium)"
             fillOpacity={0.3}
           />
           <Area
             type="monotone"
             dataKey="gone"
             stackId="1"
-            stroke={STATUS_COLORS["5xx"]}
-            fill={STATUS_COLORS["5xx"]}
+            stroke="var(--sev-critical)"
+            fill="var(--sev-critical)"
             fillOpacity={0.3}
           />
           <Area
             type="monotone"
             dataKey="returned"
             stackId="1"
-            stroke={STATUS_COLORS["4xx"]}
-            fill={STATUS_COLORS["4xx"]}
+            stroke="var(--sev-info)"
+            fill="var(--sev-info)"
             fillOpacity={0.3}
           />
         </AreaChart>

@@ -114,7 +114,7 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
           onChange={(e) => hook.setQ(e.target.value)}
           className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-56"
         />
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
           {hook.total.toLocaleString()} subdomains
         </span>
         <button
@@ -150,7 +150,7 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs text-foreground truncate flex-1">{row.subdomain}</span>
                   <div className="flex items-center gap-2 shrink-0">
-                    {row.is_live && <span className="text-green-400 text-xs font-medium">live</span>}
+                    {row.is_live && <span className="rounded bg-sev-low/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-sev-low">live</span>}
                     <a href={`https://${row.subdomain}`} target="_blank" rel="noreferrer"
                       className="text-muted-foreground hover:text-foreground">
                       <ExternalLink className="h-3 w-3" />
@@ -185,20 +185,20 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
           <div className="hidden sm:block overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border bg-muted/30 text-left">
-                  <th className="px-3 py-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("subdomain")}>
+                <tr className="border-b border-border bg-muted/30 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("subdomain")}>
                     <span className="inline-flex items-center gap-1">Subdomain <SortIcon dir={hook.sortBy === "subdomain" ? hook.sortDir : null} /></span>
                   </th>
-                  {showAsset && <th className="px-3 py-2 font-medium text-muted-foreground">Asset</th>}
-                  <th className="px-3 py-2 font-medium text-muted-foreground">Sources</th>
-                  <th className="px-3 py-2 font-medium text-muted-foreground">Round</th>
-                  <th className="px-3 py-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("is_live")}>
+                  {showAsset && <th className="px-3 py-2">Asset</th>}
+                  <th className="px-3 py-2">Sources</th>
+                  <th className="px-3 py-2">Round</th>
+                  <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("is_live")}>
                     <span className="inline-flex items-center gap-1">Live <SortIcon dir={hook.sortBy === "is_live" ? hook.sortDir : null} /></span>
                   </th>
-                  <th className="px-3 py-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("first_seen")}>
+                  <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("first_seen")}>
                     <span className="inline-flex items-center gap-1">First seen <SortIcon dir={hook.sortBy === "first_seen" ? hook.sortDir : null} /></span>
                   </th>
-                  <th className="px-3 py-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("last_seen")}>
+                  <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("last_seen")}>
                     <span className="inline-flex items-center gap-1">Last seen <SortIcon dir={hook.sortBy === "last_seen" ? hook.sortDir : null} /></span>
                   </th>
                   <th className="px-3 py-2"></th>
@@ -211,7 +211,7 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
                     className={cn(
                       "border-b border-border last:border-0",
                       i % 2 === 0 ? "bg-background" : "bg-muted/10",
-                      "hover:bg-accent/30 transition-colors",
+                      "hover:bg-surface-hover transition-colors",
                     )}
                   >
                     <td className="px-3 py-1.5 font-mono text-foreground">{row.subdomain}</td>
@@ -243,13 +243,13 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
                     </td>
                     <td className="px-3 py-1.5">
                       {row.is_live ? (
-                        <span className="text-green-400 font-medium">live</span>
+                        <span className="rounded bg-sev-low/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-sev-low">live</span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-1.5 text-muted-foreground">{relativeTime(row.first_seen)}</td>
-                    <td className="px-3 py-1.5 text-muted-foreground">{relativeTime(row.last_seen)}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-muted-foreground">{relativeTime(row.first_seen)}</td>
+                    <td className="px-3 py-1.5 font-mono tabular-nums text-muted-foreground">{relativeTime(row.last_seen)}</td>
                     <td className="px-3 py-1.5">
                       <a
                         href={`https://${row.subdomain}`}
@@ -269,7 +269,7 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>
+              <span className="font-mono tabular-nums">
                 Showing {(hook.page - 1) * hook.perPage + 1}–{Math.min(hook.page * hook.perPage, hook.total)} of {hook.total.toLocaleString()}
               </span>
               <div className="flex items-center gap-1">
@@ -280,7 +280,7 @@ export function SubdomainsTable({ targetId, endpointBase, showAsset = false }: S
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="px-2">{hook.page} / {totalPages}</span>
+                <span className="px-2 font-mono tabular-nums">{hook.page} / {totalPages}</span>
                 <button
                   onClick={() => hook.setPage(hook.page + 1)}
                   disabled={hook.page >= totalPages}

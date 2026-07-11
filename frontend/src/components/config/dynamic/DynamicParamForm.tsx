@@ -80,10 +80,10 @@ export function DynamicParamForm({ stepId, overrides, onChange, disabled }: Prop
       if (currentGroup && currentGroup !== lastGroup) {
         result.push(
           <div key={`group-${currentGroup}`} className="flex items-center gap-2 pt-1">
-            <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
               {currentGroup}
             </span>
-            <div className="flex-1 h-px bg-border/50" />
+            <div className="flex-1 h-px bg-border" />
           </div>
         );
         lastGroup = currentGroup;
@@ -135,7 +135,7 @@ export function DynamicParamForm({ stepId, overrides, onChange, disabled }: Prop
             className="flex items-center gap-2 w-full group"
           >
             <div className="flex-1 h-px bg-border/50 group-hover:bg-border transition-colors" />
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-foreground transition-colors shrink-0">
+            <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground group-hover:text-foreground transition-colors shrink-0">
               Advanced
               {advancedOpen
                 ? <ChevronDown className="h-3 w-3" />
@@ -154,22 +154,22 @@ export function DynamicParamForm({ stepId, overrides, onChange, disabled }: Prop
 
       {/* Danger zone */}
       {danger.length > 0 && (
-        <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 overflow-hidden">
+        <div className="mt-3 rounded-md border border-sev-medium/30 bg-sev-medium/5 overflow-hidden">
           <button
             type="button"
             onClick={() => setDangerOpen(v => !v)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/5 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sev-medium/90 hover:text-sev-medium hover:bg-sev-medium/5 transition-colors"
           >
             <AlertTriangle className="h-3 w-3 shrink-0" />
-            <span className="flex-1 text-left font-medium">Danger zone</span>
+            <span className="flex-1 text-left font-mono text-[11px] font-semibold uppercase tracking-[0.14em]">Danger zone</span>
             {dangerOpen
               ? <ChevronDown className="h-3 w-3 shrink-0" />
               : <ChevronRight className="h-3 w-3 shrink-0" />}
           </button>
 
           {dangerOpen && (
-            <div className="px-3 pb-3 flex flex-col gap-3 border-t border-amber-500/20">
-              <p className="text-[10px] text-amber-500/70 pt-2 leading-snug">
+            <div className="px-3 pb-3 flex flex-col gap-3 border-t border-sev-medium/20">
+              <p className="text-[10px] text-sev-medium/70 pt-2 leading-snug">
                 These settings can cause rate-limiting, IDS alerts, or scan failures.
                 Change only if you know what you're doing.
               </p>

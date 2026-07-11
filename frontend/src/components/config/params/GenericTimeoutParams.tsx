@@ -95,9 +95,9 @@ export function GenericTimeoutParams({ stepId, overrides, onChange }: Props) {
           min={cfg.min}
           max={cfg.max}
           onChange={(v) => onChange({ ...overrides, [cfg.paramKey]: v })}
-          className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
-        <span className="text-xs text-muted-foreground">{cfg.unit}</span>
+        <span className="font-mono text-[10px] text-muted-foreground">{cfg.unit}</span>
         <InfoTooltip text={PARAM_TOOLTIPS[tooltipKey] ?? ""} />
       </div>
     </div>

@@ -73,11 +73,16 @@ export function Programs() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Programs</h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {programs.length > 0
-                ? `${programs.length} program${programs.length !== 1 ? "s" : ""}`
-                : "Group wildcard assets into programs"}
+            <h1 className="text-[22px] font-semibold tracking-tight text-foreground">Programs</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              {programs.length > 0 ? (
+                <>
+                  <span className="font-mono tabular-nums text-foreground">{programs.length}</span>{" "}
+                  program{programs.length !== 1 ? "s" : ""}
+                </>
+              ) : (
+                "Group wildcard assets into programs"
+              )}
             </p>
           </div>
           <button
@@ -99,15 +104,20 @@ export function Programs() {
         {loading && programs.length === 0 && <SkeletonCards count={6} />}
 
         {!loading && !error && programs.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
-            <FolderKanban className="h-10 w-10 text-muted-foreground/30" />
-            <p className="mt-4 text-sm font-medium text-muted-foreground">No programs yet</p>
-            <p className="mt-1 text-sm text-muted-foreground/60">
+          <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-border py-20 text-center">
+            <div className="deck-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-primary">
+              <FolderKanban className="h-5 w-5" />
+            </div>
+            <p className="relative mt-4 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              No programs yet
+            </p>
+            <p className="relative mt-1.5 text-[13px] text-faint-foreground">
               Create a program to group multiple wildcard assets together.
             </p>
             <button
               onClick={() => setCreateOpen(true)}
-              className="mt-6 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="relative mt-6 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               <FolderPlus className="h-4 w-4" />
               New Program
@@ -121,13 +131,13 @@ export function Programs() {
               <div
                 key={p.id}
                 onClick={() => navigate(`/program/${p.id}`)}
-                className="group flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
+                className="group flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 transition-[border-color,background-color] duration-200 hover:border-primary/40 hover:bg-surface-hover"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <FolderKanban className="h-4 w-4 shrink-0 text-primary" />
-                      <h3 className="truncate text-sm font-semibold text-foreground">{p.name}</h3>
+                      <h3 className="truncate text-[13px] font-semibold text-foreground transition-colors group-hover:text-primary">{p.name}</h3>
                     </div>
                     {p.description && (
                       <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>
@@ -142,14 +152,14 @@ export function Programs() {
                   </button>
                 </div>
 
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
-                  <span className="rounded-full bg-muted/50 px-2 py-0.5 text-muted-foreground">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide tabular-nums text-muted-foreground">
                     {p.asset_count} asset{p.asset_count !== 1 ? "s" : ""}
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted/50 px-2 py-0.5 text-muted-foreground">
-                    <Bell className="h-3 w-3" /> {p.notify_scope}
+                  <span className="inline-flex items-center gap-1 rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <Bell className="h-2.5 w-2.5" /> {p.notify_scope}
                   </span>
-                  <span className="rounded-full bg-muted/50 px-2 py-0.5 font-mono text-muted-foreground">
+                  <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
                     {p.pipeline_template}
                   </span>
                 </div>

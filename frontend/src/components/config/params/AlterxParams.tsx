@@ -24,7 +24,7 @@ export function AlterxParams({ stepId, overrides, onChange }: Props) {
             <button
               key={value}
               onClick={() => onChange({ ...overrides, pattern_file: value })}
-              className={`px-2 py-1 text-xs rounded border transition-colors ${
+              className={`px-2 py-1 font-mono text-xs rounded-md border transition-colors ${
                 pattern === value
                   ? "border-primary bg-primary/10 text-foreground"
                   : "border-border text-muted-foreground hover:border-muted-foreground"

@@ -94,18 +94,18 @@ export function ApiKeysTab() {
     <div className="py-6 max-w-lg space-y-6">
       {/* Add form */}
       <form onSubmit={(e) => void addKey(e)} className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">
+        <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
           Add / Update API Key
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               Service
             </label>
             <select
               value={service}
               onChange={(e) => setService(e.target.value)}
-              className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-md border border-border bg-input px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {KNOWN_SERVICES.map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -113,7 +113,7 @@ export function ApiKeysTab() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">
+            <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               Label (optional)
             </label>
             <input
@@ -126,7 +126,7 @@ export function ApiKeysTab() {
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">
+          <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             Key Value
           </label>
           <div className="relative">
@@ -136,7 +136,7 @@ export function ApiKeysTab() {
               onChange={(e) => setKeyValue(e.target.value)}
               required
               placeholder="Paste your API key here"
-              className="w-full rounded-md border border-border bg-input px-3 py-2 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-md border border-border bg-input px-3 py-2 pr-9 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
             <button
               type="button"
@@ -159,7 +159,7 @@ export function ApiKeysTab() {
 
       {/* Keys list */}
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-foreground">
+        <h3 className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
           Configured Keys
         </h3>
         {loading ? (
@@ -176,11 +176,11 @@ export function ApiKeysTab() {
               return (
                 <div
                   key={k.id}
-                  className="flex flex-col gap-1.5 rounded-md border border-border/50 bg-background px-3 py-2"
+                  className="flex flex-col gap-1.5 rounded-md border border-border bg-card px-3 py-2"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{k.service}</p>
+                      <p className="font-mono text-sm font-semibold text-foreground">{k.service}</p>
                       {k.key_name && (
                         <p className="text-xs text-muted-foreground">{k.key_name}</p>
                       )}
@@ -206,9 +206,9 @@ export function ApiKeysTab() {
                     <p className={cn(
                       "flex items-center gap-1 text-xs",
                       result.valid === true
-                        ? "text-green-400"
+                        ? "text-sev-low"
                         : result.valid === false
-                        ? "text-destructive"
+                        ? "text-sev-critical"
                         : "text-muted-foreground",
                     )}>
                       {result.valid === true ? (

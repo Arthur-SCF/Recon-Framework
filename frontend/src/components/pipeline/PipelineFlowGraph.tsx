@@ -60,20 +60,20 @@ function getPhaseStatus(
 
 // Status icons for the accordion trigger
 const PHASE_ICON: Record<PhaseStatus, React.ReactNode> = {
-  pending: <Circle       className="h-4 w-4 shrink-0 text-muted-foreground/25" />,
-  running: <Loader2      className="h-4 w-4 shrink-0 text-blue-400 animate-spin" />,
-  success: <CheckCircle2 className="h-4 w-4 shrink-0 text-green-400" />,
-  error:   <XCircle      className="h-4 w-4 shrink-0 text-red-400" />,
-  mixed:   <AlertCircle  className="h-4 w-4 shrink-0 text-yellow-400" />,
+  pending: <Circle       className="h-4 w-4 shrink-0 text-muted-foreground/40" />,
+  running: <Loader2      className="h-4 w-4 shrink-0 text-sev-info animate-spin" />,
+  success: <CheckCircle2 className="h-4 w-4 shrink-0 text-sev-low" />,
+  error:   <XCircle      className="h-4 w-4 shrink-0 text-sev-critical" />,
+  mixed:   <AlertCircle  className="h-4 w-4 shrink-0 text-sev-medium" />,
 };
 
 // Left-border on accordion trigger
 const PHASE_LEFT_BORDER: Record<PhaseStatus, string> = {
   pending:  "border-l-border/30",
-  running:  "border-l-blue-500",
-  success:  "border-l-green-500",
-  error:    "border-l-red-500",
-  mixed:    "border-l-yellow-500",
+  running:  "border-l-sev-info",
+  success:  "border-l-sev-low",
+  error:    "border-l-sev-critical",
+  mixed:    "border-l-sev-medium",
 };
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -141,13 +141,13 @@ export function PipelineFlowGraph({
   }, []);
 
   return (
-    <div className="rounded-2xl bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-lg shadow-black/20 overflow-hidden">
+    <div className="rounded-lg bg-card border border-border overflow-hidden">
 
       {/* Primary accent bar */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent shrink-0" />
 
       {/* ── Phase stepper strip ─────────────────────────────────────────── */}
-      <div className="flex items-start px-3 sm:px-5 py-4 border-b border-white/[0.05] bg-white/[0.015] overflow-x-auto gap-0">
+      <div className="flex items-start px-3 sm:px-5 py-4 border-b border-border bg-muted/20 overflow-x-auto gap-0">
         {visiblePhases.map((phase, i) => {
           const phaseGroups = groupsByPhase.get(phase.id) ?? [];
           const phaseRuns   = phaseGroups.flatMap((g) => groupRuns.get(g.id) ?? []);
@@ -167,7 +167,7 @@ export function PipelineFlowGraph({
                 <div
                   className={cn(
                     "flex-1 h-px min-w-[12px] mt-[10px] mx-1 transition-colors duration-500",
-                    prevComplete ? "bg-green-500/25" : "bg-border/15",
+                    prevComplete ? "bg-sev-low/30" : "bg-border/15",
                   )}
                 />
               )}
@@ -179,12 +179,12 @@ export function PipelineFlowGraph({
                   className={cn(
                     "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-300",
                     phaseStatus === "success"
-                      ? "bg-green-400/15 ring-1 ring-green-500/40 text-green-400"
+                      ? "bg-sev-low/15 ring-1 ring-sev-low/40 text-sev-low"
                       : phaseStatus === "running"
-                        ? "bg-blue-400/15 ring-1 ring-blue-500/40 text-blue-400"
+                        ? "bg-sev-info/15 ring-1 ring-sev-info/40 text-sev-info"
                         : phaseStatus === "error"
-                          ? "bg-red-400/15 ring-1 ring-red-500/40 text-red-400"
-                          : "bg-muted/20 ring-1 ring-border/20 text-muted-foreground/25",
+                          ? "bg-sev-critical/15 ring-1 ring-sev-critical/40 text-sev-critical"
+                          : "bg-muted/20 ring-1 ring-border/20 text-muted-foreground/40",
                   )}
                 >
                   {phaseStatus === "success" ? (
@@ -194,18 +194,18 @@ export function PipelineFlowGraph({
                   ) : phaseStatus === "error" ? (
                     <X className="h-2.5 w-2.5" />
                   ) : (
-                    <span className="text-[8px] font-bold leading-none">{i + 1}</span>
+                    <span className="font-mono text-[8px] font-semibold tabular-nums leading-none">{i + 1}</span>
                   )}
                 </div>
 
                 {/* Label */}
                 <span
                   className={cn(
-                    "text-[9px] font-medium whitespace-nowrap transition-colors duration-300",
-                    phaseStatus === "running"   ? "text-blue-300/80"
-                    : phaseStatus === "success"  ? "text-green-400/50"
-                    : phaseStatus === "error"    ? "text-red-400/60"
-                    : "text-muted-foreground/25",
+                    "font-mono text-[9px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap transition-colors duration-300",
+                    phaseStatus === "running"   ? "text-sev-info/80"
+                    : phaseStatus === "success"  ? "text-sev-low/60"
+                    : phaseStatus === "error"    ? "text-sev-critical/70"
+                    : "text-muted-foreground/40",
                   )}
                 >
                   {phase.short}
@@ -238,7 +238,7 @@ export function PipelineFlowGraph({
             <Accordion.Item
               key={phase.id}
               value={phase.id}
-              className="border-t border-white/[0.05] first:border-t-0"
+              className="border-t border-border first:border-t-0"
             >
               {/* ── Trigger ── */}
               <Accordion.Header asChild>
@@ -250,10 +250,10 @@ export function PipelineFlowGraph({
                       "border-l-[3px]",
                       PHASE_LEFT_BORDER[phaseStatus],
                       phaseStatus === "running"
-                        ? "bg-blue-500/[0.07] hover:bg-blue-500/[0.10]"
+                        ? "bg-sev-info/[0.07] hover:bg-sev-info/[0.10]"
                         : phaseStatus === "success"
-                          ? "hover:bg-white/[0.02]"
-                          : "hover:bg-white/[0.03]",
+                          ? "hover:bg-surface-hover"
+                          : "hover:bg-surface-hover",
                     )}
                   >
                     {/* Status icon */}

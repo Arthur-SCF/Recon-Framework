@@ -31,7 +31,7 @@ export function CloudEnumParams({ stepId, overrides, onChange }: Props) {
         >
           <span
             className={cn(
-              "pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-sm transition-transform",
+              "toggle-thumb pointer-events-none inline-block h-3 w-3 rounded-full transition-transform",
               val ? "translate-x-3" : "translate-x-0"
             )}
           />
@@ -48,7 +48,7 @@ export function CloudEnumParams({ stepId, overrides, onChange }: Props) {
         <NumberInput
           value={threads} min={1} max={100}
           onChange={(v) => onChange({ ...overrides, cloud_enum_threads: v })}
-          className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
         <InfoTooltip text={PARAM_TOOLTIPS[`${stepId}:cloud_enum_threads`] ?? ""} />
       </div>

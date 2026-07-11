@@ -30,8 +30,8 @@ export function Settings() {
     <PageTransition>
       <div className="flex flex-col gap-6 p-3 sm:p-6 max-w-3xl mx-auto w-full">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Settings</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <h1 className="text-[22px] font-semibold tracking-tight text-foreground">Settings</h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
             Configure the engine, notifications, and API keys
           </p>
         </div>
@@ -44,9 +44,9 @@ export function Settings() {
                   key={id}
                   value={id}
                   className={cn(
-                    "px-3 py-2 text-sm transition-colors border-b-2 -mb-px whitespace-nowrap",
+                    "rounded-t px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors border-b-2 -mb-px whitespace-nowrap",
                     "text-muted-foreground border-transparent",
-                    "data-[state=active]:text-foreground data-[state=active]:border-primary",
+                    "data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:bg-accent/40",
                     "hover:text-foreground",
                   )}
                 >

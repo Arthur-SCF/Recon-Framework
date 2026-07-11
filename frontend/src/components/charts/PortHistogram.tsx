@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useChartColors } from "@/lib/chartTheme";
 import { ChartCard } from "./ChartCard";
 
 interface PortEntry {
@@ -22,6 +23,7 @@ interface PortHistogramProps {
 }
 
 export function PortHistogram({ ports }: PortHistogramProps) {
+  const colors = useChartColors();
   const data = useMemo(() => {
     // Aggregate by port/protocol, counting distinct hosts
     const buckets: Record<string, { port: number; protocol: string; count: number }> = {};
@@ -55,7 +57,7 @@ export function PortHistogram({ ports }: PortHistogramProps) {
         <BarChart data={data} margin={{ left: 0, right: 12, top: 4, bottom: 0 }}>
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+            tick={{ fontSize: 10, fill: colors.muted }}
             tickLine={false}
             axisLine={false}
             interval={0}
@@ -64,22 +66,22 @@ export function PortHistogram({ ports }: PortHistogramProps) {
             height={50}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+            tick={{ fontSize: 10, fill: colors.muted }}
             tickLine={false}
             axisLine={false}
             width={30}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "var(--card)",
-              border: "1px solid var(--border)",
+              backgroundColor: colors.card,
+              border: `1px solid ${colors.border}`,
               borderRadius: "6px",
               fontSize: "12px",
-              color: "var(--foreground)",
+              color: colors.foreground,
             }}
             formatter={(value) => [`${value} hosts`, "Count"]}
           />
-          <Bar dataKey="count" fill="#60a5fa" radius={[4, 4, 0, 0]} barSize={20} />
+          <Bar dataKey="count" fill={colors.primary} radius={[4, 4, 0, 0]} barSize={20} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>

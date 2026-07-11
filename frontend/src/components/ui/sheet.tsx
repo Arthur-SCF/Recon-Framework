@@ -64,10 +64,10 @@ export function Sheet({
               "fixed z-50 flex flex-col",
               "left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2",
               "w-80 max-h-[calc(100vh-5rem)]",
-              "rounded-2xl overflow-hidden",
+              "rounded-lg overflow-hidden",
               "bg-card/90 backdrop-blur-2xl",
-              "border border-white/[0.07]",
-              "shadow-2xl shadow-black/60",
+              "border border-border",
+              "shadow-2xl",
               className,
             )}
           >
@@ -76,17 +76,17 @@ export function Sheet({
               className="h-px w-full shrink-0"
               style={accentColor
                 ? { background: `linear-gradient(to right, transparent, ${accentColor}99, transparent)` }
-                : { background: "linear-gradient(to right, transparent, hsl(var(--primary) / 0.5), transparent)" }
+                : { background: "linear-gradient(to right, transparent, color-mix(in srgb, var(--primary) 50%, transparent), transparent)" }
               }
             />
 
             {/* Header */}
             {title && (
               <div
-                className="flex items-start justify-between gap-3 px-4 py-3 shrink-0 border-b border-white/[0.06]"
+                className="flex items-start justify-between gap-3 px-4 py-3 shrink-0 border-b border-border"
                 style={accentColor
                   ? { background: `linear-gradient(to bottom, ${accentColor}12, transparent)` }
-                  : { background: "linear-gradient(to bottom, hsl(var(--primary) / 0.06), transparent)" }
+                  : { background: "linear-gradient(to bottom, color-mix(in srgb, var(--primary) 6%, transparent), transparent)" }
                 }
               >
                 <div className="min-w-0 flex-1">
@@ -96,7 +96,7 @@ export function Sheet({
                       className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={accentColor
                         ? { backgroundColor: `${accentColor}cc` }
-                        : { backgroundColor: "hsl(var(--primary) / 0.6)" }
+                        : { backgroundColor: "color-mix(in srgb, var(--primary) 60%, transparent)" }
                       }
                     />
                     <h2 className="text-xs font-semibold text-foreground/90 truncate">
@@ -114,7 +114,7 @@ export function Sheet({
 
                 <button
                   onClick={onClose}
-                  className="shrink-0 p-1 rounded-lg text-muted-foreground/40 hover:text-foreground hover:bg-white/10 transition-colors"
+                  className="shrink-0 p-1 rounded-md text-muted-foreground/40 hover:text-foreground hover:bg-surface-hover transition-colors"
                   aria-label="Close"
                 >
                   <X className="h-3.5 w-3.5" />

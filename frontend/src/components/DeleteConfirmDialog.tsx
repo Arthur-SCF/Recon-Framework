@@ -30,7 +30,7 @@ export function DeleteConfirmDialog({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className={cn(
           "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "w-[calc(100%-2rem)] max-w-md rounded-xl border border-border bg-card p-6 shadow-xl",
+          "w-[calc(100%-2rem)] max-w-md rounded-lg border border-border bg-card p-6 shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -68,14 +68,14 @@ export function DeleteConfirmDialog({
           <div className="mt-5 flex justify-end gap-2">
             <Dialog.Close
               disabled={loading}
-              className="rounded border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
+              className="rounded-md border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
             >
               Cancel
             </Dialog.Close>
             <button
               onClick={() => void onConfirm()}
               disabled={loading}
-              className="flex items-center gap-2 rounded bg-destructive px-3.5 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-destructive px-3.5 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60 transition-colors"
             >
               {loading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />

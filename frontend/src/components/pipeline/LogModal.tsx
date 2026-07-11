@@ -16,22 +16,22 @@ interface LogModalProps {
 
 const SGR_COLOR_MAP: Record<string, string> = {
   "0":  "",
-  "1":  "font-bold",
-  "30": "text-gray-500",
-  "31": "text-red-400",
-  "32": "text-green-400",
-  "33": "text-yellow-400",
-  "34": "text-blue-400",
-  "35": "text-purple-400",
-  "36": "text-cyan-400",
+  "1":  "font-semibold",
+  "30": "text-muted-foreground",
+  "31": "text-sev-critical",
+  "32": "text-sev-low",
+  "33": "text-sev-medium",
+  "34": "text-sev-info",
+  "35": "text-sev-high",
+  "36": "text-sev-info",
   "37": "text-foreground",
-  "90": "text-gray-400",
-  "91": "text-red-300",
-  "92": "text-green-300",
-  "93": "text-yellow-300",
-  "94": "text-blue-300",
-  "95": "text-purple-300",
-  "96": "text-cyan-300",
+  "90": "text-faint-foreground",
+  "91": "text-sev-critical",
+  "92": "text-sev-low",
+  "93": "text-sev-medium",
+  "94": "text-sev-info",
+  "95": "text-sev-high",
+  "96": "text-sev-info",
 };
 
 // Split text on ESC[...m sequences, return spans with Tailwind color classes
@@ -85,7 +85,7 @@ function highlightLine(line: string, query: string): React.ReactNode {
   return (
     <>
       {line.slice(0, idx)}
-      <mark className="bg-yellow-400/30 text-yellow-300 rounded-sm px-0.5">
+      <mark className="bg-sev-medium/30 text-sev-medium rounded-sm px-0.5">
         {line.slice(idx, idx + query.length)}
       </mark>
       {line.slice(idx + query.length)}
@@ -150,7 +150,7 @@ export function LogModal({
         transition={{ duration: 0.15 }}
       >
         <motion.div
-          className="relative w-full max-w-3xl max-h-[85vh] m-4 flex flex-col rounded-2xl overflow-hidden bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-2xl shadow-black/60"
+          className="relative w-full max-w-3xl max-h-[85vh] m-4 flex flex-col rounded-lg overflow-hidden bg-popover border border-border shadow-2xl shadow-black/60"
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1,    y: 0  }}
@@ -158,13 +158,13 @@ export function LogModal({
           transition={{ type: "spring", damping: 28, stiffness: 380 }}
         >
           {/* Accent bar */}
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-green-400/40 to-transparent shrink-0" />
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent shrink-0" />
 
           {/* Header */}
-          <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-2.5 bg-gradient-to-r from-green-400/[0.04] to-transparent">
+          <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 bg-gradient-to-r from-primary/[0.04] to-transparent">
             <span className="font-mono text-sm font-medium text-foreground shrink-0">{stepId}</span>
             {!loading && content && (
-              <span className="text-xs text-muted-foreground/60">
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground/60">
                 {lineCount.toLocaleString()} lines · {sizeKB} KB
                 {durationSeconds != null && ` · ran ${durationSeconds}s`}
               </span>
@@ -173,7 +173,7 @@ export function LogModal({
             {content && (
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground/50 hover:text-foreground hover:bg-surface-hover transition-colors"
                 title="Download log"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -181,7 +181,7 @@ export function LogModal({
             )}
             <button
               onClick={onClose}
-              className="rounded-lg p-1 text-muted-foreground/40 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+              className="rounded-md p-1 text-muted-foreground/40 hover:text-foreground hover:bg-surface-hover transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -189,7 +189,7 @@ export function LogModal({
 
           {/* Search bar */}
           {content && (
-            <div className="flex items-center gap-2 border-b border-white/[0.05] px-3 py-1.5 bg-white/[0.01]">
+            <div className="flex items-center gap-2 border-b border-border px-3 py-1.5 bg-muted/20">
               <input
                 type="text"
                 value={filter}
@@ -199,7 +199,7 @@ export function LogModal({
               />
               {filter && (
                 <>
-                  <span className="text-[10px] text-muted-foreground/50 shrink-0">
+                  <span className="font-mono text-[10px] tabular-nums text-muted-foreground/50 shrink-0">
                     {matchCount} match{matchCount !== 1 ? "es" : ""}
                   </span>
                   <button onClick={() => setFilter("")} className="text-muted-foreground/40 hover:text-foreground transition-colors">
@@ -211,7 +211,7 @@ export function LogModal({
           )}
 
           {/* Content — terminal */}
-          <div ref={scrollRef} className="flex-1 overflow-auto p-4 bg-black/20">
+          <div ref={scrollRef} className="flex-1 overflow-auto p-4 bg-muted/40">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -234,7 +234,7 @@ export function LogModal({
 
           {/* Footer */}
           {content && (
-            <div className="flex items-center gap-2 border-t border-white/[0.05] px-4 py-2 bg-white/[0.01]">
+            <div className="flex items-center gap-2 border-t border-border px-4 py-2 bg-muted/20">
               <label className={cn("flex cursor-pointer items-center gap-1.5 text-[10px] text-muted-foreground/40 select-none hover:text-muted-foreground/70 transition-colors")}>
                 <input
                   type="checkbox"

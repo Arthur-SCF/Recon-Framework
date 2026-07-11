@@ -38,12 +38,12 @@ export function HostCardGrid({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>Page {page + 1} of {totalPages} ({hosts.length} hosts)</span>
+          <span className="font-mono tabular-nums">Page {page + 1} of {totalPages} ({hosts.length} hosts)</span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => onPageChange(Math.max(0, page - 1))}
               disabled={page === 0}
-              className="rounded border border-border bg-background px-2 py-1 disabled:opacity-40 hover:text-foreground transition-colors"
+              className="rounded-md border border-border bg-background px-2 py-1 disabled:opacity-40 hover:text-foreground transition-colors"
             >
               Prev
             </button>
@@ -52,7 +52,7 @@ export function HostCardGrid({
               min={1}
               max={totalPages}
               placeholder={String(page + 1)}
-              className="w-12 rounded border border-border bg-background px-1.5 py-1 text-center text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="w-12 rounded-md border border-border bg-background px-1.5 py-1 text-center font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               onKeyDown={(e) => {
                 if (e.key !== "Enter") return;
                 const v = parseInt((e.target as HTMLInputElement).value, 10);
@@ -63,7 +63,7 @@ export function HostCardGrid({
             <button
               onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
               disabled={page >= totalPages - 1}
-              className="rounded border border-border bg-background px-2 py-1 disabled:opacity-40 hover:text-foreground transition-colors"
+              className="rounded-md border border-border bg-background px-2 py-1 disabled:opacity-40 hover:text-foreground transition-colors"
             >
               Next
             </button>

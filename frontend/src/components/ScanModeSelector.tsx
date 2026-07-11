@@ -71,7 +71,7 @@ function TimeInput({
         const [h, m] = e.target.value.split(":").map(Number);
         if (!isNaN(h) && !isNaN(m)) onChange(h, m);
       }}
-      className="w-28 sm:w-24 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+      className="w-28 sm:w-24 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
     />
   );
 }
@@ -91,7 +91,7 @@ export function ScanModeSelector({
     <div className="space-y-3">
 
       {/* Top-level mode segmented control */}
-      <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-muted/20 p-1">
+      <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-muted/20 p-1">
         {MODES.map(({ id, label, sub, icon: Icon }) => {
           const selected = mode === id;
           return (
@@ -100,10 +100,10 @@ export function ScanModeSelector({
               type="button"
               onClick={() => onChange({ mode: id })}
               className={cn(
-                "flex flex-col items-center gap-1 rounded-lg py-2.5 px-2 text-center transition-all",
+                "flex flex-col items-center gap-1 rounded-md py-2.5 px-2 text-center transition-all",
                 selected
-                  ? "bg-card border border-border shadow-sm"
-                  : "hover:bg-muted/40",
+                  ? "bg-card border border-border"
+                  : "hover:bg-surface-hover",
               )}
             >
               <Icon className={cn("h-4 w-4 transition-colors", selected ? "text-primary" : "text-muted-foreground")} />
@@ -169,7 +169,7 @@ export function ScanModeSelector({
                   className={cn(
                     "flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-all",
                     scheduleSubMode === id
-                      ? "bg-card border border-border shadow-sm text-foreground"
+                      ? "bg-card border border-border text-foreground"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -198,7 +198,7 @@ export function ScanModeSelector({
                       min={1}
                       max={8760}
                       onChange={(v) => onChange({ rescanInterval: v })}
-                      className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                     <span className="text-xs text-muted-foreground">hours</span>
                     <span className="text-[11px] text-muted-foreground/60">
@@ -229,7 +229,7 @@ export function ScanModeSelector({
                         min={1}
                         max={365}
                         onChange={(v) => onChange({ scheduleDays: v })}
-                        className="w-16 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-16 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                       <span className="text-[11px] text-muted-foreground shrink-0">
                         {scheduleDays === 1 ? "day" : "days"}
@@ -339,7 +339,7 @@ export function ScanModeSelector({
             min={1}
             max={100}
             onChange={(v) => onChange({ retentionRuns: v })}
-            className="w-14 rounded border border-border bg-background px-2 py-1 text-xs text-foreground text-center focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-14 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground text-center focus:outline-none focus:ring-1 focus:ring-primary"
           />
           <span className="text-xs text-muted-foreground">scans</span>
         </div>

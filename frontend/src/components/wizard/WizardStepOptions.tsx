@@ -94,7 +94,7 @@ export function WizardStepOptions({
 
       {/* Wildcard Policy */}
       <div>
-        <label className="mb-2 block text-xs font-medium text-foreground">
+        <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Wildcard Policy
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -109,7 +109,7 @@ export function WizardStepOptions({
                   "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all",
                   selected
                     ? "border-primary bg-primary/5"
-                    : "border-border bg-card hover:border-primary/40",
+                    : "border-border bg-card hover:border-primary/40 hover:bg-surface-hover",
                 )}
               >
                 <span className={selected ? "text-primary" : "text-muted-foreground"}>
@@ -129,9 +129,9 @@ export function WizardStepOptions({
 
       {/* Priority slider */}
       <div>
-        <label className="mb-2 flex items-center justify-between text-xs font-medium text-foreground">
+        <label className="mb-2 flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           <span>Scan Priority</span>
-          <span className="text-muted-foreground">{priority} / 10</span>
+          <span className="tabular-nums text-muted-foreground">{priority} / 10</span>
         </label>
         <input
           type="range"
@@ -148,8 +148,8 @@ export function WizardStepOptions({
 
       {/* Tags */}
       <div>
-        <label className="mb-2 block text-xs font-medium text-foreground">
-          Tags <span className="font-normal text-muted-foreground">(optional)</span>
+        <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          Tags <span className="font-normal normal-case tracking-normal text-faint-foreground">(optional)</span>
         </label>
         <TagInput
           tags={tags}
@@ -163,7 +163,7 @@ export function WizardStepOptions({
 
       {/* Scan Mode */}
       <div>
-        <label className="mb-2 block text-xs font-medium text-foreground">
+        <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Scan Mode
         </label>
         <ScanModeSelector

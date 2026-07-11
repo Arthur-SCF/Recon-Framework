@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Lock, Settings2 } from "lucide-react";
+import { Lock, Settings2, AlertTriangle, Diamond } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineStep } from "@/types/api";
 import { STEP_TOOLTIPS } from "./tooltips";
@@ -129,7 +129,7 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
   // Locked (BaseAction) — always runs, not user-configurable
   if (!step.skippable) {
     return (
-      <div className="group flex items-center gap-2 px-3 py-2 bg-white/[0.02]">
+      <div className="group flex items-center gap-2 px-3 py-2 bg-muted/30">
         <span className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
         <Lock className="h-3 w-3 shrink-0 text-primary/40" />
         <span className="flex-1 text-xs text-foreground/50">{label ?? step.step_id}</span>
@@ -144,14 +144,14 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
     <div className={cn("last:border-0", !step.enabled && "opacity-60")}>
       {/* Row — `group` enables hover-reveal for secondary controls */}
       <div
-        className="group flex items-center gap-2 px-3 py-2.5 tap-compact hover:bg-white/[0.025] transition-colors duration-100"
+        className="group flex items-center gap-2 px-3 py-2.5 tap-compact hover:bg-surface-hover transition-colors duration-100"
         data-step-row
         tabIndex={0}
       >
         {/* Status dot */}
         <span className={cn(
           "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
-          step.enabled ? "bg-green-500" : "bg-amber-500/60"
+          step.enabled ? "bg-primary" : "bg-muted-foreground/30"
         )} />
 
         {/* Toggle */}
@@ -166,10 +166,10 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
         {/* Modified indicator — always visible, it's a state signal */}
         {hasOverrides && (
           <span
-            className="text-[10px] text-primary/70 shrink-0"
+            className="text-primary/70 shrink-0"
             title="Parameters modified from template defaults"
           >
-            ◆
+            <Diamond className="h-2.5 w-2.5 fill-current" />
           </span>
         )}
 
@@ -177,10 +177,10 @@ export function StepConfigRow({ targetId, step, onUpdated, depWarning, label }: 
         {depWarning && step.enabled && (
           <span
             title={depWarning}
-            className="text-[10px] text-amber-500 shrink-0 cursor-help"
+            className="text-sev-medium shrink-0 cursor-help"
             aria-label={depWarning}
           >
-            ⚠
+            <AlertTriangle className="h-3 w-3" />
           </span>
         )}
 

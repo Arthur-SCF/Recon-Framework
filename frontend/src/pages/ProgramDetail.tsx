@@ -130,10 +130,10 @@ export function ProgramDetail() {
           ) : (
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Program</p>
-                <h1 className="mt-0.5 text-xl font-semibold text-foreground">{program?.name ?? "—"}</h1>
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Program</p>
+                <h1 className="mt-1 text-[22px] font-semibold tracking-tight text-foreground">{program?.name ?? "—"}</h1>
                 {program && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-1 font-mono text-[11px] tabular-nums text-muted-foreground">
                     {program.asset_count} asset{program.asset_count !== 1 ? "s" : ""} · notify {program.notify_scope} · {program.pipeline_template}
                   </p>
                 )}
@@ -180,7 +180,7 @@ export function ProgramDetail() {
                     key={tabId}
                     value={tabId}
                     className={cn(
-                      "px-3 py-2 text-sm transition-colors border-b-2 -mb-px whitespace-nowrap",
+                      "px-3 py-2 text-[13px] transition-colors border-b-2 -mb-px whitespace-nowrap",
                       "text-muted-foreground border-transparent",
                       "data-[state=active]:text-foreground data-[state=active]:border-primary",
                       "hover:text-foreground",
@@ -289,8 +289,8 @@ function StatCard({ label, value, icon, accent }: { label: string; value: number
     <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card p-4 border-l-[3px]", accent)}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
+          <p className="font-mono text-[22px] font-semibold leading-none tracking-tight tabular-nums text-foreground">{value.toLocaleString()}</p>
+          <p className="mt-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">{label}</p>
         </div>
         <div className="rounded-md bg-muted/30 p-2 text-muted-foreground">{icon}</div>
       </div>
@@ -326,14 +326,14 @@ function StatsPanel({ programId }: { programId: string }) {
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Assets"     value={stats.totals.assets}     icon={<TargetIcon className="h-4 w-4" />} accent="border-l-primary" />
-        <StatCard label="Subdomains" value={stats.totals.subdomains} icon={<Globe className="h-4 w-4" />}      accent="border-l-blue-500" />
-        <StatCard label="Live Hosts" value={stats.totals.hosts}      icon={<Globe className="h-4 w-4" />}      accent="border-l-green-500" />
-        <StatCard label="Takeovers"  value={stats.totals.takeovers}  icon={<ShieldAlert className="h-4 w-4" />} accent="border-l-yellow-500" />
+        <StatCard label="Subdomains" value={stats.totals.subdomains} icon={<Globe className="h-4 w-4" />}      accent="border-l-sev-info" />
+        <StatCard label="Live Hosts" value={stats.totals.hosts}      icon={<Globe className="h-4 w-4" />}      accent="border-l-sev-low" />
+        <StatCard label="Takeovers"  value={stats.totals.takeovers}  icon={<ShieldAlert className="h-4 w-4" />} accent="border-l-sev-medium" />
       </div>
 
       {/* Per-asset breakdown */}
       <div className="rounded-lg border border-border bg-card p-4">
-        <p className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Per-asset breakdown</p>
+        <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Per-asset breakdown</p>
         {stats.by_asset.length === 0 ? (
           <p className="py-4 text-center text-xs text-muted-foreground">No assets yet.</p>
         ) : (
@@ -352,8 +352,8 @@ function StatsPanel({ programId }: { programId: string }) {
                     <td className="px-3 py-2">
                       <Link to={`/target/${a.target_id}`} className="font-mono text-primary hover:underline">{a.domain}</Link>
                     </td>
-                    <td className="px-3 py-2 text-right font-mono text-foreground">{a.subdomains.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-right font-mono text-foreground">{a.hosts.toLocaleString()}</td>
+                    <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">{a.subdomains.toLocaleString()}</td>
+                    <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">{a.hosts.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -365,7 +365,7 @@ function StatsPanel({ programId }: { programId: string }) {
       {/* Status distribution */}
       {stats.status_dist.length > 0 && (
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status distribution</p>
+          <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Status distribution</p>
           <div className="flex flex-col gap-2">
             {stats.status_dist.map((s) => (
               <div key={s.bucket} className="flex items-center gap-3">
@@ -373,7 +373,7 @@ function StatsPanel({ programId }: { programId: string }) {
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted/40">
                   <div className="h-full rounded-full bg-primary" style={{ width: `${(s.count / maxCount) * 100}%` }} />
                 </div>
-                <span className="w-10 shrink-0 text-right font-mono text-xs text-foreground">{s.count.toLocaleString()}</span>
+                <span className="w-10 shrink-0 text-right font-mono text-xs tabular-nums text-foreground">{s.count.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -461,14 +461,14 @@ function AssetsPanel({ programId, onOpenAssign, onChanged }: {
                   <td className="px-3 py-2 text-muted-foreground capitalize">{a.status}</td>
                   <td className="px-3 py-2">
                     <span className={cn(
-                      "rounded px-1.5 py-0.5 text-[10px] font-medium",
-                      a.config_source === "inherit" ? "bg-primary/10 text-primary" : "bg-amber-500/15 text-amber-400",
+                      "rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide",
+                      a.config_source === "inherit" ? "bg-sev-info/15 text-sev-info" : "bg-sev-medium/15 text-sev-medium",
                     )}>
                       {a.config_source}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">{relativeTime(a.last_scan_at)}</td>
-                  <td className="px-3 py-2 text-right font-mono text-foreground">{a.scan_count}</td>
+                  <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{relativeTime(a.last_scan_at)}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">{a.scan_count}</td>
                   <td className="px-3 py-2 text-right">
                     <button
                       onClick={() => void unassign(a.id)}
@@ -492,13 +492,13 @@ function AssetsPanel({ programId, onOpenAssign, onChanged }: {
 /* ── Scans panel ── */
 function ScanStatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    running:   "bg-blue-500/15 text-blue-400",
-    completed: "bg-green-500/15 text-green-400",
-    cancelled: "bg-amber-500/15 text-amber-400",
+    running:   "bg-sev-info/15 text-sev-info",
+    completed: "bg-sev-low/15 text-sev-low",
+    cancelled: "bg-sev-medium/15 text-sev-medium",
   };
   return (
     <span className={cn(
-      "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium capitalize",
+      "inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide",
       styles[status] ?? "bg-muted/40 text-muted-foreground",
     )}>
       {status === "running" && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
@@ -510,7 +510,7 @@ function ScanStatusBadge({ status }: { status: string }) {
 function ScanStat({ label, value, accent }: { label: string; value: number; accent: string }) {
   return (
     <span className="flex items-center gap-1">
-      <span className={cn("font-mono font-medium", accent)}>{value.toLocaleString()}</span>
+      <span className={cn("font-mono font-semibold tabular-nums", accent)}>{value.toLocaleString()}</span>
       <span className="text-muted-foreground">{label}</span>
     </span>
   );
@@ -564,28 +564,28 @@ function ScansPanel({ programId }: { programId: string }) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <ScanStatusBadge status={run.status} />
-                <span className="text-xs text-muted-foreground">
+                <span className="font-mono text-xs tabular-nums text-muted-foreground">
                   started {relativeTime(run.started_at)}
                   {run.finished_at && ` · finished ${relativeTime(run.finished_at)}`}
                 </span>
               </div>
-              <span className="font-mono text-xs text-foreground">
+              <span className="font-mono text-xs tabular-nums text-foreground">
                 {run.asset_done} / {run.asset_total} assets
               </span>
             </div>
 
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted/40">
               <div
-                className={cn("h-full rounded-full transition-all", run.status === "running" ? "bg-blue-500" : "bg-primary")}
+                className={cn("h-full rounded-full transition-all", run.status === "running" ? "bg-sev-info" : "bg-primary")}
                 style={{ width: `${pct}%` }}
               />
             </div>
 
             {run.status !== "running" && (
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                <ScanStat label="discovered" value={s.discovered ?? 0}     accent="text-green-400" />
-                <ScanStat label="changed"    value={s.changed ?? 0}        accent="text-blue-400" />
-                <ScanStat label="gone"       value={s.gone ?? 0}           accent="text-red-400" />
+                <ScanStat label="discovered" value={s.discovered ?? 0}     accent="text-sev-low" />
+                <ScanStat label="changed"    value={s.changed ?? 0}        accent="text-sev-info" />
+                <ScanStat label="gone"       value={s.gone ?? 0}           accent="text-sev-critical" />
                 <ScanStat label="new subs"   value={s.new_subdomains ?? 0} accent="text-foreground" />
               </div>
             )}
@@ -601,7 +601,7 @@ function ConfigRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-border/50 py-2 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-xs font-medium text-foreground">{value}</span>
+      <span className="font-mono text-[11px] tabular-nums text-foreground">{value}</span>
     </div>
   );
 }
@@ -612,7 +612,7 @@ function ConfigPanel({ program, onEdit }: { program: Program; onEdit: () => void
     <div className="flex flex-col gap-3">
       <div className="rounded-lg border border-border bg-card p-4">
         <div className="mb-2 flex items-center justify-between">
-          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <p className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-faint-foreground uppercase tracking-[0.14em]">
             <Bell className="h-3.5 w-3.5" /> Default configuration
           </p>
           <button

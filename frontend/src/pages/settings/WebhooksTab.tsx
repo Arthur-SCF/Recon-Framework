@@ -195,7 +195,7 @@ export function WebhooksTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Webhook Channels</h2>
+          <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Webhook Channels</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Send notifications to Discord, Slack, or any HTTP endpoint.
           </p>
@@ -217,14 +217,14 @@ export function WebhooksTab() {
       {/* Add-channel form */}
       {showForm && (
         <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-4">
-          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">
+          <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
             New Channel
           </h3>
 
           {/* Type + Name */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Type</label>
+              <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">Type</label>
               <select
                 value={form.type}
                 onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as NewChannelForm["type"] }))}
@@ -236,7 +236,7 @@ export function WebhooksTab() {
               </select>
             </div>
             <div className="flex flex-1 flex-col gap-1">
-              <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Name</label>
+              <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">Name</label>
               <input
                 type="text"
                 value={form.name}
@@ -249,7 +249,7 @@ export function WebhooksTab() {
 
           {/* URL */}
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Webhook URL</label>
+            <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">Webhook URL</label>
             <input
               type="url"
               value={form.url}
@@ -261,7 +261,7 @@ export function WebhooksTab() {
 
           {/* Events */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Events</label>
+            <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">Events</label>
             <div className="flex flex-wrap gap-2">
               {ALL_EVENTS.map((ev) => (
                 <label key={ev.id} className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground select-none">
@@ -325,12 +325,7 @@ export function WebhooksTab() {
                       : <ChevronRight className="h-3.5 w-3.5" />}
                   </button>
 
-                  <span className={cn(
-                    "rounded px-1.5 py-0.5 text-[10px] font-medium font-mono uppercase",
-                    ch.type === "discord" ? "bg-indigo-500/20 text-indigo-400" :
-                    ch.type === "slack"   ? "bg-emerald-500/20 text-emerald-400" :
-                                           "bg-zinc-500/20 text-zinc-400",
-                  )}>
+                  <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     {TYPE_LABELS[ch.type]}
                   </span>
 
@@ -385,7 +380,7 @@ export function WebhooksTab() {
                     onClick={() => setConfirmDeleteId(ch.id)}
                     disabled={deletingId === ch.id}
                     title="Delete channel"
-                    className="rounded p-1 text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-50"
+                    className="rounded p-1 text-muted-foreground hover:text-sev-critical transition-colors disabled:opacity-50"
                   >
                     {deletingId === ch.id
                       ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -397,7 +392,7 @@ export function WebhooksTab() {
                 {result && (
                   <div className={cn(
                     "flex items-center gap-1.5 border-t border-border px-4 py-1.5 text-[10px]",
-                    result.success ? "text-green-400" : "text-red-400",
+                    result.success ? "text-sev-low" : "text-sev-critical",
                   )}>
                     {result.success && <CheckCircle2 className="h-3 w-3" />}
                     {result.msg}
@@ -407,13 +402,13 @@ export function WebhooksTab() {
                 {/* Inline edit form */}
                 {editingId === ch.id && (
                   <div className="border-t border-border px-4 py-3 flex flex-col gap-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
                       Edit Channel
                     </p>
 
                     {/* Name */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Name</label>
+                      <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">Name</label>
                       <input
                         type="text"
                         value={editForm.name}
@@ -424,7 +419,7 @@ export function WebhooksTab() {
 
                     {/* URL */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                      <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
                         Webhook URL <span className="normal-case">(leave blank to keep current)</span>
                       </label>
                       <input
@@ -438,7 +433,7 @@ export function WebhooksTab() {
 
                     {/* Events */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Events</label>
+                      <label className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">Events</label>
                       <div className="flex flex-wrap gap-2">
                         {ALL_EVENTS.map((ev) => (
                           <label key={ev.id} className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground select-none">
@@ -483,7 +478,7 @@ export function WebhooksTab() {
                         className={cn(
                           "rounded px-1.5 py-0.5 text-[10px] font-mono",
                           ch.events.includes(ev.id)
-                            ? "bg-primary/15 text-primary"
+                            ? "bg-sev-low/15 text-sev-low"
                             : "bg-muted/20 text-muted-foreground line-through",
                         )}
                       >

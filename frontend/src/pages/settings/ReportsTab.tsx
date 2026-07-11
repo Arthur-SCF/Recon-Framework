@@ -156,9 +156,9 @@ export function ReportsTab() {
     <div className="flex flex-col gap-4 py-4 max-w-2xl">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+        <div className="text-muted-foreground flex items-center gap-1.5">
           <Calendar className="h-4 w-4" />
-          <span>Scheduled Reports</span>
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Scheduled Reports</span>
         </div>
         <button
           onClick={openAdd}
@@ -170,7 +170,7 @@ export function ReportsTab() {
       </div>
 
       {channels.length === 0 && (
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+        <div className="rounded-md border border-sev-medium/30 bg-sev-medium/10 px-3 py-2 text-xs text-sev-medium">
           No webhook channels configured. Add one in the Webhooks tab first.
         </div>
       )}
@@ -181,7 +181,7 @@ export function ReportsTab() {
           <p className="font-medium text-foreground">{editId ? "Edit Schedule" : "New Schedule"}</p>
 
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Name</label>
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Name</label>
             <input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -192,7 +192,7 @@ export function ReportsTab() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Frequency</label>
+              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Frequency</label>
               <select
                 value={form.frequency}
                 onChange={(e) => setForm((f) => ({ ...f, frequency: e.target.value as "daily" | "weekly" }))}
@@ -203,21 +203,21 @@ export function ReportsTab() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">UTC Hour (0–23)</label>
+              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">UTC Hour (0–23)</label>
               <input
                 type="number"
                 min={0}
                 max={23}
                 value={form.hour}
                 onChange={(e) => setForm((f) => ({ ...f, hour: parseInt(e.target.value) || 0 }))}
-                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 font-mono text-sm tabular-nums text-foreground"
               />
             </div>
           </div>
 
           {form.frequency === "weekly" && (
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Day of Week</label>
+              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Day of Week</label>
               <select
                 value={form.day_of_week}
                 onChange={(e) => setForm((f) => ({ ...f, day_of_week: parseInt(e.target.value) }))}
@@ -231,7 +231,7 @@ export function ReportsTab() {
           )}
 
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Target (optional)</label>
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Target (optional)</label>
             <select
               value={form.target_id}
               onChange={(e) => setForm((f) => ({ ...f, target_id: e.target.value }))}
@@ -245,7 +245,7 @@ export function ReportsTab() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Channel (optional)</label>
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Channel (optional)</label>
             <select
               value={form.channel_id}
               onChange={(e) => setForm((f) => ({ ...f, channel_id: e.target.value }))}
@@ -303,18 +303,18 @@ export function ReportsTab() {
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-foreground truncate">{s.name}</span>
                       {!s.enabled && (
-                        <span className="rounded px-1 py-0.5 text-[9px] bg-muted text-muted-foreground font-medium">
+                        <span className="rounded bg-muted px-1 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                           DISABLED
                         </span>
                       )}
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground space-y-0.5">
-                      <div>{formatSchedule(s)}</div>
+                      <div className="font-mono tabular-nums">{formatSchedule(s)}</div>
                       <div>
-                        Target: <span className="text-foreground">{targetDomain ?? "All targets"}</span>
+                        Target: <span className="font-mono text-foreground">{targetDomain ?? "All targets"}</span>
                         {" · "}Channel: <span className="text-foreground">{channelName ?? "All channels"}</span>
                       </div>
-                      <div>Last sent: {formatLastSent(s.last_sent_at)}</div>
+                      <div>Last sent: <span className="font-mono tabular-nums">{formatLastSent(s.last_sent_at)}</span></div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">

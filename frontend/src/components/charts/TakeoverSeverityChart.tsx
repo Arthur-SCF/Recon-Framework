@@ -3,7 +3,11 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartCard } from "./ChartCard";
 
 const SEV_COLORS: Record<string, string> = {
-  critical: "#ef4444", high: "#f97316", medium: "#eab308", low: "#3b82f6", info: "#94a3b8",
+  critical: "var(--sev-critical)",
+  high: "var(--sev-high)",
+  medium: "var(--sev-medium)",
+  low: "var(--sev-low)",
+  info: "var(--sev-info)",
 };
 
 interface Props {
@@ -36,9 +40,9 @@ export function TakeoverSeverityChart({ takeovers }: Props) {
       </ResponsiveContainer>
       <div className="flex flex-wrap gap-2 mt-1">
         {data.map((d) => (
-          <span key={d.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <span key={d.name} className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
             <span className="inline-block w-2 h-2 rounded-full" style={{ background: SEV_COLORS[d.name] || SEV_COLORS.info }} />
-            {d.name} ({d.value})
+            {d.name} <span className="tabular-nums">({d.value})</span>
           </span>
         ))}
       </div>

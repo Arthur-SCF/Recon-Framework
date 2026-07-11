@@ -59,7 +59,7 @@ function MiniPipelinePreview({
         </div>
       ))}
       {groups > 12 && (
-        <span className="text-[9px] text-muted-foreground ml-1">
+        <span className="ml-1 font-mono text-[9px] tabular-nums text-muted-foreground">
           +{groups - 12}
         </span>
       )}
@@ -123,8 +123,8 @@ export function WizardStepTemplate({
                 className={cn(
                   "rounded-lg border p-4 text-left transition-all",
                   selected
-                    ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border bg-card hover:border-primary/40 hover:bg-accent/20",
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-surface-hover",
                 )}
               >
                 <div className="flex items-start justify-between gap-1">
@@ -137,7 +137,7 @@ export function WizardStepTemplate({
                     {t.display_name}
                   </p>
                   {!t.is_default && (
-                    <span className="shrink-0 rounded px-1 py-0.5 text-[9px] font-medium bg-muted/60 text-muted-foreground">
+                    <span className="shrink-0 rounded px-1 py-0.5 font-mono text-[9px] uppercase tracking-wide bg-muted/60 text-muted-foreground">
                       custom
                     </span>
                   )}
@@ -156,7 +156,7 @@ export function WizardStepTemplate({
                         <span
                           key={h}
                           className={cn(
-                            "rounded px-1.5 py-0.5 text-[9px] font-medium",
+                            "rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide",
                             selected
                               ? "bg-primary/15 text-primary"
                               : "bg-muted/40 text-muted-foreground",
@@ -166,7 +166,7 @@ export function WizardStepTemplate({
                         </span>
                       ))}
                     </div>
-                    <p className="mt-2 text-[10px] text-muted-foreground">
+                    <p className="mt-2 font-mono text-[10px] tabular-nums text-muted-foreground">
                       {meta.groups} groups · {meta.steps} steps
                     </p>
                   </>

@@ -18,9 +18,9 @@ export function PurednsResolveParams({ stepId, overrides, onChange }: Props) {
         <NumberInput
           value={rateLimit} min={1} max={2000}
           onChange={(v) => onChange({ ...overrides, puredns_resolve_rate_limit: v })}
-          className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
-        <span className="text-xs text-muted-foreground">qps</span>
+        <span className="font-mono text-[10px] text-muted-foreground">qps</span>
         <InfoTooltip text={PARAM_TOOLTIPS[`${stepId}:puredns_resolve_rate_limit`]} />
       </div>
     </div>

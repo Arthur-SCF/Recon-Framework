@@ -124,7 +124,7 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className={cn(
           "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "w-[calc(100%-2rem)] max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl",
+          "w-[calc(100%-2rem)] max-w-lg rounded-lg border border-border bg-card p-6 shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -157,33 +157,33 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
 
             {/* Name */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">Name</label>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Acme Corp bug bounty"
-                className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">
-                Description <span className="font-normal text-muted-foreground">(optional)</span>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Description <span className="font-normal normal-case tracking-normal text-faint-foreground">(optional)</span>
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
                 placeholder="Scope notes, program URL, etc."
-                className="w-full resize-none rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             {/* Notify scope */}
             <div>
-              <label className="mb-2 flex items-center gap-1.5 text-xs font-medium text-foreground">
+              <label className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 <Bell className="h-3.5 w-3.5" /> Notification scope
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -196,7 +196,7 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
                       onClick={() => setNotifyScope(n.id)}
                       className={cn(
                         "flex flex-col items-start gap-0.5 rounded-lg border p-3 text-left transition-all",
-                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40",
+                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40 hover:bg-surface-hover",
                       )}
                     >
                       <span className={cn("text-xs font-medium", selected ? "text-primary" : "text-foreground")}>{n.label}</span>
@@ -212,11 +212,11 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
 
             {/* Pipeline template */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">Pipeline template</label>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Pipeline template</label>
               <select
                 value={pipelineTemplate}
                 onChange={(e) => setPipelineTemplate(e.target.value)}
-                className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 {templates.length === 0 && <option value={pipelineTemplate}>{pipelineTemplate}</option>}
                 {templates.map((t) => (
@@ -230,7 +230,7 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
 
             {/* Wildcard policy */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">Wildcard Policy</label>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Wildcard Policy</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {WILDCARD_CARDS.map((w) => {
                   const selected = wildcardPolicy === w.id;
@@ -241,7 +241,7 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
                       onClick={() => setWildcardPolicy(w.id)}
                       className={cn(
                         "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all",
-                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40",
+                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40 hover:bg-surface-hover",
                       )}
                     >
                       <span className={selected ? "text-primary" : "text-muted-foreground"}>{w.icon}</span>
@@ -255,9 +255,9 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
 
             {/* Priority */}
             <div>
-              <label className="mb-2 flex items-center justify-between text-xs font-medium text-foreground">
+              <label className="mb-2 flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 <span>Scan Priority</span>
-                <span className="text-muted-foreground">{priority} / 10</span>
+                <span className="tabular-nums text-muted-foreground">{priority} / 10</span>
               </label>
               <input
                 type="range" min={1} max={10} value={priority}
@@ -268,7 +268,7 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
 
             {/* Scan mode */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">Scan Mode</label>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Scan Mode</label>
               <ScanModeSelector
                 mode={scanMode}
                 scheduleSubMode={scheduleSubMode}
@@ -297,14 +297,14 @@ export function ProgramModal({ program, open, onClose, onSaved }: Props) {
             <button
               onClick={onClose}
               disabled={saving}
-              className="rounded border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
+              className="rounded-md border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => void handleSave()}
               disabled={saving || !name.trim()}
-              className="flex items-center gap-2 rounded bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
             >
               {saving ? (
                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</>

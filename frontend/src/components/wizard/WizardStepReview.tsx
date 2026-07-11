@@ -109,7 +109,7 @@ export function WizardStepReview({
             <Globe className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Domain</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Domain</p>
             <p className="text-sm font-mono font-semibold text-foreground">{domain}</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ export function WizardStepReview({
             <Layers className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Template</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Template</p>
             <p className="text-sm font-medium text-foreground">
               {TEMPLATE_LABELS[template] ?? template}
             </p>
@@ -138,7 +138,7 @@ export function WizardStepReview({
               <Shield className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Wildcard</p>
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Wildcard</p>
               <p className="text-xs font-medium text-foreground">
                 {WILDCARD_LABELS[wildcardPolicy] ?? wildcardPolicy}
               </p>
@@ -149,8 +149,8 @@ export function WizardStepReview({
               <Gauge className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Priority</p>
-              <p className="text-xs font-medium text-foreground">{priority} / 10</p>
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Priority</p>
+              <p className="font-mono text-xs tabular-nums text-foreground">{priority} / 10</p>
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export function WizardStepReview({
               )}
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Scan Mode</p>
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Scan Mode</p>
               <p className="text-xs font-medium text-foreground">{scanModeLabel}</p>
             </div>
           </div>
@@ -179,7 +179,7 @@ export function WizardStepReview({
               <Clock className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Schedule</p>
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Schedule</p>
               <p className={`text-xs font-medium ${scanMode !== "schedule" ? "text-muted-foreground italic" : "text-foreground"}`}>
                 {scheduleLabel}
               </p>
@@ -195,8 +195,8 @@ export function WizardStepReview({
             <Layers className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Retention</p>
-            <p className="text-xs font-medium text-foreground">{retentionRuns} scans</p>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Retention</p>
+            <p className="font-mono text-xs tabular-nums text-foreground">{retentionRuns} scans</p>
           </div>
         </div>
 
@@ -209,12 +209,12 @@ export function WizardStepReview({
                 <Tag className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Tags</p>
+                <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Tags</p>
                 <div className="flex flex-wrap gap-1">
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
+                      className="rounded-full border border-border bg-muted/40 px-2 py-0.5 font-mono text-[10px] text-muted-foreground"
                     >
                       #{tag}
                     </span>

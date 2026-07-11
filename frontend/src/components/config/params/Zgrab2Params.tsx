@@ -18,7 +18,7 @@ export function Zgrab2Params({ stepId, overrides, onChange }: Props) {
         <NumberInput
           value={senders} min={1} max={1000}
           onChange={(v) => onChange({ ...overrides, zgrab2_senders: v })}
-          className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
         <InfoTooltip text={PARAM_TOOLTIPS[`${stepId}:zgrab2_senders`] ?? ""} />
       </div>

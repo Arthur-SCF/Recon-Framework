@@ -26,9 +26,9 @@ export function FlowConnector({ status }: FlowConnectorProps) {
         className={cn(
           "h-6 transition-colors duration-300",
           status === "complete"
-            ? "border-l-2 border-green-500/40"
+            ? "border-l-2 border-sev-low/40"
             : status === "active"
-              ? "border-l-2 border-blue-500/50 animate-pulse"
+              ? "border-l-2 border-sev-info/50 animate-pulse"
               : "border-l border-dashed border-border/40",
         )}
       />

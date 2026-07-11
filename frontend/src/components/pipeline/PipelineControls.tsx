@@ -39,14 +39,14 @@ export function PipelineControls({
       {!isRunning && !isPaused && (
         isQueued ? (
           <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+            <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-3 py-1.5 font-mono text-xs font-medium tabular-nums text-muted-foreground">
               <Clock className="h-3 w-3 animate-pulse" />
               {queuePosition === 1 ? "Next up" : `Queued #${queuePosition}`}
             </div>
             <button
               onClick={onDequeue}
               title="Remove from queue"
-              className="flex items-center gap-1 rounded-md border border-white/[0.08] px-2 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
+              className="flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
             >
               <X className="h-3 w-3" />
               Remove
@@ -76,7 +76,7 @@ export function PipelineControls({
       {isRunning && (
         <button
           onClick={() => onAction("pause")}
-          className="flex items-center gap-1.5 rounded-md bg-yellow-500/20 border border-yellow-500/40 px-3 py-1.5 text-xs font-medium text-yellow-400 hover:bg-yellow-500/30 transition-colors"
+          className="flex items-center gap-1.5 rounded-md bg-sev-medium/20 border border-sev-medium/40 px-3 py-1.5 text-xs font-medium text-sev-medium hover:bg-sev-medium/30 transition-colors"
         >
           <Pause className="h-3 w-3" /> Pause
         </button>
@@ -103,7 +103,7 @@ export function PipelineControls({
       )}
 
       {session && (
-        <span className="ml-2 text-xs text-muted-foreground capitalize">
+        <span className="ml-2 font-mono text-xs text-muted-foreground capitalize">
           {session.status}
           {session.pause_type ? ` (${PAUSE_LABELS[session.pause_type] ?? session.pause_type})` : ""}
         </span>

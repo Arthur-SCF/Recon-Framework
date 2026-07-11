@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Split } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineGroup, StepRun } from "@/types/api";
 import { FlowStepNode } from "./FlowStepNode";
@@ -70,26 +71,24 @@ export function FlowGroupNode({
         >
           <span
             className={cn(
-              "text-[9px] font-semibold uppercase tracking-[0.18em] shrink-0 transition-colors duration-300",
-              status === "running"  ? "text-blue-400/60"
-              : status === "success" ? "text-green-400/40"
-              : status === "error"   ? "text-red-400/50"
-              : "text-muted-foreground/25",
+              "font-mono text-[9px] font-semibold uppercase tracking-[0.18em] shrink-0 transition-colors duration-300",
+              status === "running"  ? "text-sev-info/70"
+              : status === "success" ? "text-sev-low/60"
+              : status === "error"   ? "text-sev-critical/70"
+              : "text-faint-foreground",
             )}
           >
             {group.name}
           </span>
           {group.parallel && (
-            <span className="text-[9px] text-muted-foreground/20 shrink-0">
-              ∥
-            </span>
+            <Split className="h-2.5 w-2.5 shrink-0 text-muted-foreground/30" aria-hidden="true" />
           )}
           {showTime && (
             <span className="ml-auto font-mono text-[9px] text-muted-foreground/20 tabular-nums shrink-0">
               {fmtTime(totalTime)}
             </span>
           )}
-          <div className="flex-1 h-px bg-white/[0.05] ml-0" />
+          <div className="flex-1 h-px bg-border ml-0" />
         </div>
       )}
 
@@ -111,7 +110,7 @@ export function FlowGroupNode({
         {collapsible && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="flex items-center gap-2 px-4 py-[7px] text-[11px] text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors"
+            className="flex items-center gap-2 px-4 py-[7px] font-mono text-[11px] tabular-nums text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors"
           >
             <span>+{sortedSteps.length - COLLAPSE_THRESHOLD} more</span>
           </button>

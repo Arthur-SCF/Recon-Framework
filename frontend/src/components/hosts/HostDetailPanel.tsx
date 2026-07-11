@@ -24,19 +24,19 @@ interface HostDetailPanelProps {
 
 function statusColor(code: number | null) {
   if (code === null) return "text-muted-foreground bg-muted/30";
-  if (code >= 200 && code < 300) return "text-green-400 bg-green-950/60";
-  if (code >= 300 && code < 400) return "text-blue-400 bg-blue-950/60";
-  if (code >= 400 && code < 500) return "text-yellow-400 bg-yellow-950/60";
-  if (code >= 500) return "text-red-400 bg-red-950/60";
+  if (code >= 200 && code < 300) return "text-sev-low bg-sev-low/15";
+  if (code >= 300 && code < 400) return "text-sev-info bg-sev-info/15";
+  if (code >= 400 && code < 500) return "text-sev-medium bg-sev-medium/15";
+  if (code >= 500) return "text-sev-critical bg-sev-critical/15";
   return "text-muted-foreground bg-muted/30";
 }
 
 function eventBadge(type: HostHistoryEvent["event_type"]) {
   switch (type) {
-    case "discovered": return "bg-green-950/60 text-green-400 border-green-800/30";
-    case "changed":    return "bg-yellow-950/60 text-yellow-400 border-yellow-800/30";
-    case "gone":       return "bg-red-950/60 text-red-400 border-red-800/30";
-    case "returned":   return "bg-blue-950/60 text-blue-400 border-blue-800/30";
+    case "discovered": return "bg-sev-low/15 text-sev-low border-sev-low/30";
+    case "changed":    return "bg-sev-medium/15 text-sev-medium border-sev-medium/30";
+    case "gone":       return "bg-sev-critical/15 text-sev-critical border-sev-critical/30";
+    case "returned":   return "bg-sev-info/15 text-sev-info border-sev-info/30";
   }
 }
 
@@ -59,7 +59,7 @@ function formatBytes(n: number | null): string {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
         {title}
       </p>
       <div className="flex flex-col gap-1.5">{children}</div>
@@ -81,10 +81,10 @@ function SecurityBadge({ label, ok }: { label: string; ok: boolean | null }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-mono",
+        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide",
         ok
-          ? "border-green-800/30 bg-green-950/60 text-green-400"
-          : "border-yellow-800/30 bg-yellow-950/60 text-yellow-400",
+          ? "border-sev-low/30 bg-sev-low/15 text-sev-low"
+          : "border-sev-medium/30 bg-sev-medium/15 text-sev-medium",
       )}
     >
       {ok ? <Shield className="h-2.5 w-2.5" /> : <ShieldOff className="h-2.5 w-2.5" />}
@@ -107,7 +107,7 @@ function CopyButton({ text }: { text: string }) {
       className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
       title="Copy"
     >
-      {copied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? <Check className="h-3.5 w-3.5 text-sev-low" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
 }
@@ -161,16 +161,16 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
           {/* Header */}
           <div className="flex items-center gap-2 border-b border-border px-4 py-3 shrink-0">
             {host.scheme === "https" ? (
-              <Lock className="h-3.5 w-3.5 text-green-400 shrink-0" />
+              <Lock className="h-3.5 w-3.5 text-sev-low shrink-0" />
             ) : (
-              <Globe className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+              <Globe className="h-3.5 w-3.5 text-sev-medium shrink-0" />
             )}
             <span className="flex-1 truncate font-mono text-sm text-foreground">
               {host.url}
             </span>
             <span
               className={cn(
-                "inline-flex shrink-0 rounded-md px-1.5 py-0.5 text-xs font-mono font-bold",
+                "inline-flex shrink-0 rounded px-1.5 py-0.5 text-xs font-mono font-semibold tabular-nums",
                 statusColor(host.status_code),
               )}
             >
@@ -219,17 +219,17 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
                     </span>
                   )}
                   {host.tls_self_signed && (
-                    <span className="inline-flex items-center gap-1 rounded border border-red-800/30 bg-red-950/60 px-1.5 py-0.5 text-[10px] font-mono text-red-400">
+                    <span className="inline-flex items-center gap-1 rounded border border-sev-critical/30 bg-sev-critical/15 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-sev-critical">
                       <AlertTriangle className="h-2.5 w-2.5" /> Self-signed
                     </span>
                   )}
                   {host.tls_expired && (
-                    <span className="inline-flex items-center gap-1 rounded border border-red-800/30 bg-red-950/60 px-1.5 py-0.5 text-[10px] font-mono text-red-400">
+                    <span className="inline-flex items-center gap-1 rounded border border-sev-critical/30 bg-sev-critical/15 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-sev-critical">
                       <AlertTriangle className="h-2.5 w-2.5" /> Expired
                     </span>
                   )}
                   {host.tls_mismatched && (
-                    <span className="inline-flex items-center gap-1 rounded border border-orange-800/30 bg-orange-950/60 px-1.5 py-0.5 text-[10px] font-mono text-orange-400">
+                    <span className="inline-flex items-center gap-1 rounded border border-sev-high/30 bg-sev-high/15 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-sev-high">
                       <AlertTriangle className="h-2.5 w-2.5" /> CN mismatch
                     </span>
                   )}
@@ -253,7 +253,7 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
                 <Row
                   label="WAF"
                   value={
-                    <span className="inline-flex rounded border border-purple-800/30 bg-purple-950/60 px-1.5 py-0.5 text-[10px] font-mono text-purple-300">
+                    <span className="inline-flex rounded border border-sev-info/30 bg-sev-info/15 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-sev-info">
                       {host.waf}
                     </span>
                   }
@@ -269,7 +269,7 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
                   <Row
                     label="CDN"
                     value={
-                      <span className="inline-flex rounded border border-blue-800/30 bg-blue-950/60 px-1.5 py-0.5 text-[10px] font-mono text-blue-300">
+                      <span className="inline-flex rounded border border-sev-info/30 bg-sev-info/15 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-sev-info">
                         {host.cdn_name ?? "Yes"}
                       </span>
                     }
@@ -378,7 +378,7 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
                       className="inline-flex items-center gap-1 rounded border border-border bg-muted/30 px-1.5 py-0.5 text-[10px] font-mono text-foreground"
                       title={p.service ?? undefined}
                     >
-                      <span className="text-primary">{p.port}</span>
+                      <span className="text-foreground tabular-nums">{p.port}</span>
                       {p.protocol && <span className="text-muted-foreground">/{p.protocol}</span>}
                       {p.service && <span className="text-muted-foreground"> {p.service}</span>}
                     </span>
@@ -422,10 +422,10 @@ export function HostDetailPanel({ host, targetId, onClose }: HostDetailPanelProp
                           {Object.entries(evt.changes).map(([field, diff]) => (
                             <p key={field} className="text-[10px] font-mono text-muted-foreground">
                               <span className="text-foreground">{field}:</span>{" "}
-                              <span className="text-red-400 line-through">
+                              <span className="text-sev-critical line-through">
                                 {String(diff.old ?? "—")}
                               </span>{" "}
-                              <span className="text-green-400">
+                              <span className="text-sev-low">
                                 {String(diff.new ?? "—")}
                               </span>
                             </p>

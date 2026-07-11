@@ -17,12 +17,12 @@ import type { PipelineStep, StepRun } from "@/types/api";
 
 // Status icons — 16px, consistent sizing
 const STATUS_ICON: Record<string, React.ReactNode> = {
-  pending: <Circle       className="h-4 w-4 text-muted-foreground/20" />,
-  running: <Loader2      className="h-4 w-4 text-blue-400 animate-spin" />,
-  success: <CheckCircle2 className="h-4 w-4 text-green-400" />,
-  error:   <AlertCircle  className="h-4 w-4 text-red-400" />,
-  timeout: <Clock        className="h-4 w-4 text-yellow-400" />,
-  skipped: <MinusCircle  className="h-4 w-4 text-muted-foreground/15" />,
+  pending: <Circle       className="h-4 w-4 text-muted-foreground/30" />,
+  running: <Loader2      className="h-4 w-4 text-sev-info animate-spin" />,
+  success: <CheckCircle2 className="h-4 w-4 text-sev-low" />,
+  error:   <AlertCircle  className="h-4 w-4 text-sev-critical" />,
+  timeout: <Clock        className="h-4 w-4 text-sev-medium" />,
+  skipped: <MinusCircle  className="h-4 w-4 text-faint-foreground" />,
 };
 
 // Human-readable display name for each step_id
@@ -104,12 +104,12 @@ const RESULT_QUALIFIER: Record<string, string> = {
 
 // Error category → icon color
 const ERROR_CATEGORY_COLOR: Record<string, string> = {
-  config:    "text-red-500",
-  resource:  "text-purple-500",
-  transient: "text-amber-500",
-  timeout:   "text-amber-500",
+  config:    "text-sev-critical",
+  resource:  "text-sev-high",
+  transient: "text-sev-medium",
+  timeout:   "text-sev-medium",
   upstream:  "text-muted-foreground",
-  unknown:   "text-red-500",
+  unknown:   "text-sev-critical",
 };
 
 // Human-readable category labels for tooltip
@@ -124,12 +124,12 @@ const ERROR_CATEGORY_LABEL: Record<string, string> = {
 
 // Left border + background tint — always reserve 3px border space to prevent layout shift
 const STATUS_ROW: Record<string, string> = {
-  pending: "border-l-transparent hover:bg-white/[0.03]",
-  running: "border-l-blue-500 bg-blue-500/[0.06] pipeline-step-running",
-  success: "border-l-green-500/40 bg-green-500/[0.025]",
-  error:   "border-l-red-500/60 bg-red-500/[0.05] hover:bg-red-500/[0.07]",
-  timeout: "border-l-yellow-500/50 bg-yellow-500/[0.04] hover:bg-yellow-500/[0.06]",
-  skipped: "border-l-transparent hover:bg-white/[0.03]",
+  pending: "border-l-transparent hover:bg-surface-hover",
+  running: "border-l-sev-info bg-sev-info/[0.06] pipeline-step-running",
+  success: "border-l-sev-low/40 bg-sev-low/[0.025]",
+  error:   "border-l-sev-critical/60 bg-sev-critical/[0.05] hover:bg-sev-critical/[0.07]",
+  timeout: "border-l-sev-medium/50 bg-sev-medium/[0.04] hover:bg-sev-medium/[0.06]",
+  skipped: "border-l-transparent hover:bg-surface-hover",
 };
 
 function fmtTime(sec: number | null): string {
@@ -145,9 +145,9 @@ const shakeAnimation = {
 
 const successFlash = {
   boxShadow: [
-    "0 0 0 0 rgba(74, 222, 128, 0)",
-    "0 0 0 3px rgba(74, 222, 128, 0.12)",
-    "0 0 0 0 rgba(74, 222, 128, 0)",
+    "0 0 0 0 color-mix(in srgb, var(--sev-low) 0%, transparent)",
+    "0 0 0 3px color-mix(in srgb, var(--sev-low) 12%, transparent)",
+    "0 0 0 0 color-mix(in srgb, var(--sev-low) 0%, transparent)",
   ],
   transition: { duration: 0.5 },
 };
@@ -211,13 +211,13 @@ export function FlowStepNode({
                 <AlertCircle
                   className={cn(
                     "h-4 w-4",
-                    ERROR_CATEGORY_COLOR[run?.error_category ?? "unknown"] ?? "text-red-400",
+                    ERROR_CATEGORY_COLOR[run?.error_category ?? "unknown"] ?? "text-sev-critical",
                   )}
                 />
                 {run?.retry_count != null && run.retry_count > 0 && (
                   <span
                     className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center
-                               text-[8px] font-bold leading-none bg-background border border-border rounded-full px-0.5"
+                               font-mono text-[8px] font-semibold tabular-nums leading-none bg-background border border-border rounded-full px-0.5"
                   >
                     {run.retry_count + 1}
                   </span>
@@ -255,9 +255,9 @@ export function FlowStepNode({
             "text-[13px] font-sans truncate",
             status === "pending" && isLocked  ? "text-foreground/45 font-normal"
             : status === "pending"            ? "text-muted-foreground/35 font-normal"
-            : status === "running"            ? "text-blue-200 font-medium"
+            : status === "running"            ? "text-sev-info font-medium"
             : status === "skipped"            ? "text-muted-foreground/30 line-through font-normal"
-            : status === "error" || status === "timeout" ? "text-red-300/90 font-normal"
+            : status === "error" || status === "timeout" ? "text-sev-critical/90 font-normal"
             : "text-foreground/65 font-normal",
           )}
         >
@@ -281,7 +281,7 @@ export function FlowStepNode({
       {hasResults && (
         <span className="shrink-0 flex items-center gap-1">
           <span
-            className="rounded-full px-2 py-px text-[10px] font-medium tabular-nums bg-primary/10 text-primary/70 cursor-pointer hover:bg-primary/20 transition-colors"
+            className="rounded-full px-2 py-px font-mono text-[10px] font-medium tabular-nums bg-primary/10 text-primary/70 cursor-pointer hover:bg-primary/20 transition-colors"
             onClick={() => onViewResults(step.step_id)}
           >
             {run!.result_count}
@@ -294,7 +294,7 @@ export function FlowStepNode({
         </span>
       )}
       {run?.result_count === 0 && (
-        <span className="shrink-0 text-[10px] text-muted-foreground/20 tabular-nums">
+        <span className="shrink-0 font-mono text-[10px] text-muted-foreground/20 tabular-nums">
           0
         </span>
       )}
@@ -332,7 +332,7 @@ export function FlowStepNode({
       {canSkip && (
         <button
           onClick={() => onSkip?.(step.step_id)}
-          className="h-6 px-2 text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors shrink-0"
+          className="h-6 px-2 text-xs text-sev-medium hover:bg-sev-medium/10 rounded transition-colors shrink-0"
           title="Skip this step"
         >
           Skip

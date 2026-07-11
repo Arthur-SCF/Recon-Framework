@@ -39,12 +39,12 @@ export function WizardStepDomain({ domain, onChange }: WizardStepDomainProps) {
           onChange={(e) => onChange(e.target.value)}
           placeholder="example.com"
           className={cn(
-            "w-full rounded-lg border bg-input px-4 py-3 text-center text-sm font-mono text-foreground placeholder:text-muted-foreground",
+            "w-full rounded-md border bg-input px-4 py-3 text-center text-sm font-mono text-foreground placeholder:text-muted-foreground",
             "focus:outline-none focus:ring-2",
             isValid
-              ? "border-green-500/50 focus:ring-green-500/30"
+              ? "border-sev-low/50 focus:ring-sev-low/30"
               : trimmed.length > 0
-                ? "border-destructive/50 focus:ring-destructive/30"
+                ? "border-sev-critical/50 focus:ring-sev-critical/30"
                 : "border-border focus:ring-primary/30",
           )}
         />
@@ -55,13 +55,13 @@ export function WizardStepDomain({ domain, onChange }: WizardStepDomainProps) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-sev-low" />
           </motion.div>
         )}
       </div>
 
       {trimmed.length > 0 && !isValid && (
-        <p className="text-xs text-destructive">
+        <p className="text-xs text-sev-critical">
           Enter a valid domain (e.g., example.com)
         </p>
       )}

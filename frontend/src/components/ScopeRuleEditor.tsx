@@ -108,7 +108,7 @@ export function ScopeRuleEditor({ targetId }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Scope Rules</h3>
+        <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Scope Rules</h3>
         {rules.length > 0 && (
           <button
             onClick={() => void openPreview()}
@@ -132,8 +132,8 @@ export function ScopeRuleEditor({ targetId }: Props) {
                 "px-3 py-1.5 text-xs font-medium transition-colors",
                 ruleType === t
                   ? t === "include"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-destructive text-destructive-foreground"
+                    ? "bg-sev-low/15 text-sev-low"
+                    : "bg-sev-critical/15 text-sev-critical"
                   : "bg-background text-muted-foreground hover:text-foreground",
               )}
             >
@@ -185,9 +185,9 @@ export function ScopeRuleEditor({ targetId }: Props) {
             >
               <div className="flex items-center gap-2">
                 {r.rule_type === "include" ? (
-                  <Shield className="h-3.5 w-3.5 text-primary" />
+                  <Shield className="h-3.5 w-3.5 text-sev-low" />
                 ) : (
-                  <ShieldOff className="h-3.5 w-3.5 text-destructive" />
+                  <ShieldOff className="h-3.5 w-3.5 text-sev-critical" />
                 )}
                 <span className="font-mono text-xs text-foreground">
                   {r.pattern}
@@ -234,23 +234,23 @@ export function ScopeRuleEditor({ targetId }: Props) {
               <div className="space-y-4">
                 {/* Summary */}
                 <div className="flex gap-4 text-center">
-                  <div className="flex-1 rounded-md bg-primary/10 px-3 py-2">
-                    <p className="text-lg font-bold font-mono text-primary">
+                  <div className="flex-1 rounded-md bg-sev-low/10 px-3 py-2">
+                    <p className="font-mono text-lg font-semibold tabular-nums text-sev-low">
                       {previewResult.included_count}
                     </p>
-                    <p className="text-xs text-muted-foreground">Included</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Included</p>
                   </div>
-                  <div className="flex-1 rounded-md bg-destructive/10 px-3 py-2">
-                    <p className="text-lg font-bold font-mono text-destructive">
+                  <div className="flex-1 rounded-md bg-sev-critical/10 px-3 py-2">
+                    <p className="font-mono text-lg font-semibold tabular-nums text-sev-critical">
                       {previewResult.excluded_count}
                     </p>
-                    <p className="text-xs text-muted-foreground">Excluded</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Excluded</p>
                   </div>
                   <div className="flex-1 rounded-md bg-muted/30 px-3 py-2">
-                    <p className="text-lg font-bold font-mono text-foreground">
+                    <p className="font-mono text-lg font-semibold tabular-nums text-foreground">
                       {previewResult.total}
                     </p>
-                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
                   </div>
                 </div>
 
@@ -259,12 +259,12 @@ export function ScopeRuleEditor({ targetId }: Props) {
                   <SubdomainList
                     label="Included"
                     items={previewResult.included}
-                    colorClass="text-primary"
+                    colorClass="text-sev-low"
                   />
                   <SubdomainList
                     label="Excluded"
                     items={previewResult.excluded}
-                    colorClass="text-destructive"
+                    colorClass="text-sev-critical"
                   />
                 </div>
               </div>

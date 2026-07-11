@@ -13,16 +13,16 @@ interface Props {
 }
 
 const PROVIDER_STYLE: Record<string, string> = {
-  s3:      "bg-orange-500/15 text-orange-400",
-  azure:   "bg-blue-500/15 text-blue-400",
-  gcp:     "bg-sky-500/15 text-sky-400",
+  s3:      "bg-muted text-muted-foreground",
+  azure:   "bg-muted text-muted-foreground",
+  gcp:     "bg-muted text-muted-foreground",
   generic: "bg-muted text-muted-foreground",
 };
 
 function ProviderBadge({ type }: { type: string }) {
   const cls = PROVIDER_STYLE[type.toLowerCase()] ?? PROVIDER_STYLE.generic;
   return (
-    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium font-mono uppercase ${cls}`}>
+    <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide ${cls}`}>
       {type}
     </span>
   );
@@ -30,15 +30,15 @@ function ProviderBadge({ type }: { type: string }) {
 
 function ExistsBadge({ exists }: { exists: boolean }) {
   return exists ? (
-    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-500/15 text-emerald-400">exists</span>
+    <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide bg-sev-low/15 text-sev-low">exists</span>
   ) : (
-    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">not found</span>
+    <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide bg-muted text-muted-foreground">not found</span>
   );
 }
 
 function AccessBadge({ active, label }: { active: boolean; label: string }) {
   return active ? (
-    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-red-500/15 text-red-400">{label}</span>
+    <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide bg-sev-critical/15 text-sev-critical">{label}</span>
   ) : (
     <span className="text-muted-foreground/30 text-[10px]">—</span>
   );
@@ -49,7 +49,7 @@ function Paginator({ page, total, perPage, onPage }: { page: number; total: numb
   if (totalPages <= 1) return null;
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1">
-      <span>Page {page} of {totalPages} ({total.toLocaleString()} total)</span>
+      <span className="font-mono tabular-nums">Page {page} of {totalPages} ({total.toLocaleString()} total)</span>
       <div className="flex items-center gap-1">
         <button onClick={() => onPage(page - 1)} disabled={page <= 1}
           className="rounded p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors">
@@ -121,9 +121,9 @@ export function CloudTable({ targetId }: Props) {
       {/* ── Cloud Assets ─────────────────────────────────────────────── */}
       <section className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <h3 className="font-mono text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.14em]">
             Cloud Assets
-            <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono normal-case">
+            <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono tabular-nums normal-case tracking-normal">
               {assets.total}
             </span>
           </h3>
@@ -152,15 +152,15 @@ export function CloudTable({ targetId }: Props) {
             <div className="rounded-lg border border-border overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border bg-muted/30 text-left">
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Provider</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">URL</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Keyword</th>
+                  <tr className="border-b border-border bg-muted/30 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    <th className="px-3 py-2">Provider</th>
+                    <th className="px-3 py-2">URL</th>
+                    <th className="px-3 py-2">Keyword</th>
                   </tr>
                 </thead>
                 <tbody>
                   {assets.data.map((a) => (
-                    <tr key={a.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <tr key={a.id} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
                       <td className="px-3 py-2"><ProviderBadge type={a.asset_type} /></td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-1.5 group">
@@ -186,9 +186,9 @@ export function CloudTable({ targetId }: Props) {
       {/* ── S3 Buckets ───────────────────────────────────────────────── */}
       <section className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <h3 className="font-mono text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.14em]">
             S3 Buckets
-            <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono normal-case">
+            <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono tabular-nums normal-case tracking-normal">
               {buckets.total}
             </span>
           </h3>
@@ -214,17 +214,17 @@ export function CloudTable({ targetId }: Props) {
             <div className="rounded-lg border border-border overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border bg-muted/30 text-left">
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Bucket</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Status</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Public Read</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Public Write</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">URL</th>
+                  <tr className="border-b border-border bg-muted/30 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    <th className="px-3 py-2">Bucket</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2">Public Read</th>
+                    <th className="px-3 py-2">Public Write</th>
+                    <th className="px-3 py-2">URL</th>
                   </tr>
                 </thead>
                 <tbody>
                   {buckets.data.map((b) => (
-                    <tr key={b.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <tr key={b.id} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
                       <td className="px-3 py-2 font-mono text-foreground">
                         {b.bucket_name}
                         {b.region && <span className="ml-1.5 text-muted-foreground/50">{b.region}</span>}

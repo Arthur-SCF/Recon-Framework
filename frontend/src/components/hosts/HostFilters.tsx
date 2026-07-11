@@ -41,13 +41,13 @@ export function HostFilters({
         placeholder="Filter by URL, title, webserver, tech..."
         value={filter}
         onChange={(e) => onFilterChange(e.target.value)}
-        className="flex-1 min-w-0 rounded border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
       />
 
       {statusFilter && onStatusFilterClear && (
         <button
           onClick={onStatusFilterClear}
-          className="flex items-center gap-1 rounded border border-primary/40 bg-primary/10 px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+          className="flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1.5 font-mono text-xs uppercase tracking-wide text-primary hover:bg-primary/20 transition-colors"
           title="Clear status filter"
         >
           {statusFilter}
@@ -55,7 +55,7 @@ export function HostFilters({
         </button>
       )}
 
-      <div className="flex rounded border border-border overflow-hidden text-xs">
+      <div className="flex rounded-md border border-border overflow-hidden text-xs">
         {SCHEMES.map((s) => (
           <button
             key={s}
@@ -72,7 +72,7 @@ export function HostFilters({
         ))}
       </div>
 
-      <div className="flex rounded border border-border overflow-hidden">
+      <div className="flex rounded-md border border-border overflow-hidden">
         <button
           onClick={() => onViewModeChange("table")}
           title="Table view"
@@ -100,7 +100,7 @@ export function HostFilters({
       </div>
 
       <ExportMenu targetId={targetId} type="hosts" />
-      <span className="text-xs text-muted-foreground">
+      <span className="font-mono text-xs tabular-nums text-muted-foreground">
         {filteredCount} / {totalCount}
       </span>
     </div>

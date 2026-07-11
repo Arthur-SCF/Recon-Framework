@@ -76,7 +76,7 @@ export function AssignAssetsModal({ programId, open, onClose, onAssigned }: Prop
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className={cn(
           "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "w-[calc(100%-2rem)] max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl",
+          "w-[calc(100%-2rem)] max-w-lg rounded-lg border border-border bg-card p-6 shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -105,7 +105,7 @@ export function AssignAssetsModal({ programId, open, onClose, onAssigned }: Prop
 
           {/* Config source */}
           <div className="mb-4">
-            <label className="mb-2 block text-xs font-medium text-foreground">Config source</label>
+            <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Config source</label>
             <div className="grid grid-cols-2 gap-2">
               {CONFIG_CARDS.map((c) => {
                 const sel = configSource === c.id;
@@ -116,7 +116,7 @@ export function AssignAssetsModal({ programId, open, onClose, onAssigned }: Prop
                     onClick={() => setConfigSource(c.id)}
                     className={cn(
                       "flex flex-col items-start gap-0.5 rounded-lg border p-3 text-left transition-all",
-                      sel ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40",
+                      sel ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40 hover:bg-surface-hover",
                     )}
                   >
                     <span className={cn("text-xs font-medium", sel ? "text-primary" : "text-foreground")}>{c.label}</span>
@@ -135,7 +135,7 @@ export function AssignAssetsModal({ programId, open, onClose, onAssigned }: Prop
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Filter targets…"
-              className="w-full rounded border border-border bg-background py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -146,9 +146,20 @@ export function AssignAssetsModal({ programId, open, onClose, onAssigned }: Prop
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : filtered.length === 0 ? (
-              <p className="py-8 text-center text-xs text-muted-foreground">
-                {targets.length === 0 ? "No standalone targets available." : "No targets match the filter."}
-              </p>
+              <div className="relative flex flex-col items-center justify-center overflow-hidden py-10 text-center">
+                <div className="deck-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-primary">
+                  <Link2 className="h-4 w-4" />
+                </div>
+                <p className="relative mt-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  {targets.length === 0 ? "No standalone assets" : "No matches"}
+                </p>
+                <p className="relative mt-1 text-[11px] text-faint-foreground">
+                  {targets.length === 0
+                    ? "Every target already belongs to a program."
+                    : "No targets match the filter."}
+                </p>
+              </div>
             ) : (
               filtered.map((t) => {
                 const sel = selected.has(t.id);
@@ -180,19 +191,19 @@ export function AssignAssetsModal({ programId, open, onClose, onAssigned }: Prop
           </div>
 
           <div className="mt-6 flex items-center justify-between gap-2">
-            <span className="text-xs text-muted-foreground">{selected.size} selected</span>
+            <span className="text-xs text-muted-foreground"><span className="font-mono tabular-nums">{selected.size}</span> selected</span>
             <div className="flex gap-2">
               <button
                 onClick={onClose}
                 disabled={pending}
-                className="rounded border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
+                className="rounded-md border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => void handleAssign()}
                 disabled={pending || selected.size === 0}
-                className="flex items-center gap-2 rounded bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+                className="flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
               >
                 {pending ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Assigning…</> : <>Assign</>}
               </button>

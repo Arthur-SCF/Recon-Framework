@@ -187,12 +187,12 @@ export function FieldRenderer({ descriptor, value, onChange, disabled }: Props) 
               if (type === "int")   emit(raw === "" ? "" : parseInt(raw, 10));
               else                  emit(raw === "" ? "" : parseFloat(raw));
             }}
-            className="flex-1 min-w-0 bg-transparent px-2.5 py-1.5 text-xs text-foreground focus:outline-none"
+            className="flex-1 min-w-0 bg-transparent px-2.5 py-1.5 font-mono text-xs tabular-nums text-foreground focus:outline-none"
           />
           {unit && (
             <span className={cn(
               "shrink-0 flex items-center px-2.5 border-l border-border",
-              "bg-muted/30 text-[10px] text-muted-foreground font-medium",
+              "bg-muted/30 font-mono text-[10px] text-muted-foreground",
             )}>
               {unit}
             </span>
@@ -216,7 +216,7 @@ export function FieldRenderer({ descriptor, value, onChange, disabled }: Props) 
 
       {/* Range hint for numbers */}
       {(type === "int" || type === "float") && (min !== undefined || max !== undefined) && (
-        <p className="text-[10px] text-muted-foreground/50">
+        <p className="font-mono text-[10px] tabular-nums text-muted-foreground/50">
           {min !== undefined && max !== undefined
             ? `${min} – ${max}${unit ? ` ${unit}` : ""}`
             : min !== undefined

@@ -104,8 +104,8 @@ export function ScanQueueWidget() {
     <div className="rounded-lg border border-border bg-card p-4 min-w-0 overflow-hidden">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 text-xs font-medium text-foreground shrink-0">
-          <Activity className="h-3.5 w-3.5 text-primary" />
+        <div className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground shrink-0">
+          <Activity className="h-3.5 w-3.5 text-faint-foreground" />
           Scan Queue
         </div>
 
@@ -117,10 +117,10 @@ export function ScanQueueWidget() {
               onClick={() => void toggleQueue()}
               disabled={toggling}
               className={cn(
-                "flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded border transition-colors disabled:opacity-50",
+                "flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded border transition-colors disabled:opacity-50",
                 queuePaused
                   ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
-                  : "border-muted-foreground/30 bg-muted/30 text-muted-foreground hover:text-foreground hover:border-muted-foreground/60",
+                  : "border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:border-primary/40",
               )}
               title={queuePaused ? "Resume all scans (queue + loops)" : "Pause everything — queue and loops"}
             >
@@ -138,10 +138,10 @@ export function ScanQueueWidget() {
               onClick={() => void toggleLoops()}
               disabled={toggling}
               className={cn(
-                "flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded border transition-colors disabled:opacity-50",
+                "flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded border transition-colors disabled:opacity-50",
                 loopsPaused
                   ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
-                  : "border-muted-foreground/30 bg-muted/30 text-muted-foreground hover:text-foreground hover:border-muted-foreground/60",
+                  : "border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:border-primary/40",
               )}
               title={loopsPaused ? "Resume all loops" : "Stop all loops (current scan finishes normally)"}
             >
@@ -157,7 +157,7 @@ export function ScanQueueWidget() {
 
       {/* Queue paused banner — covers both queue and loops */}
       {queuePaused && (
-        <div className="mb-3 flex items-center gap-1.5 rounded border border-blue-500/30 bg-blue-500/10 px-2 py-1.5 text-[11px] text-blue-400">
+        <div className="mb-3 flex items-center gap-1.5 rounded border border-sev-info/30 bg-sev-info/10 px-2 py-1.5 text-[11px] text-sev-info">
           <PauseCircle className="h-3 w-3 shrink-0" />
           All scans paused — queue and loops stopped
         </div>
@@ -165,7 +165,7 @@ export function ScanQueueWidget() {
 
       {/* Loops paused banner — only when queue is NOT paused */}
       {loopsPaused && !queuePaused && (
-        <div className="mb-3 flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-500">
+        <div className="mb-3 flex items-center gap-1.5 rounded border border-sev-medium/30 bg-sev-medium/10 px-2 py-1.5 text-[11px] text-sev-medium">
           <PauseCircle className="h-3 w-3 shrink-0" />
           Loops paused — scheduled scans still run
         </div>
@@ -175,11 +175,14 @@ export function ScanQueueWidget() {
       {active ? (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" />
+            <span
+              className="led h-2 w-2 rounded-full bg-sev-info text-sev-info animate-pulse shrink-0"
+              style={{ backgroundColor: "currentColor" }}
+            />
             <span className="text-sm font-mono text-foreground truncate">{active.domain ?? "—"}</span>
             {active.loop && <Repeat className="h-3 w-3 text-primary/70 shrink-0" />}
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1.5 font-mono text-[11px] tabular-nums text-muted-foreground">
             <Clock className="h-3 w-3 shrink-0" />
             {elapsed(active.started_at)}
           </div>
@@ -191,11 +194,14 @@ export function ScanQueueWidget() {
       {/* Next up (position 1) */}
       {nextUp && (
         <div className="mt-3 border-t border-border pt-2 space-y-1">
-          <p className="text-[10px] font-medium text-primary/80 uppercase tracking-wider mb-1.5">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground mb-1.5">
             Next up
           </p>
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-primary/60 shrink-0" />
+            <span
+              className="led h-2 w-2 rounded-full bg-primary/60 text-primary/60 shrink-0"
+              style={{ backgroundColor: "currentColor" }}
+            />
             <span className="text-xs font-mono text-foreground truncate">{nextUp.domain}</span>
             {nextUp.loop && <Repeat className="h-3 w-3 text-primary/60 shrink-0" />}
           </div>
@@ -205,13 +211,16 @@ export function ScanQueueWidget() {
       {/* Rest of manual queue */}
       {waiting.length > 0 && (
         <div className={cn("space-y-1", nextUp ? "mt-2" : "mt-3 border-t border-border pt-2")}>
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground mb-1.5">
             Queued ({waiting.length})
           </p>
           {waiting.map((q, i) => (
             <div key={q.target_id} className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="text-[10px] w-3 text-right text-muted-foreground/50 shrink-0">{i + 2}</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+              <span className="font-mono text-[10px] tabular-nums w-3 text-right text-faint-foreground shrink-0">{i + 2}</span>
+              <span
+                className="led h-1.5 w-1.5 rounded-full bg-muted-foreground/40 text-muted-foreground/40 shrink-0"
+                style={{ backgroundColor: "currentColor" }}
+              />
               <span className="font-mono truncate">{q.domain}</span>
               {q.loop && <Repeat className="h-2.5 w-2.5 text-muted-foreground/50 shrink-0" />}
             </div>
@@ -222,7 +231,7 @@ export function ScanQueueWidget() {
       {/* Scheduled targets — always shown, sorted by next_run_at */}
       {hasAnyScheduled && (
         <div className="mt-3 border-t border-border pt-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground mb-1.5">
             Scheduled
           </p>
           <div className="space-y-2">
@@ -232,13 +241,13 @@ export function ScanQueueWidget() {
                   <Calendar className="h-3 w-3 shrink-0" />
                   <span className="font-mono truncate flex-1">{s.domain}</span>
                   <span className={cn(
-                    "text-[10px] shrink-0 tabular-nums",
-                    s.is_due ? "text-amber-500" : "text-muted-foreground/50"
+                    "font-mono text-[10px] shrink-0 tabular-nums",
+                    s.is_due ? "text-sev-medium" : "text-faint-foreground"
                   )}>
                     {formatCountdown(s.next_run_at)}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-muted-foreground/50 pl-5">
+                <p className="mt-0.5 font-mono text-[10px] tabular-nums text-faint-foreground pl-5">
                   {formatScheduleDetail(s)}
                 </p>
               </div>
@@ -250,20 +259,20 @@ export function ScanQueueWidget() {
       {/* Next loop target — always shown unless loops paused or loop_stopped */}
       {nextLoop && (
         <div className="mt-3 border-t border-border pt-2">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground mb-1.5">
             Loop next
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Repeat className="h-3 w-3 shrink-0 text-primary/50" />
             <span className="font-mono truncate">{nextLoop.domain}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground/50 shrink-0">auto</span>
+            <span className="ml-auto font-mono text-[10px] uppercase tracking-wide text-faint-foreground shrink-0">auto</span>
           </div>
         </div>
       )}
 
       {/* Idle */}
       {!active && !nextUp && !hasAnyScheduled && !nextLoop && (
-        <p className="text-[11px] text-muted-foreground/50 mt-2">Nothing queued</p>
+        <p className="text-[11px] text-faint-foreground mt-2">Nothing queued</p>
       )}
     </div>
   );

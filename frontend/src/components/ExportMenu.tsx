@@ -47,16 +47,16 @@ export function ExportMenu({ targetId, type, sessionId, params }: ExportMenuProp
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-10 w-28 rounded-md border border-border bg-background shadow-md">
+        <div className="absolute right-0 top-full mt-1 z-10 w-28 rounded-md border border-border bg-popover shadow-xl">
           <button
             onClick={() => download("csv")}
-            className="w-full px-3 py-2 text-left text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors rounded-t-md"
+            className="w-full px-3 py-2 text-left text-xs text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors rounded-t-md"
           >
             CSV
           </button>
           <button
             onClick={() => download("json")}
-            className="w-full px-3 py-2 text-left text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors rounded-b-md border-t border-border"
+            className="w-full px-3 py-2 text-left text-xs text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors rounded-b-md border-t border-border"
           >
             JSON
           </button>

@@ -24,10 +24,10 @@ const STATUS_RANGES: Record<StatusRange, { gte: number; lte: number } | null> = 
 
 function statusColor(code: number | null): string {
   if (!code) return "bg-muted text-muted-foreground";
-  if (code < 300) return "bg-emerald-500/15 text-emerald-400";
-  if (code < 400) return "bg-yellow-500/15 text-yellow-400";
-  if (code < 500) return "bg-red-500/15 text-red-400";
-  return "bg-orange-500/15 text-orange-400";
+  if (code < 300) return "bg-sev-low/15 text-sev-low";
+  if (code < 400) return "bg-sev-info/15 text-sev-info";
+  if (code < 500) return "bg-sev-medium/15 text-sev-medium";
+  return "bg-sev-critical/15 text-sev-critical";
 }
 
 function Thumbnail({ src, alt }: { src: string; alt: string }) {
@@ -125,7 +125,7 @@ export function ScreenshotGallery({ targetId }: Props) {
 
   if (!hook.loading && hook.total === 0 && !hook.q && status === "all" && scheme === "all") {
     return (
-      <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+      <div className="deck-grid flex flex-col items-center gap-3 rounded-lg border border-border py-16 text-muted-foreground">
         <Camera className="h-10 w-10 opacity-30" />
         <p className="text-sm">No screenshots yet. Run a scan with GoWitness enabled.</p>
       </div>
@@ -170,7 +170,7 @@ export function ScreenshotGallery({ targetId }: Props) {
         </div>
 
         <ExportMenu targetId={targetId} type="screenshots" />
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
           {hook.total.toLocaleString()} screenshots
         </span>
       </div>
@@ -217,22 +217,22 @@ export function ScreenshotGallery({ targetId }: Props) {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>
+          <span className="font-mono tabular-nums">
             Showing {(hook.page - 1) * hook.perPage + 1}–{Math.min(hook.page * hook.perPage, hook.total)} of {hook.total.toLocaleString()}
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => hook.setPage(hook.page - 1)}
               disabled={hook.page <= 1}
-              className="rounded p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors"
+              className="rounded p-1 hover:bg-surface-hover disabled:opacity-30 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="px-2">{hook.page} / {totalPages}</span>
+            <span className="px-2 font-mono tabular-nums">{hook.page} / {totalPages}</span>
             <button
               onClick={() => hook.setPage(hook.page + 1)}
               disabled={hook.page >= totalPages}
-              className="rounded p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors"
+              className="rounded p-1 hover:bg-surface-hover disabled:opacity-30 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -245,7 +245,7 @@ export function ScreenshotGallery({ targetId }: Props) {
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
           <Dialog.Content className={cn(
             "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-            "w-[calc(100%-2rem)] max-w-4xl rounded-xl border border-border bg-card p-0 shadow-2xl overflow-hidden",
+            "w-[calc(100%-2rem)] max-w-4xl rounded-lg border border-border bg-card p-0 shadow-2xl overflow-hidden",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -303,7 +303,7 @@ export function ScreenshotGallery({ targetId }: Props) {
                       ))}
                     </div>
                   )}
-                  <p className="text-[10px] text-muted-foreground/50">
+                  <p className="font-mono text-[10px] tabular-nums text-faint-foreground">
                     {selected !== null ? `${selected + 1} / ${hook.data.length}` : ""}
                     {current.webserver ? ` · ${current.webserver}` : ""}
                   </p>

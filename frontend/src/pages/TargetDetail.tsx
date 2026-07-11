@@ -39,12 +39,12 @@ const ALL_TABS = [
 ];
 
 const STATUS_DOT: Record<string, string> = {
-  idle:         "bg-muted-foreground",
-  running:      "bg-primary animate-pulse",
-  completed:    "bg-green-400",
-  paused:       "bg-yellow-400",
-  error:        "bg-destructive",
-  loop_stopped: "bg-amber-500",
+  idle:         "text-muted-foreground",
+  running:      "text-sev-info animate-pulse",
+  completed:    "text-sev-low",
+  paused:       "text-sev-medium",
+  error:        "text-sev-critical",
+  loop_stopped: "text-sev-high",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -183,18 +183,19 @@ export function TargetDetail() {
           <>
             <span
               className={cn(
-                "mt-2 h-2.5 w-2.5 shrink-0 rounded-full",
+                "led mt-2 h-2.5 w-2.5 shrink-0 rounded-full",
                 STATUS_DOT[target?.status ?? "idle"],
               )}
+              style={{ backgroundColor: "currentColor" }}
             />
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div>
-                <p className="text-xs text-muted-foreground">Target</p>
-                <h1 className="mt-0.5 text-xl font-semibold text-foreground">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Target</p>
+                <h1 className="mt-1 font-mono text-[22px] font-semibold tracking-tight text-foreground">
                   {target?.domain ?? "—"}
                 </h1>
                 {target && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-1 font-mono text-[11px] tabular-nums text-muted-foreground">
                     {STATUS_LABEL[target.status] ?? target.status} · {target.scan_count} scan
                     {target.scan_count !== 1 ? "s" : ""} · Priority{" "}
                     {target.scan_priority}
@@ -217,7 +218,7 @@ export function TargetDetail() {
                     <button
                       onClick={handleRestart}
                       disabled={restarting}
-                      className="flex items-center gap-1.5 rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-500 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 rounded border border-sev-high/40 bg-sev-high/10 px-2.5 py-1.5 font-mono text-[10px] font-medium uppercase tracking-wide text-sev-high hover:bg-sev-high/20 transition-colors disabled:opacity-50"
                       title="Restart loop scan"
                     >
                       <RotateCcw className={cn("h-3 w-3", restarting && "animate-spin")} />
@@ -259,7 +260,7 @@ export function TargetDetail() {
                   key={tabId}
                   value={tabId}
                   className={cn(
-                    "px-3 py-2 text-sm transition-colors border-b-2 -mb-px whitespace-nowrap",
+                    "px-3 py-2 text-[13px] transition-colors border-b-2 -mb-px whitespace-nowrap",
                     "text-muted-foreground border-transparent",
                     "data-[state=active]:text-foreground data-[state=active]:border-primary",
                     "hover:text-foreground",

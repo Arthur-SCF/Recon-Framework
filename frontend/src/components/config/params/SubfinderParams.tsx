@@ -23,9 +23,9 @@ export function SubfinderParams({ stepId, overrides, onChange }: Props) {
           <NumberInput
             value={val} min={min} max={max}
             onChange={(v) => onChange({ ...overrides, [key]: v })}
-            className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
-          {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
+          {suffix && <span className="font-mono text-[10px] text-muted-foreground">{suffix}</span>}
           <InfoTooltip text={PARAM_TOOLTIPS[`${stepId}:${key}`] ?? ""} />
         </div>
       ))}

@@ -4,6 +4,7 @@ import {
   Loader2, RefreshCw, Trash2, ChevronDown, Clock, Lock, Settings2,
   Network, Zap, Globe, Server, Cpu, Code2,
   AlertTriangle, Camera, Cloud, Shield, Box, Radio,
+  Check, Diamond, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineGroup, PipelineTemplate } from "@/types/api";
@@ -24,20 +25,21 @@ type CategoryId =
   | "service" | "js" | "takeover" | "screenshots"
   | "cloud" | "waf" | "other";
 
-// Icon + phase label + phase line tint + card border per category
-const CATEGORY_THEME: Record<CategoryId, { icon: string; phaseText: string; phaseLine: string; cardAccentL: string; hex: string }> = {
-  passive:     { icon: "text-blue-400",    phaseText: "text-blue-400/60",    phaseLine: "bg-blue-400/10",    cardAccentL: "border-l-blue-400/55",    hex: "#54a2ff" },
-  dns:         { icon: "text-cyan-400",    phaseText: "text-cyan-400/60",    phaseLine: "bg-cyan-400/10",    cardAccentL: "border-l-cyan-400/55",    hex: "#00d2ef" },
-  http:        { icon: "text-emerald-400", phaseText: "text-emerald-400/60", phaseLine: "bg-emerald-400/10", cardAccentL: "border-l-emerald-400/55", hex: "#00d294" },
-  ports:       { icon: "text-orange-400",  phaseText: "text-orange-400/60",  phaseLine: "bg-orange-400/10",  cardAccentL: "border-l-orange-400/55",  hex: "#ff8b1a" },
-  service:     { icon: "text-violet-400",  phaseText: "text-violet-400/60",  phaseLine: "bg-violet-400/10",  cardAccentL: "border-l-violet-400/55",  hex: "#a685ff" },
-  js:          { icon: "text-yellow-400",  phaseText: "text-yellow-400/60",  phaseLine: "bg-yellow-400/10",  cardAccentL: "border-l-yellow-400/55",  hex: "#fac800" },
-  takeover:    { icon: "text-red-400",     phaseText: "text-red-400/60",     phaseLine: "bg-red-400/10",     cardAccentL: "border-l-red-400/55",     hex: "#ff6568" },
-  screenshots: { icon: "text-pink-400",    phaseText: "text-pink-400/60",    phaseLine: "bg-pink-400/10",    cardAccentL: "border-l-pink-400/55",    hex: "#fb64b6" },
-  cloud:       { icon: "text-sky-400",     phaseText: "text-sky-400/60",     phaseLine: "bg-sky-400/10",     cardAccentL: "border-l-sky-400/55",     hex: "#00bcfe" },
-  waf:         { icon: "text-amber-400",   phaseText: "text-amber-400/60",   phaseLine: "bg-amber-400/10",   cardAccentL: "border-l-amber-400/55",   hex: "#fcbb00" },
-  action:      { icon: "text-zinc-500",    phaseText: "text-muted-foreground/40", phaseLine: "bg-border/25", cardAccentL: "border-l-border/40",      hex: "#71717b" },
-  other:       { icon: "text-zinc-500",    phaseText: "text-muted-foreground/40", phaseLine: "bg-border/25", cardAccentL: "border-l-border/40",      hex: "#71717b" },
+// Neutral by design: categories are distinguished by icon glyph, not colour
+// (Operator system reserves colour for accent + severity only).
+const CATEGORY_THEME: Record<CategoryId, { icon: string }> = {
+  passive:     { icon: "text-muted-foreground" },
+  dns:         { icon: "text-muted-foreground" },
+  http:        { icon: "text-muted-foreground" },
+  ports:       { icon: "text-muted-foreground" },
+  service:     { icon: "text-muted-foreground" },
+  js:          { icon: "text-muted-foreground" },
+  takeover:    { icon: "text-muted-foreground" },
+  screenshots: { icon: "text-muted-foreground" },
+  cloud:       { icon: "text-muted-foreground" },
+  waf:         { icon: "text-muted-foreground" },
+  action:      { icon: "text-muted-foreground" },
+  other:       { icon: "text-muted-foreground" },
 };
 
 const CATEGORY_ICONS: Record<CategoryId, React.ComponentType<{ className?: string }>> = {
@@ -372,26 +374,34 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
     <div className="flex flex-col gap-3">
 
       {/* ── Pipeline overview card + collapsible settings ── */}
-      <div className="rounded-2xl bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-lg shadow-black/20 overflow-hidden">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
 
         {/* Primary accent bar */}
         <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent shrink-0" />
 
         {/* Header: stats always visible, gear opens settings */}
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary/[0.05] to-transparent">
-          <span className="text-xs font-medium text-foreground">Pipeline</span>
+        <div className="flex items-center gap-2 px-4 py-2.5">
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Pipeline</span>
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-[10px] text-muted-foreground tabular-nums">
+            <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
               {activeGroupCount}/{groups.length} active · {totalEnabled}/{totalSkippable} steps
             </span>
             {modifiedCount > 0 && (
-              <span className="text-[10px] text-primary/70 tabular-nums">◆ {modifiedCount}</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[10px] text-primary/70 tabular-nums">
+                <Diamond className="h-2.5 w-2.5 fill-current" />
+                {modifiedCount}
+              </span>
             )}
             {depWarningCount > 0 && (
-              <span className="text-[10px] text-amber-500 tabular-nums">⚠ {depWarningCount}</span>
+              <span className="inline-flex items-center gap-1 font-mono text-[10px] text-sev-medium tabular-nums">
+                <AlertTriangle className="h-2.5 w-2.5" />
+                {depWarningCount}
+              </span>
             )}
             {depWarningCount === 0 && totalEnabled > 0 && (
-              <span className="text-[10px] text-green-500/70">✓</span>
+              <span className="inline-flex items-center text-sev-low">
+                <Check className="h-3 w-3" />
+              </span>
             )}
             <button
               onClick={() => {
@@ -457,17 +467,17 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
               transition={{ duration: 0.15, ease: "easeOut" }}
               style={{ overflow: "hidden" }}
             >
-              <div className="border-t border-white/[0.06] px-4 py-3 flex flex-col gap-4">
+              <div className="border-t border-border px-4 py-3 flex flex-col gap-4">
 
                 {/* Template */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Template</span>
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Template</span>
                   <div className="flex items-center gap-2">
                     <div className="relative flex-1">
                       <select
                         value={selected}
                         onChange={(e) => { setSelected(e.target.value); setApplyConfirm(false); }}
-                        className="w-full appearance-none rounded border border-border bg-background pl-2 pr-7 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full appearance-none rounded-md border border-border bg-background pl-2 pr-7 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                       >
                         {templates.map((t) => (
                           <option key={t.id} value={t.name}>{t.display_name}</option>
@@ -478,7 +488,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                     {isDirty && !applyConfirm && (
                       <button
                         onClick={() => setApplyConfirm(true)}
-                        className="rounded border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:border-primary/50 transition-colors shrink-0"
+                        className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:border-primary/50 transition-colors shrink-0"
                       >
                         Apply
                       </button>
@@ -487,7 +497,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       onClick={() => setResetParamsConfirm(v => !v)}
                       title="Reset all params to template defaults"
                       className={cn(
-                        "rounded border border-border bg-background p-1.5 transition-colors shrink-0",
+                        "rounded-md border border-border bg-background p-1.5 transition-colors shrink-0",
                         resetParamsConfirm ? "border-primary/50 text-primary" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
@@ -501,14 +511,14 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       <button
                         onClick={() => void applyTemplate()}
                         disabled={applying}
-                        className="flex items-center gap-1 rounded border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+                        className="flex items-center gap-1 rounded-md border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         {applying && <Loader2 className="h-3 w-3 animate-spin" />}
                         Confirm
                       </button>
                       <button
                         onClick={() => { setApplyConfirm(false); setSelected(currentTemplate); }}
-                        className="rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Cancel
                       </button>
@@ -521,14 +531,14 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       <button
                         onClick={() => void resetParams()}
                         disabled={resettingParams}
-                        className="flex items-center gap-1 rounded border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
+                        className="flex items-center gap-1 rounded-md border border-destructive/50 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         {resettingParams && <Loader2 className="h-3 w-3 animate-spin" />}
                         Confirm
                       </button>
                       <button
                         onClick={() => setResetParamsConfirm(false)}
-                        className="rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Cancel
                       </button>
@@ -564,7 +574,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       onClick={() => void applyPreset(preset.name)}
                       title={preset.description}
                       className={cn(
-                        "rounded px-2 py-0.5 text-[10px] border transition-colors disabled:opacity-50",
+                        "rounded-md px-2 py-0.5 text-[10px] border transition-colors disabled:opacity-50",
                         applyingPreset === preset.name
                           ? "border-primary bg-primary/20 text-primary"
                           : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
@@ -580,7 +590,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
 
                 {/* Save as template */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Save as Template</span>
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Save as Template</span>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -588,12 +598,12 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       onChange={(e) => setSaveTemplateName(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter") void handleSaveTemplate(); }}
                       placeholder="Template name…"
-                      className="flex-1 rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                     <button
                       onClick={() => void handleSaveTemplate()}
                       disabled={savingTemplate || !saveTemplateName.trim()}
-                      className="flex items-center gap-1 rounded border border-primary/50 bg-primary/10 px-2.5 py-1 text-xs text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
+                      className="flex items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2.5 py-1 text-xs text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
                     >
                       {savingTemplate && <Loader2 className="h-3 w-3 animate-spin" />}
                       Save
@@ -647,10 +657,10 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
               className={cn("flex items-center gap-2", idx > 0 ? "mt-3" : "mt-1")}
             >
               <CatIcon className={cn("h-3 w-3 shrink-0", theme.icon, "opacity-50")} />
-              <span className={cn("text-[10px] font-semibold uppercase tracking-widest shrink-0", theme.phaseText)}>
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] shrink-0 text-faint-foreground">
                 {phaseLabel}
               </span>
-              <div className={cn("flex-1 h-px", theme.phaseLine)} />
+              <div className="flex-1 h-px bg-border" />
             </div>
           ) : null;
 
@@ -670,7 +680,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                   <Lock className={cn("h-2.5 w-2.5", cat !== "action" && cat !== "other" ? cn(theme.icon, "opacity-50") : "text-muted-foreground/30")} />
                   {stepLabel}
                   {eta ? (
-                    <span className="text-muted-foreground/25 tabular-nums ml-1">{fmtSeconds(eta)}</span>
+                    <span className="font-mono text-muted-foreground/25 tabular-nums ml-1">{fmtSeconds(eta)}</span>
                   ) : null}
                 </span>
                 <div className="flex-1 h-px bg-border/25" />
@@ -684,26 +694,16 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
               key={group.id}
               id={`group-${group.id}`}
               className={cn(
-                "group/card rounded-2xl overflow-hidden",
-                "bg-card/90 backdrop-blur-xl",
-                "border border-l-[3px] border-white/[0.07]",
-                theme.cardAccentL,
-                "shadow-md shadow-black/20"
+                "group/card rounded-lg overflow-hidden",
+                "border border-border bg-card"
               )}
             >
-              {/* Category accent bar */}
-              <div
-                className="h-px w-full shrink-0"
-                style={{ background: `linear-gradient(to right, transparent, ${theme.hex}70, transparent)` }}
-              />
-
               {/* Group header */}
               <div
                 className={cn(
                   "flex items-center gap-2 px-3 py-3 cursor-pointer select-none transition-colors duration-150",
-                  isActive ? "hover:bg-white/[0.04]" : "hover:bg-white/[0.02]"
+                  "hover:bg-surface-hover"
                 )}
-                style={{ background: `linear-gradient(to right, ${theme.hex}09, transparent)` }}
                 onClick={() => toggleGroup(group.id)}
               >
                 <ChevronDown className={cn(
@@ -719,7 +719,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
 
                 {/* Group name — text-sm to visually distinguish headers from step rows */}
                 <span className={cn(
-                  "flex-1 text-sm font-medium truncate min-w-0 transition-colors",
+                  "flex-1 text-sm font-semibold truncate min-w-0 transition-colors",
                   group.enabled ? "text-foreground" : "text-muted-foreground/50"
                 )}>
                   {group.name}
@@ -732,12 +732,12 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                   </span>
                 ) : totalCount > 0 ? (
                   <span className={cn(
-                    "text-[10px] tabular-nums font-medium shrink-0",
+                    "font-mono text-[10px] tabular-nums font-semibold shrink-0",
                     enabledCount === totalCount
                       ? "text-muted-foreground/50"
                       : enabledCount === 0
                         ? "text-muted-foreground/25"
-                        : "text-amber-500"
+                        : "text-sev-medium"
                   )}>
                     {enabledCount}/{totalCount}
                   </span>
@@ -745,14 +745,14 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
 
                 {/* Execution mode badge — desktop only */}
                 {showExecMode && (
-                  <span className="hidden sm:inline text-[10px] text-muted-foreground/35 shrink-0">
+                  <span className="hidden sm:inline font-mono text-[10px] text-muted-foreground/35 shrink-0">
                     {hasIntraGroupDeps ? "→" : group.parallel ? "∥" : "→"}
                   </span>
                 )}
 
                 {/* ETA — desktop only */}
                 {group.enabled && enabledCount > 0 && etaByGroup[group.id] ? (
-                  <span className="hidden sm:flex items-center gap-0.5 text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">
+                  <span className="hidden sm:flex items-center gap-0.5 font-mono text-[10px] text-muted-foreground/40 shrink-0 tabular-nums">
                     <Clock className="h-2.5 w-2.5" />
                     {fmtSeconds(etaByGroup[group.id])}
                   </span>
@@ -770,15 +770,16 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                       <span className="text-[10px] text-muted-foreground">Delete?</span>
                       <button
                         onClick={() => void handleDeleteGroup(group.id)}
-                        className="rounded px-1.5 py-0.5 text-[10px] text-destructive border border-destructive/40 hover:bg-destructive/10 transition-colors"
+                        className="rounded-md px-1.5 py-0.5 text-[10px] text-destructive border border-destructive/40 hover:bg-destructive/10 transition-colors"
                       >
                         Yes
                       </button>
                       <button
                         onClick={() => setDeleteGroupId(null)}
-                        className="rounded px-1.5 py-0.5 text-[10px] text-muted-foreground border border-white/[0.08] hover:text-foreground transition-colors"
+                        className="flex items-center rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground border border-border hover:text-foreground transition-colors"
+                        aria-label="Cancel delete"
                       >
-                        ✕
+                        <X className="h-3 w-3" />
                       </button>
                     </div>
                   ) : (
@@ -806,15 +807,15 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                   >
                     <div className={cn(!group.enabled && "pointer-events-none opacity-50")}>
                       {showExecMode && (
-                        <div className="flex items-center gap-2 px-4 py-1.5 border-t border-white/[0.05] bg-white/[0.02]">
-                          <span className="text-[10px] text-muted-foreground">Execution</span>
+                        <div className="flex items-center gap-2 px-4 py-1.5 border-t border-border bg-muted/30">
+                          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Execution</span>
                           {hasIntraGroupDeps ? (
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
                               <Lock className="h-2.5 w-2.5" />
                               Sequential (step ordering required)
                             </div>
                           ) : (
-                            <div className="flex rounded border border-white/[0.08] overflow-hidden text-[10px]">
+                            <div className="flex rounded-md border border-border overflow-hidden text-[10px]">
                               <button
                                 onClick={() => void handleGroupUpdate(group.id, { parallel: false })}
                                 className={cn(
@@ -828,7 +829,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                               <button
                                 onClick={() => void handleGroupUpdate(group.id, { parallel: true })}
                                 className={cn(
-                                  "px-2 py-0.5 border-l border-white/[0.08] transition-colors",
+                                  "px-2 py-0.5 border-l border-border transition-colors",
                                   group.parallel ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
                                 )}
                                 title="Run all steps at the same time"
@@ -840,7 +841,7 @@ export function TargetConfig({ targetId, currentTemplate = "standard", onTemplat
                         </div>
                       )}
 
-                      <div className="divide-y divide-white/[0.04] border-t border-white/[0.05]">
+                      <div className="divide-y divide-border-subtle border-t border-border">
                         {regularSteps.length === 0 && !showMutex ? (
                           <div className="px-4 py-3 text-[11px] text-muted-foreground/50 italic">
                             No steps — reset to template to repopulate

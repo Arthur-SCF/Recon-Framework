@@ -46,10 +46,10 @@ interface Props {
 // Status code → colour
 function statusColor(code: number | null): string {
   if (code === null) return "text-muted-foreground";
-  if (code >= 200 && code < 300) return "text-green-400";
-  if (code >= 300 && code < 400) return "text-blue-400";
-  if (code >= 400 && code < 500) return "text-yellow-400";
-  if (code >= 500) return "text-red-400";
+  if (code >= 200 && code < 300) return "text-sev-low";
+  if (code >= 300 && code < 400) return "text-sev-info";
+  if (code >= 400 && code < 500) return "text-sev-medium";
+  if (code >= 500) return "text-sev-critical";
   return "text-muted-foreground";
 }
 
@@ -67,10 +67,10 @@ function SecurityBadge({
     <span
       title={title}
       className={cn(
-        "inline-flex items-center rounded px-1 py-0.5 text-[10px] font-mono font-medium",
+        "inline-flex items-center rounded px-1 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide",
         ok
-          ? "bg-green-950 text-green-300"
-          : "bg-yellow-950 text-yellow-300",
+          ? "bg-sev-low/15 text-sev-low"
+          : "bg-sev-medium/15 text-sev-medium",
       )}
     >
       {label}
@@ -243,33 +243,33 @@ export function LiveHostsTable({
           ))}
         </div>
         <ExportMenu targetId={targetId} type="hosts" />
-        <span className="text-xs text-muted-foreground">
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {sorted.length} / {hosts.length}
         </span>
       </div>
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded border border-border">
+      <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
-              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("url")}>
+            <tr className="border-b border-border bg-muted/30 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("url")}>
                 <span className="inline-flex items-center gap-1">URL <SortIcon dir={getColDir("url")} /></span>
               </th>
-              {showAsset && <th className="px-3 py-2 font-medium">Asset</th>}
-              <th className="px-3 py-2 font-medium w-14 text-center cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("code")}>
+              {showAsset && <th className="px-3 py-2">Asset</th>}
+              <th className="px-3 py-2 w-14 text-center cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("code")}>
                 <span className="inline-flex items-center justify-center gap-1">Code <SortIcon dir={getColDir("code")} /></span>
               </th>
-              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("title")}>
+              <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("title")}>
                 <span className="inline-flex items-center gap-1">Title <SortIcon dir={getColDir("title")} /></span>
               </th>
-              <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("webserver")}>
+              <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("webserver")}>
                 <span className="inline-flex items-center gap-1">Webserver <SortIcon dir={getColDir("webserver")} /></span>
               </th>
-              <th className="px-3 py-2 font-medium">Tech</th>
-              <th className="px-3 py-2 font-medium">Security</th>
-              <th className="px-3 py-2 font-medium w-16 text-right cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("rt")}>
+              <th className="px-3 py-2">Tech</th>
+              <th className="px-3 py-2">Security</th>
+              <th className="px-3 py-2 w-16 text-right cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("rt")}>
                 <span className="inline-flex items-center justify-end gap-1">RT <SortIcon dir={getColDir("rt")} /></span>
               </th>
             </tr>
@@ -283,15 +283,15 @@ export function LiveHostsTable({
                     onClick={() =>
                       onHostClick ? onHostClick(host) : setExpanded(isExpanded ? null : host.id)
                     }
-                    className="cursor-pointer border-b border-border/50 hover:bg-muted/20 transition-colors"
+                    className="cursor-pointer border-b border-border/50 hover:bg-surface-hover transition-colors"
                   >
                     {/* URL */}
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-1.5">
                         {host.scheme === "https" ? (
-                          <Lock className="h-3 w-3 text-green-400 shrink-0" />
+                          <Lock className="h-3 w-3 text-sev-low shrink-0" />
                         ) : (
-                          <Globe className="h-3 w-3 text-yellow-400 shrink-0" />
+                          <Globe className="h-3 w-3 text-sev-medium shrink-0" />
                         )}
                         <span className="font-mono text-xs text-foreground truncate max-w-xs">
                           {host.url}
@@ -306,7 +306,7 @@ export function LiveHostsTable({
                           <ExternalLink className="h-3 w-3" />
                         </a>
                         {host.cdn && (
-                          <span className="shrink-0 rounded bg-blue-950 px-1 py-0.5 text-[10px] font-mono text-blue-300">
+                          <span className="shrink-0 rounded bg-sev-info/15 px-1 py-0.5 font-mono text-[10px] uppercase tracking-wide text-sev-info">
                             CDN{host.cdn_name ? `: ${host.cdn_name}` : ""}
                           </span>
                         )}
@@ -335,7 +335,7 @@ export function LiveHostsTable({
                     <td className="px-3 py-2 text-center">
                       <span
                         className={cn(
-                          "font-mono text-xs font-semibold",
+                          "font-mono text-xs font-semibold tabular-nums",
                           statusColor(host.status_code),
                         )}
                       >
@@ -378,7 +378,7 @@ export function LiveHostsTable({
                         <SecurityBadge label="HSTS" ok={host.has_hsts} title="Strict-Transport-Security" />
                         <SecurityBadge label="XFO"  ok={host.has_xfo}  title="X-Frame-Options" />
                         {host.tls_expired && (
-                          <span className="inline-flex items-center gap-0.5 rounded bg-red-950 px-1 py-0.5 text-[10px] font-mono text-red-300">
+                          <span className="inline-flex items-center gap-0.5 rounded bg-sev-critical/15 px-1 py-0.5 font-mono text-[10px] uppercase tracking-wide text-sev-critical">
                             <AlertTriangle className="h-2.5 w-2.5" />
                             TLS exp
                           </span>
@@ -388,7 +388,7 @@ export function LiveHostsTable({
 
                     {/* Response time */}
                     <td className="px-3 py-2 text-right">
-                      <span className="font-mono text-[10px] text-muted-foreground">
+                      <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
                         {host.response_time
                           ? `${(host.response_time * 1000).toFixed(0)}ms`
                           : "—"}
@@ -465,7 +465,7 @@ export function LiveHostsTable({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>Page {page + 1} of {totalPages}</span>
+          <span className="font-mono tabular-nums">Page {page + 1} of {totalPages}</span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}

@@ -82,7 +82,7 @@ export function TemplatesTab() {
     <div className="py-6 max-w-2xl space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Pipeline Templates</h2>
+          <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Pipeline Templates</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Built-in templates cannot be modified. Clone them to create a custom variant.
           </p>
@@ -104,10 +104,10 @@ export function TemplatesTab() {
         <div className="rounded-lg border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">Description</th>
-                <th className="px-3 py-2 font-medium">Type</th>
+              <tr className="border-b border-border bg-muted/30 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">
+                <th className="px-3 py-2">Name</th>
+                <th className="px-3 py-2">Description</th>
+                <th className="px-3 py-2">Type</th>
                 <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
@@ -123,8 +123,8 @@ export function TemplatesTab() {
                   <td className="px-3 py-2 text-xs text-muted-foreground">{t.description || "—"}</td>
                   <td className="px-3 py-2">
                     <span className={cn(
-                      "inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium",
-                      t.is_default ? "bg-muted/50 text-muted-foreground" : "bg-primary/10 text-primary",
+                      "inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide",
+                      t.is_default ? "bg-muted/50 text-muted-foreground" : "bg-sev-info/15 text-sev-info",
                     )}>
                       {t.is_default ? "built-in" : "custom"}
                     </span>
@@ -262,7 +262,7 @@ function TemplateEditorDialog({ state, onClose, onSaved }: TemplateEditorDialogP
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">Display Name</label>
+              <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Display Name</label>
               <input
                 type="text"
                 value={displayName}
@@ -272,7 +272,7 @@ function TemplateEditorDialog({ state, onClose, onSaved }: TemplateEditorDialogP
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">Description</label>
+              <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -282,7 +282,7 @@ function TemplateEditorDialog({ state, onClose, onSaved }: TemplateEditorDialogP
               />
             </div>
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">Pipeline Steps</label>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Pipeline Steps</label>
               <TemplateEditor config={config} onChange={setConfig} />
             </div>
           </div>

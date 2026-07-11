@@ -50,7 +50,7 @@ export function GeneralTab() {
     <div className="py-6 max-w-lg space-y-6">
       <section className="space-y-3">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Disk Pause Threshold</h3>
+          <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Disk Pause Threshold</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             Pause new scans when disk usage exceeds this percentage.
           </p>
@@ -64,7 +64,7 @@ export function GeneralTab() {
             onChange={(e) =>
               setCfg({ ...cfg, disk_pause_threshold: Number(e.target.value) })
             }
-            className="w-24 rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-24 rounded-md border border-border bg-input px-3 py-2 font-mono text-sm tabular-nums text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
           <span className="text-sm text-muted-foreground">%</span>
         </div>
@@ -72,7 +72,7 @@ export function GeneralTab() {
 
       <section className="space-y-3">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Scheduler Mode</h3>
+          <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Scheduler Mode</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             How the scheduler picks the next scan to run.
           </p>

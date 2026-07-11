@@ -1,16 +1,20 @@
 import { useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { TECH_PALETTE, useChartColors } from "@/lib/chartTheme";
 import { ChartCard } from "./ChartCard";
-
-const PROVIDER_COLORS: Record<string, string> = {
-  s3: "#f97316", azure: "#3b82f6", gcp: "#22c55e", generic: "#94a3b8",
-};
 
 interface Props {
   assets: { provider: string }[];
 }
 
 export function CloudProviderChart({ assets }: Props) {
+  const colors = useChartColors();
+  const PROVIDER_COLORS: Record<string, string> = {
+    s3: TECH_PALETTE[6],
+    azure: TECH_PALETTE[0],
+    gcp: TECH_PALETTE[1],
+    generic: colors.muted,
+  };
   const data = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const a of assets) {
@@ -36,9 +40,9 @@ export function CloudProviderChart({ assets }: Props) {
       </ResponsiveContainer>
       <div className="flex flex-wrap gap-2 mt-1">
         {data.map((d) => (
-          <span key={d.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <span key={d.name} className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
             <span className="inline-block w-2 h-2 rounded-full" style={{ background: PROVIDER_COLORS[d.name] || PROVIDER_COLORS.generic }} />
-            {d.name} ({d.value})
+            {d.name} <span className="tabular-nums">({d.value})</span>
           </span>
         ))}
       </div>

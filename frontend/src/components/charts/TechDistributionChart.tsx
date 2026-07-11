@@ -9,7 +9,7 @@ import {
   Cell,
 } from "recharts";
 import type { LiveHost } from "@/types/api";
-import { TECH_PALETTE } from "@/lib/chartTheme";
+import { TECH_PALETTE, useChartColors } from "@/lib/chartTheme";
 import { ChartCard } from "./ChartCard";
 
 interface TechDistributionChartProps {
@@ -17,6 +17,7 @@ interface TechDistributionChartProps {
 }
 
 export function TechDistributionChart({ hosts }: TechDistributionChartProps) {
+  const colors = useChartColors();
   const data = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const h of hosts) {
@@ -47,17 +48,17 @@ export function TechDistributionChart({ hosts }: TechDistributionChartProps) {
             type="category"
             dataKey="name"
             width={100}
-            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+            tick={{ fontSize: 11, fill: colors.muted }}
             tickLine={false}
             axisLine={false}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "var(--card)",
-              border: "1px solid var(--border)",
+              backgroundColor: colors.card,
+              border: `1px solid ${colors.border}`,
               borderRadius: "6px",
               fontSize: "12px",
-              color: "var(--foreground)",
+              color: colors.foreground,
             }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16}>

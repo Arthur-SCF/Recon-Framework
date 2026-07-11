@@ -11,10 +11,10 @@ interface DiffCompareViewProps {
 const EVENT_TYPES = ["discovered", "changed", "gone", "returned"] as const;
 
 const EVENT_COLORS: Record<string, string> = {
-  discovered: "text-green-400",
-  changed:    "text-yellow-400",
-  gone:       "text-red-400",
-  returned:   "text-blue-400",
+  discovered: "text-sev-low",
+  changed:    "text-sev-medium",
+  gone:       "text-sev-critical",
+  returned:   "text-sev-info",
 };
 
 function formatDate(iso: string): string {
@@ -30,12 +30,12 @@ function formatDate(iso: string): string {
 function statusBadge(code: number | null) {
   if (!code) return null;
   const color =
-    code >= 200 && code < 300 ? "bg-green-500/20 text-green-400" :
-    code >= 300 && code < 400 ? "bg-blue-500/20 text-blue-400" :
-    code >= 400 && code < 500 ? "bg-yellow-500/20 text-yellow-400" :
-    "bg-red-500/20 text-red-400";
+    code >= 200 && code < 300 ? "bg-sev-low/15 text-sev-low" :
+    code >= 300 && code < 400 ? "bg-sev-info/15 text-sev-info" :
+    code >= 400 && code < 500 ? "bg-sev-medium/15 text-sev-medium" :
+    "bg-sev-critical/15 text-sev-critical";
   return (
-    <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-mono font-medium", color)}>
+    <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-mono font-medium tabular-nums", color)}>
       {code}
     </span>
   );
@@ -57,7 +57,7 @@ function CollapsibleList({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium bg-muted/20 hover:bg-muted/40 transition-colors"
       >
-        <span className={color}>{title} <span className="text-muted-foreground font-normal">({items.length})</span></span>
+        <span className={color}>{title} <span className="font-mono font-normal tabular-nums text-muted-foreground">({items.length})</span></span>
         {open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
       </button>
       {open && (
@@ -248,16 +248,16 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
                     {(compareData.session_a.subdomain_total > 0 || compareData.session_b.subdomain_total > 0) && (
                       <div className="flex flex-wrap gap-x-3 gap-y-1 rounded-md bg-muted/20 border border-border px-3 py-2 text-xs text-muted-foreground">
                         <span>
-                          Scan A: <strong className="text-foreground">{compareData.session_a.subdomain_total.toLocaleString()}</strong> subdomains
+                          Scan A: <strong className="font-mono font-semibold tabular-nums text-foreground">{compareData.session_a.subdomain_total.toLocaleString()}</strong> subdomains
                         </span>
                         <span>→</span>
                         <span>
-                          Scan B: <strong className="text-foreground">{compareData.session_b.subdomain_total.toLocaleString()}</strong> subdomains
+                          Scan B: <strong className="font-mono font-semibold tabular-nums text-foreground">{compareData.session_b.subdomain_total.toLocaleString()}</strong> subdomains
                           {compareData.session_b.subdomain_total - compareData.session_a.subdomain_total !== 0 && (
                             <span className={cn(
-                              "ml-1 font-medium",
+                              "ml-1 font-mono font-medium tabular-nums",
                               compareData.session_b.subdomain_total > compareData.session_a.subdomain_total
-                                ? "text-green-400" : "text-red-400",
+                                ? "text-sev-low" : "text-sev-critical",
                             )}>
                               ({compareData.session_b.subdomain_total > compareData.session_a.subdomain_total ? "+" : ""}
                               {(compareData.session_b.subdomain_total - compareData.session_a.subdomain_total).toLocaleString()})
@@ -290,8 +290,8 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
                                 <td className="px-3 py-2">
                                   <span className={`font-mono capitalize ${EVENT_COLORS[evt]}`}>{evt}</span>
                                 </td>
-                                <td className="px-3 py-2 font-mono font-bold text-foreground">{cA}</td>
-                                <td className="px-3 py-2 font-mono font-bold text-foreground">{cB}</td>
+                                <td className="px-3 py-2 font-mono font-semibold tabular-nums text-foreground">{cA}</td>
+                                <td className="px-3 py-2 font-mono font-semibold tabular-nums text-foreground">{cB}</td>
                               </tr>
                             );
                           })}
@@ -302,7 +302,7 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
                     {/* Rich diff lists */}
                     <CollapsibleList
                       title="New hosts discovered in Scan B"
-                      color="text-green-400"
+                      color="text-sev-low"
                       items={compareData.diff.hosts_discovered_in_b}
                       renderItem={(item) => {
                         const h = item as { url: string; status_code: number | null; title: string | null };
@@ -318,7 +318,7 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
 
                     <CollapsibleList
                       title="Hosts went offline in Scan B"
-                      color="text-red-400"
+                      color="text-sev-critical"
                       items={compareData.diff.hosts_gone_in_b}
                       renderItem={(item) => {
                         const h = item as { url: string };
@@ -332,7 +332,7 @@ export function DiffCompareView({ targetId }: DiffCompareViewProps) {
 
                     <CollapsibleList
                       title="Hosts changed in Scan B"
-                      color="text-yellow-400"
+                      color="text-sev-medium"
                       items={compareData.diff.hosts_changed_in_b}
                       renderItem={(item) => {
                         const h = item as { url: string; changes: Record<string, { old: unknown; new: unknown }> };

@@ -18,19 +18,19 @@ interface HostCardProps {
 
 function statusTextColor(code: number | null): string {
   if (code === null) return "text-muted-foreground";
-  if (code >= 200 && code < 300) return "text-green-400";
-  if (code >= 300 && code < 400) return "text-blue-400";
-  if (code >= 400 && code < 500) return "text-yellow-400";
-  if (code >= 500) return "text-red-400";
+  if (code >= 200 && code < 300) return "text-sev-low";
+  if (code >= 300 && code < 400) return "text-sev-info";
+  if (code >= 400 && code < 500) return "text-sev-medium";
+  if (code >= 500) return "text-sev-critical";
   return "text-muted-foreground";
 }
 
 function statusBgColor(code: number | null): string {
   if (code === null) return "bg-muted/30";
-  if (code >= 200 && code < 300) return "bg-green-950/60";
-  if (code >= 300 && code < 400) return "bg-blue-950/60";
-  if (code >= 400 && code < 500) return "bg-yellow-950/60";
-  if (code >= 500) return "bg-red-950/60";
+  if (code >= 200 && code < 300) return "bg-sev-low/15";
+  if (code >= 300 && code < 400) return "bg-sev-info/15";
+  if (code >= 400 && code < 500) return "bg-sev-medium/15";
+  if (code >= 500) return "bg-sev-critical/15";
   return "bg-muted/30";
 }
 
@@ -46,7 +46,7 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
       whileHover={{ y: -2 }}
       onClick={onClick}
       className={cn(
-        "group flex flex-col rounded-lg border border-border bg-card overflow-hidden transition-shadow hover:shadow-md",
+        "group flex flex-col rounded-lg border border-border bg-card overflow-hidden transition-[border-color,background-color] duration-200 hover:border-primary/40 hover:bg-surface-hover",
         onClick && "cursor-pointer",
       )}
     >
@@ -74,7 +74,7 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
           >
             <span
               className={cn(
-                "text-4xl font-bold font-mono opacity-40",
+                "text-4xl font-semibold font-mono tabular-nums opacity-40",
                 statusTextColor(host.status_code),
               )}
             >
@@ -87,7 +87,7 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
         <div className="absolute top-2 right-2">
           <span
             className={cn(
-              "inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-mono font-bold backdrop-blur-sm",
+              "inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-mono font-semibold tabular-nums backdrop-blur-sm",
               "bg-black/50 border border-white/10",
               statusTextColor(host.status_code),
             )}
@@ -109,9 +109,9 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
         {/* URL */}
         <div className="flex items-center gap-1.5">
           {host.scheme === "https" ? (
-            <Lock className="h-3 w-3 text-green-400 shrink-0" />
+            <Lock className="h-3 w-3 text-sev-low shrink-0" />
           ) : (
-            <Globe className="h-3 w-3 text-yellow-400 shrink-0" />
+            <Globe className="h-3 w-3 text-sev-medium shrink-0" />
           )}
           <span className="font-mono text-xs text-foreground truncate flex-1">
             {host.url}
@@ -159,7 +159,7 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
             <SecurityDot label="XFO" ok={host.has_xfo} />
             {host.tls_expired && (
               <span title="TLS expired">
-                <AlertTriangle className="h-3 w-3 text-red-400" />
+                <AlertTriangle className="h-3 w-3 text-sev-critical" />
               </span>
             )}
           </div>
@@ -172,7 +172,7 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
               </span>
             )}
             {host.response_time && (
-              <span className="font-mono">
+              <span className="font-mono tabular-nums">
                 {(host.response_time * 1000).toFixed(0)}ms
               </span>
             )}
@@ -181,7 +181,7 @@ export function HostCard({ host, targetId, index, onClick }: HostCardProps) {
 
         {/* CDN badge */}
         {host.cdn && (
-          <span className="inline-flex self-start items-center rounded bg-blue-950/60 border border-blue-800/30 px-1.5 py-0.5 text-[10px] font-mono text-blue-300">
+          <span className="inline-flex self-start items-center rounded bg-sev-info/15 border border-sev-info/30 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-sev-info">
             CDN{host.cdn_name ? `: ${host.cdn_name}` : ""}
           </span>
         )}
@@ -199,9 +199,10 @@ function SecurityDot({ label, ok }: { label: string; ok: boolean | null }) {
     >
       <span
         className={cn(
-          "h-1.5 w-1.5 rounded-full",
-          ok ? "bg-green-400" : "bg-yellow-400",
+          "led h-1.5 w-1.5 rounded-full",
+          ok ? "text-sev-low" : "text-sev-medium",
         )}
+        style={{ backgroundColor: "currentColor" }}
       />
       <span className="text-[9px] text-muted-foreground">{label}</span>
     </span>

@@ -86,7 +86,7 @@ function TemplateStepRow({ groupIdx, stepIdx, step, config, onChange }: Template
           )}
         >
           <span className={cn(
-            "pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-sm transition-transform",
+            "toggle-thumb pointer-events-none inline-block h-3 w-3 rounded-full transition-transform",
             step.enabled ? "translate-x-3" : "translate-x-0"
           )} />
         </button>
@@ -94,7 +94,7 @@ function TemplateStepRow({ groupIdx, stepIdx, step, config, onChange }: Template
         <span className="flex-1 text-xs text-foreground font-mono">{step.step_id}</span>
 
         {!step.enabled && (
-          <span className="rounded px-1.5 py-0.5 text-[10px] font-medium text-amber-500 bg-amber-500/10 border border-amber-500/20">
+          <span className="rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-sev-medium bg-sev-medium/10 border border-sev-medium/20">
             SKIPPED
           </span>
         )}
@@ -140,12 +140,12 @@ export function TemplateEditor({ config, onChange }: Props) {
         return (
         <div key={group.id ?? gi} className="rounded-lg border border-border bg-card">
           <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-            <span className="text-xs font-medium text-foreground">{group.name}</span>
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">{group.name}</span>
             {group.parallel && (
-              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">parallel</span>
+              <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">parallel</span>
             )}
             {hasMutexConflict && (
-              <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500 border border-amber-500/20">
+              <span className="rounded bg-sev-medium/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-sev-medium border border-sev-medium/20">
                 choose one
               </span>
             )}

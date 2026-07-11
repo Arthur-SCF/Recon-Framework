@@ -11,6 +11,9 @@ import {
   Square,
   ChevronDown,
   ChevronRight,
+  RotateCw,
+  ExternalLink,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PipelineGroup, ScanSession, StepRun } from "@/types/api";
@@ -27,11 +30,11 @@ const PAUSE_LABELS: Record<string, string> = {
 
 const STEP_STATUS_ICON: Record<string, React.ReactNode> = {
   pending:  <Circle          className="h-4 w-4 text-muted-foreground" />,
-  running:  <Loader2         className="h-4 w-4 text-primary animate-spin" />,
-  success:  <CheckCircle2    className="h-4 w-4 text-green-400" />,
-  error:    <AlertCircle     className="h-4 w-4 text-destructive" />,
-  timeout:  <Clock           className="h-4 w-4 text-yellow-400" />,
-  skipped:  <SkipForward     className="h-4 w-4 text-muted-foreground" />,
+  running:  <Loader2         className="h-4 w-4 text-sev-info animate-spin" />,
+  success:  <CheckCircle2    className="h-4 w-4 text-sev-low" />,
+  error:    <AlertCircle     className="h-4 w-4 text-sev-critical" />,
+  timeout:  <Clock           className="h-4 w-4 text-sev-medium" />,
+  skipped:  <SkipForward     className="h-4 w-4 text-faint-foreground" />,
 };
 
 function fmt_time(sec: number | null): string {
@@ -61,7 +64,7 @@ function StepRow({
     <div
       className={cn(
         "flex items-center gap-2 rounded px-3 py-1.5 text-xs",
-        status === "running" ? "bg-primary/5" : "hover:bg-accent/50",
+        status === "running" ? "bg-sev-info/5" : "hover:bg-surface-hover",
       )}
     >
       <span className="shrink-0">{STEP_STATUS_ICON[status] ?? STEP_STATUS_ICON.pending}</span>
@@ -75,16 +78,16 @@ function StepRow({
         done && run.result_count > 0 ? (
           <button
             onClick={() => onViewResults(step.step_id)}
-            className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+            className="font-mono tabular-nums text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
           >
             {run.result_count} results
           </button>
         ) : (
-          <span className="text-muted-foreground">{run.result_count} results</span>
+          <span className="font-mono tabular-nums text-muted-foreground">{run.result_count} results</span>
         )
       )}
       {run?.execution_time != null && (
-        <span className="text-muted-foreground">{fmt_time(run.execution_time)}</span>
+        <span className="font-mono tabular-nums text-muted-foreground">{fmt_time(run.execution_time)}</span>
       )}
       {done && (
         <button
@@ -100,7 +103,7 @@ function StepRow({
           className="text-muted-foreground hover:text-foreground transition-colors"
           title="Rerun this step"
         >
-          ↻
+          <RotateCw className="h-3 w-3" />
         </button>
       )}
     </div>
@@ -134,7 +137,7 @@ function GroupRow({
     <div className="rounded-lg border border-border bg-card overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium hover:bg-accent/30 transition-colors"
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium hover:bg-surface-hover transition-colors"
       >
         {open ? (
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -143,13 +146,13 @@ function GroupRow({
         )}
         <span className="flex-1">{group.name}</span>
         {group.parallel && (
-          <span className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+          <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1.5 py-0.5">
             parallel
           </span>
         )}
-        {hasRunning && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />}
+        {hasRunning && <Loader2 className="h-3.5 w-3.5 animate-spin text-sev-info" />}
         {!hasRunning && allDone && (
-          <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+          <CheckCircle2 className="h-3.5 w-3.5 text-sev-low" />
         )}
       </button>
 
@@ -203,16 +206,16 @@ function LogModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[80vh] m-4 rounded-lg border border-border bg-background flex flex-col"
+        className="relative w-full max-w-2xl max-h-[80vh] m-4 rounded-lg border border-border bg-popover shadow-xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="font-mono text-sm font-medium">{stepId} — stdout</span>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
+            className="rounded-md p-1 text-muted-foreground/40 hover:text-foreground hover:bg-surface-hover transition-colors"
           >
-            ×
+            <X className="h-4 w-4" />
           </button>
         </div>
         <div className="flex-1 overflow-auto p-4">
@@ -270,7 +273,7 @@ function ResultsModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[80vh] m-4 rounded-lg border border-border bg-background flex flex-col"
+        className="relative w-full max-w-2xl max-h-[80vh] m-4 rounded-lg border border-border bg-popover shadow-xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -278,16 +281,16 @@ function ResultsModal({
           <div className="flex items-center gap-3">
             <span className="font-mono text-sm font-medium">{stepId} — results</span>
             {data && (
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {filter ? `${filtered.length} / ${data.items.length}` : `${data.count} total`}
               </span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
+            className="rounded-md p-1 text-muted-foreground/40 hover:text-foreground hover:bg-surface-hover transition-colors"
           >
-            ×
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -328,7 +331,7 @@ function ResultsModal({
           ) : data.type === "takeovers" ? (
             <div className="space-y-px">
               {filtered.map((item) => (
-                <div key={item} className="rounded px-1 py-0.5 font-mono text-xs text-foreground hover:bg-accent/30">
+                <div key={item} className="rounded px-1 py-0.5 font-mono text-xs text-foreground hover:bg-surface-hover">
                   {item}
                 </div>
               ))}
@@ -347,7 +350,7 @@ function ResultsModal({
               {filtered.map((item) => (
                 <div
                   key={item}
-                  className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-accent/30 group"
+                  className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-surface-hover group"
                 >
                   <span className="flex-1 font-mono text-xs text-foreground">{item}</span>
                   {data.type === "subdomains" && (
@@ -355,9 +358,9 @@ function ResultsModal({
                       href={`https://${item}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
                     >
-                      ↗
+                      <ExternalLink className="h-3 w-3" />
                     </a>
                   )}
                 </div>
@@ -490,7 +493,7 @@ export function PipelineProgress({ targetId }: { targetId: string }) {
         {isRunning && (
           <button
             onClick={() => void doAction("pause")}
-            className="flex items-center gap-1.5 rounded-md bg-yellow-500/20 border border-yellow-500/40 px-3 py-1.5 text-xs font-medium text-yellow-400 hover:bg-yellow-500/30 transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-sev-medium/20 border border-sev-medium/40 px-3 py-1.5 text-xs font-medium text-sev-medium hover:bg-sev-medium/30 transition-colors"
           >
             <Pause className="h-3 w-3" /> Pause
           </button>
@@ -512,7 +515,7 @@ export function PipelineProgress({ targetId }: { targetId: string }) {
           </button>
         )}
         {session && (
-          <span className="ml-2 text-xs text-muted-foreground capitalize">
+          <span className="ml-2 font-mono text-xs text-muted-foreground capitalize">
             {session.status}
             {session.pause_type ? ` (${PAUSE_LABELS[session.pause_type] ?? session.pause_type})` : ""}
           </span>

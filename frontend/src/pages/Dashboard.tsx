@@ -157,11 +157,16 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {targets.length > 0
-              ? `${targets.length} target${targets.length !== 1 ? "s" : ""}`
-              : "Manage your recon targets"}
+          <h1 className="text-[22px] font-semibold tracking-tight text-foreground">Dashboard</h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            {targets.length > 0 ? (
+              <>
+                <span className="font-mono tabular-nums text-foreground">{targets.length}</span>{" "}
+                target{targets.length !== 1 ? "s" : ""} under watch
+              </>
+            ) : (
+              "Manage your recon targets"
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -200,17 +205,20 @@ export function Dashboard() {
 
       {/* Empty state */}
       {!loading && !error && targets.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
-          <Target className="h-10 w-10 text-muted-foreground/30" />
-          <p className="mt-4 text-sm font-medium text-muted-foreground">
+        <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-border py-20 text-center">
+          <div className="deck-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-primary">
+            <Target className="h-5 w-5" />
+          </div>
+          <p className="relative mt-4 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             No targets yet
           </p>
-          <p className="mt-1 text-sm text-muted-foreground/60">
-            Add your first target to start scanning.
+          <p className="relative mt-1.5 text-[13px] text-faint-foreground">
+            Add your first target to start mapping the attack surface.
           </p>
           <button
             onClick={() => setAddOpen(true)}
-            className="mt-6 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="relative mt-6 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
             Add Target

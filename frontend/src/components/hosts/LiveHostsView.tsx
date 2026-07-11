@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
 import { useWsSubscribe } from "@/hooks/useWebSocket";
 import type { LiveHost, LiveHostStats, PaginatedResponse } from "@/types/api";
 import { SkeletonRows } from "@/components/Skeleton";
@@ -172,37 +173,41 @@ export function LiveHostsView({ targetId }: LiveHostsViewProps) {
 
       {hook.total > hook.perPage && (
         <div className="flex items-center justify-between gap-2 pt-1 text-sm text-muted-foreground">
-          <span>
+          <span className="font-mono tabular-nums">
             Page {hook.page} of {Math.ceil(hook.total / hook.perPage)} &mdash; {hook.total} hosts
           </span>
           <div className="flex gap-1">
             <button
-              className="rounded border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
+              className="rounded-md border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
               disabled={hook.page <= 1}
               onClick={() => hook.setPage(1)}
+              aria-label="First page"
             >
-              «
+              <ChevronsLeft className="h-4 w-4" />
             </button>
             <button
-              className="rounded border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
+              className="rounded-md border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
               disabled={hook.page <= 1}
               onClick={() => hook.setPage(hook.page - 1)}
+              aria-label="Previous page"
             >
-              ‹
+              <ChevronLeft className="h-4 w-4" />
             </button>
             <button
-              className="rounded border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
+              className="rounded-md border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
               disabled={hook.page >= Math.ceil(hook.total / hook.perPage)}
               onClick={() => hook.setPage(hook.page + 1)}
+              aria-label="Next page"
             >
-              ›
+              <ChevronRight className="h-4 w-4" />
             </button>
             <button
-              className="rounded border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
+              className="rounded-md border border-border px-2 py-1 text-xs enabled:hover:bg-accent disabled:opacity-40"
               disabled={hook.page >= Math.ceil(hook.total / hook.perPage)}
               onClick={() => hook.setPage(Math.ceil(hook.total / hook.perPage))}
+              aria-label="Last page"
             >
-              »
+              <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
         </div>

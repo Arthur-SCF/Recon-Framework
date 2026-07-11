@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ShieldAlert, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldAlert, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight, Check, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InlineError } from "@/components/ui/InlineError";
 import { useServerPagination, type PaginationParams } from "@/lib/useServerPagination";
@@ -41,18 +41,18 @@ interface Props {
 }
 
 const SEVERITY_CLASS: Record<string, string> = {
-  critical: "bg-red-950 text-red-300",
-  high:     "bg-orange-950 text-orange-300",
-  medium:   "bg-yellow-950 text-yellow-300",
-  low:      "bg-blue-950 text-blue-300",
-  info:     "bg-muted/50 text-muted-foreground",
+  critical: "bg-sev-critical/15 text-sev-critical",
+  high:     "bg-sev-high/15 text-sev-high",
+  medium:   "bg-sev-medium/15 text-sev-medium",
+  low:      "bg-sev-low/15 text-sev-low",
+  info:     "bg-sev-info/15 text-sev-info",
 };
 
 function SeverityBadge({ severity }: { severity: string | null }) {
   const sev = (severity || "info").toLowerCase();
   return (
     <span className={cn(
-      "inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase",
+      "inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide",
       SEVERITY_CLASS[sev] ?? SEVERITY_CLASS.info,
     )}>
       {sev}
@@ -62,12 +62,12 @@ function SeverityBadge({ severity }: { severity: string | null }) {
 
 function StatusBadge({ verified }: { verified: number }) {
   if (verified === 1) {
-    return <span className="inline-flex items-center rounded bg-red-950 px-1.5 py-0.5 text-[10px] font-medium text-red-300">✓ Verified</span>;
+    return <span className="inline-flex items-center gap-1 rounded bg-sev-critical/15 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-sev-critical"><Check className="h-2.5 w-2.5" /> Verified</span>;
   }
   if (verified === -1) {
-    return <span className="inline-flex items-center rounded bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">✗ False Positive</span>;
+    return <span className="inline-flex items-center gap-1 rounded bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-muted-foreground"><X className="h-2.5 w-2.5" /> False Positive</span>;
   }
-  return <span className="inline-flex items-center rounded bg-yellow-950 px-1.5 py-0.5 text-[10px] font-medium text-yellow-300">⚠ Unverified</span>;
+  return <span className="inline-flex items-center gap-1 rounded bg-sev-medium/15 px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-sev-medium"><AlertTriangle className="h-2.5 w-2.5" /> Unverified</span>;
 }
 
 export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Props) {
@@ -148,7 +148,7 @@ export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Pro
           className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-56"
         />
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-xs text-muted-foreground">
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
             {hook.total} candidate{hook.total !== 1 ? "s" : ""}
           </span>
           <button
@@ -202,7 +202,7 @@ export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Pro
                   <div className="mt-2 flex flex-wrap gap-1">
                     {c.verified !== 1 && (
                       <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
-                        className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
+                        className="rounded border border-sev-critical/40 bg-sev-critical/10 px-2 py-0.5 text-[11px] text-sev-critical hover:bg-sev-critical/20 transition-colors disabled:opacity-50">
                         Confirm
                       </button>
                     )}
@@ -225,26 +225,26 @@ export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Pro
           </div>
 
           {/* Desktop table view */}
-          <div className="hidden sm:block overflow-x-auto rounded border border-border">
+          <div className="hidden sm:block overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
-                  <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("severity")}>
+                <tr className="border-b border-border bg-muted/30 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("severity")}>
                     <span className="inline-flex items-center gap-1">Severity <SortIcon dir={hook.sortBy === "severity" ? hook.sortDir : null} /></span>
                   </th>
-                  <th className="px-3 py-2 font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("subdomain")}>
+                  <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleSort("subdomain")}>
                     <span className="inline-flex items-center gap-1">Subdomain <SortIcon dir={hook.sortBy === "subdomain" ? hook.sortDir : null} /></span>
                   </th>
-                  {showAsset && <th className="px-3 py-2 font-medium">Asset</th>}
-                  <th className="px-3 py-2 font-medium">Service</th>
-                  <th className="px-3 py-2 font-medium">Matched At</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  {!showAsset && <th className="px-3 py-2 font-medium text-right">Actions</th>}
+                  {showAsset && <th className="px-3 py-2">Asset</th>}
+                  <th className="px-3 py-2">Service</th>
+                  <th className="px-3 py-2">Matched At</th>
+                  <th className="px-3 py-2">Status</th>
+                  {!showAsset && <th className="px-3 py-2 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {hook.data.map((c) => (
-                  <tr key={c.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                  <tr key={c.id} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
                     <td className="px-3 py-2"><SeverityBadge severity={c.severity} /></td>
                     <td className="px-3 py-2">
                       <span className="font-mono text-xs text-foreground">{c.subdomain}</span>
@@ -272,7 +272,7 @@ export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Pro
                         <div className="flex items-center justify-end gap-1">
                           {c.verified !== 1 && (
                             <button onClick={() => void setVerified(c.id, 1)} disabled={updating === c.id}
-                              className="rounded border border-red-900 bg-red-950/50 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950 transition-colors disabled:opacity-50">
+                              className="rounded border border-sev-critical/40 bg-sev-critical/10 px-2 py-0.5 text-[11px] text-sev-critical hover:bg-sev-critical/20 transition-colors disabled:opacity-50">
                               Confirm
                             </button>
                           )}
@@ -299,7 +299,7 @@ export function TakeoverTable({ targetId, endpointBase, showAsset = false }: Pro
 
           {totalPages > 1 && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>Page {hook.page} of {totalPages}</span>
+              <span className="font-mono tabular-nums">Page {hook.page} of {totalPages}</span>
               <div className="flex items-center gap-1">
                 <button onClick={() => hook.setPage(hook.page - 1)} disabled={hook.page <= 1}
                   className="rounded p-1 hover:bg-muted/50 disabled:opacity-30 transition-colors">

@@ -26,9 +26,9 @@ export function CloudBucketStatusChart({ buckets }: Props) {
 
   const tiles = [
     { label: "Total", value: stats.total, color: "text-foreground" },
-    { label: "Exists", value: stats.exists, color: "text-primary" },
-    { label: "Public Read", value: stats.publicRead, color: stats.publicRead > 0 ? "text-destructive" : "text-muted-foreground" },
-    { label: "Public Write", value: stats.publicWrite, color: stats.publicWrite > 0 ? "text-destructive" : "text-muted-foreground" },
+    { label: "Exists", value: stats.exists, color: "text-sev-info" },
+    { label: "Public Read", value: stats.publicRead, color: stats.publicRead > 0 ? "text-sev-critical" : "text-muted-foreground" },
+    { label: "Public Write", value: stats.publicWrite, color: stats.publicWrite > 0 ? "text-sev-critical" : "text-muted-foreground" },
   ];
 
   return (
@@ -36,7 +36,7 @@ export function CloudBucketStatusChart({ buckets }: Props) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {tiles.map((t) => (
           <div key={t.label} className="text-center">
-            <div className={`text-lg font-semibold ${t.color}`}>{t.value}</div>
+            <div className={`font-mono text-lg font-semibold tabular-nums ${t.color}`}>{t.value}</div>
             <div className="text-[10px] text-muted-foreground">{t.label}</div>
           </div>
         ))}

@@ -9,7 +9,7 @@ export function AppearanceTab() {
   return (
     <div className="py-6 space-y-8 max-w-2xl">
       <section>
-        <h2 className="text-sm font-semibold text-foreground mb-1">Color mode</h2>
+        <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground mb-1">Color mode</h2>
         <p className="text-xs text-muted-foreground mb-3">
           Choose between light and dark mode for all themes.
         </p>
@@ -37,9 +37,9 @@ export function AppearanceTab() {
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-foreground mb-1">Theme</h2>
+        <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground mb-1">Theme</h2>
         <p className="text-xs text-muted-foreground mb-3">
-          Pick a color theme. The preview shows the dark variant.
+          Pick a color theme — previews follow your light/dark mode.
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {THEMES.map((t) => (
@@ -54,26 +54,21 @@ export function AppearanceTab() {
               )}
             >
               <div
-                className="flex h-20 gap-1.5 p-2"
-                style={{ background: t.swatch.bg }}
+                data-theme={t.id}
+                className={cn("flex h-20 gap-1.5 p-2 bg-background", dark && "dark")}
               >
-                <div
-                  className="flex w-5 flex-col gap-1 rounded-sm p-0.5"
-                  style={{
-                    background: `color-mix(in srgb, ${t.swatch.bg} 70%, #000)`,
-                  }}
-                >
-                  <div className="h-1.5 w-full rounded-sm" style={{ background: t.swatch.primary }} />
-                  <div className="h-1 w-3/4 rounded-sm" style={{ background: `${t.swatch.primary}60` }} />
-                  <div className="h-1 w-3/4 rounded-sm" style={{ background: `${t.swatch.primary}40` }} />
+                <div className="flex w-5 flex-col gap-1 rounded-sm p-0.5 bg-sidebar">
+                  <div className="h-1.5 w-full rounded-sm bg-primary" />
+                  <div className="h-1 w-3/4 rounded-sm bg-primary/60" />
+                  <div className="h-1 w-3/4 rounded-sm bg-primary/40" />
                 </div>
                 <div className="flex flex-1 flex-col gap-1.5">
-                  <div className="h-2 w-3/4 rounded-sm" style={{ background: `${t.swatch.primary}cc` }} />
-                  <div className="h-1.5 w-full rounded-sm" style={{ background: `${t.swatch.accent}80` }} />
-                  <div className="h-1.5 w-2/3 rounded-sm" style={{ background: `${t.swatch.accent}50` }} />
+                  <div className="h-2 w-3/4 rounded-sm bg-primary/80" />
+                  <div className="h-1.5 w-full rounded-sm bg-secondary/80" />
+                  <div className="h-1.5 w-2/3 rounded-sm bg-secondary/50" />
                   <div className="mt-auto flex gap-1">
-                    <div className="h-3 w-8 rounded-sm" style={{ background: t.swatch.primary }} />
-                    <div className="h-3 w-6 rounded-sm" style={{ background: t.swatch.accent }} />
+                    <div className="h-3 w-8 rounded-sm bg-primary" />
+                    <div className="h-3 w-6 rounded-sm bg-secondary" />
                   </div>
                 </div>
               </div>

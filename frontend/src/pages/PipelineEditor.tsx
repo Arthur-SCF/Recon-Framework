@@ -77,7 +77,7 @@ export function PipelineEditor() {
         {saveMsg && (
           <p className={cn(
             "mt-2 flex items-center gap-1 text-xs",
-            saveMsg.ok ? "text-green-400" : "text-destructive",
+            saveMsg.ok ? "text-sev-low" : "text-destructive",
           )}>
             {saveMsg.ok && <Check className="h-3.5 w-3.5" />}
             {saveMsg.text}

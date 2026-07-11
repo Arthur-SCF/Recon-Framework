@@ -90,7 +90,7 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className={cn(
           "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "w-[calc(100%-2rem)] max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl",
+          "w-[calc(100%-2rem)] max-w-lg rounded-lg border border-border bg-card p-6 shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -124,7 +124,7 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
 
             {/* Wildcard Policy */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Wildcard Policy
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -137,7 +137,7 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
                       onClick={() => setWildcardPolicy(w.id)}
                       className={cn(
                         "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all",
-                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40",
+                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40 hover:bg-surface-hover",
                       )}
                     >
                       <span className={selected ? "text-primary" : "text-muted-foreground"}>{w.icon}</span>
@@ -151,9 +151,9 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
 
             {/* Priority */}
             <div>
-              <label className="mb-2 flex items-center justify-between text-xs font-medium text-foreground">
+              <label className="mb-2 flex items-center justify-between font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 <span>Scan Priority</span>
-                <span className="text-muted-foreground">{priority} / 10</span>
+                <span className="tabular-nums text-muted-foreground">{priority} / 10</span>
               </label>
               <input
                 type="range" min={1} max={10} value={priority}
@@ -167,8 +167,8 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
 
             {/* Tags */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">
-                Tags <span className="font-normal text-muted-foreground">(optional)</span>
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Tags <span className="font-normal normal-case tracking-normal text-faint-foreground">(optional)</span>
               </label>
               <TagInput tags={tags} onChange={setTags} />
               <p className="mt-1 text-[10px] text-muted-foreground">
@@ -178,7 +178,7 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
 
             {/* Scan Mode */}
             <div>
-              <label className="mb-2 block text-xs font-medium text-foreground">
+              <label className="mb-2 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Scan Mode
               </label>
               <ScanModeSelector
@@ -210,14 +210,14 @@ export function EditTargetModal({ target, open, onClose, onUpdated }: Props) {
             <button
               onClick={onClose}
               disabled={saving}
-              className="rounded border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
+              className="rounded-md border border-border bg-background px-3.5 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={() => void handleSave()}
               disabled={saving}
-              className="flex items-center gap-2 rounded bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+              className="flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
             >
               {saving ? (
                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</>

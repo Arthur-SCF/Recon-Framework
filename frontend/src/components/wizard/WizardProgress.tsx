@@ -25,9 +25,9 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-all duration-300",
+                  "flex h-7 w-7 items-center justify-center rounded-full font-mono text-xs font-semibold tabular-nums transition-all duration-300",
                   isDone
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-sev-low/15 text-sev-low border border-sev-low/30"
                     : isActive
                       ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-2 ring-offset-card"
                       : "bg-muted/50 text-muted-foreground border border-border",
@@ -37,7 +37,7 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
               </div>
               <span
                 className={cn(
-                  "mt-1.5 text-[10px] font-medium transition-colors",
+                  "mt-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] transition-colors",
                   isActive
                     ? "text-primary"
                     : isDone
@@ -54,7 +54,7 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
               <div
                 className={cn(
                   "mx-3 mb-5 h-px w-12 transition-colors duration-300",
-                  num < currentStep ? "bg-primary" : "bg-border",
+                  num < currentStep ? "bg-border" : "bg-border-subtle",
                 )}
               />
             )}

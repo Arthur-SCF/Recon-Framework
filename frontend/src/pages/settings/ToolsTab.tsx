@@ -43,17 +43,17 @@ export function ToolsTab() {
           {!loading && (
             <>
               <span>
-                <span className="text-green-400 font-medium">{installed}</span> installed
+                <span className="font-mono tabular-nums text-sev-low font-semibold">{installed}</span> installed
                 {notInstalled > 0 && (
-                  <span>, <span className="text-destructive font-medium">{notInstalled}</span> missing</span>
+                  <span>, <span className="font-mono tabular-nums text-sev-critical font-semibold">{notInstalled}</span> missing</span>
                 )}
                 {outdated > 0 && (
-                  <span>, <span className="text-amber-400 font-medium">{outdated}</span> update{outdated > 1 ? "s" : ""} available</span>
+                  <span>, <span className="font-mono tabular-nums text-sev-medium font-semibold">{outdated}</span> update{outdated > 1 ? "s" : ""} available</span>
                 )}
               </span>
               {tools.length > 0 && tools[0].checked_at && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Last checked: {new Date(tools[0].checked_at).toLocaleString()}
+                  Last checked: <span className="font-mono tabular-nums">{new Date(tools[0].checked_at).toLocaleString()}</span>
                 </p>
               )}
             </>
@@ -78,12 +78,12 @@ export function ToolsTab() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30 text-left">
-                <th className="px-3 py-2 font-medium text-muted-foreground w-6"></th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Tool</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Step ID</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Version</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Latest</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Path</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground w-6"></th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Tool</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Step ID</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Version</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Latest</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Path</th>
               </tr>
             </thead>
             <tbody>
@@ -97,22 +97,22 @@ export function ToolsTab() {
                 >
                   <td className="px-3 py-2">
                     {t.installed ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-sev-low" />
                     ) : (
-                      <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                      <AlertCircle className="h-3.5 w-3.5 text-sev-critical" />
                     )}
                   </td>
                   <td className="px-3 py-2 font-medium text-foreground">{t.name}</td>
                   <td className="px-3 py-2 font-mono text-muted-foreground">{t.step_id}</td>
-                  <td className="px-3 py-2 text-muted-foreground">
+                  <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">
                     {t.version ?? (t.error ? (
-                      <span className="text-destructive text-[10px]">{t.error}</span>
+                      <span className="text-sev-critical text-[10px]">{t.error}</span>
                     ) : "—")}
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">
+                  <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">
                     {t.latest_version ?? "—"}
                     {t.update_available && (
-                      <span className="ml-1.5 rounded px-1 py-0.5 text-[9px] bg-amber-500/20 text-amber-400 font-medium">
+                      <span className="ml-1.5 rounded bg-sev-medium/15 px-1 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wide text-sev-medium">
                         UPDATE
                       </span>
                     )}

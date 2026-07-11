@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { TECH_PALETTE } from "@/lib/chartTheme";
+import { TECH_PALETTE, useChartColors } from "@/lib/chartTheme";
 import { ChartCard } from "./ChartCard";
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
 }
 
 export function TakeoverServiceChart({ takeovers }: Props) {
+  const colors = useChartColors();
   const data = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const t of takeovers) {
@@ -27,8 +28,8 @@ export function TakeoverServiceChart({ takeovers }: Props) {
       <ResponsiveContainer width="100%" height={data.length * 28 + 20}>
         <BarChart data={data} layout="vertical" margin={{ left: 90, right: 12, top: 4, bottom: 4 }}>
           <XAxis type="number" hide />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={85} />
-          <Tooltip contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 12, borderRadius: "6px" }} />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: colors.muted }} width={85} />
+          <Tooltip contentStyle={{ backgroundColor: colors.card, border: `1px solid ${colors.border}`, color: colors.foreground, fontSize: 12, borderRadius: "6px" }} />
           <Bar dataKey="value" fill={TECH_PALETTE[1]} radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>

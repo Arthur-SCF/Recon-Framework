@@ -108,18 +108,18 @@ export function StorageTab() {
   }
 
   const pct = Math.min(stats.used_pct, 100);
-  const barColor = pct >= 90 ? "bg-destructive" : pct >= 75 ? "bg-yellow-400" : "bg-primary";
+  const barColor = pct >= 90 ? "bg-sev-critical" : pct >= 75 ? "bg-sev-medium" : "bg-sev-low";
 
   return (
     <div className="py-6 max-w-lg space-y-6">
       {/* Disk usage */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+          <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground flex items-center gap-1.5">
             <HardDrive className="h-4 w-4" />
             Disk Usage
           </h3>
-          <span className="text-xs text-muted-foreground">
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
             {formatBytes(stats.used_bytes)} / {formatBytes(stats.total_bytes)}
           </span>
         </div>
@@ -129,7 +129,7 @@ export function StorageTab() {
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="font-mono text-xs tabular-nums text-muted-foreground">
           {pct.toFixed(1)}% used · {formatBytes(stats.free_bytes)} free
         </p>
       </section>
@@ -137,13 +137,13 @@ export function StorageTab() {
       {/* Per-target usage */}
       {stats.targets.length > 0 && (
         <section className="space-y-2">
-          <h3 className="text-sm font-semibold text-foreground">Per-Target Usage</h3>
+          <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Per-Target Usage</h3>
           <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border bg-muted/30 text-left">
-                  <th className="px-3 py-2 text-muted-foreground font-medium">Target</th>
-                  <th className="px-3 py-2 text-muted-foreground font-medium text-right">Size</th>
+                  <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Target</th>
+                  <th className="px-3 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Size</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,7 +152,7 @@ export function StorageTab() {
                   .map((t) => (
                     <tr key={t.domain} className="border-b border-border/50 last:border-0">
                       <td className="px-3 py-2 font-mono text-foreground">{t.domain}</td>
-                      <td className="px-3 py-2 text-right text-muted-foreground">{formatBytes(t.used_bytes)}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted-foreground">{formatBytes(t.used_bytes)}</td>
                     </tr>
                   ))}
               </tbody>
@@ -163,7 +163,7 @@ export function StorageTab() {
 
       {/* Cleanup */}
       <section className="space-y-2">
-        <h3 className="text-sm font-semibold text-foreground">Cleanup</h3>
+        <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Cleanup</h3>
         <p className="text-xs text-muted-foreground">
           Remove old scan data beyond each target's retention limit.
         </p>
@@ -183,7 +183,7 @@ export function StorageTab() {
       {/* Database Backups */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+          <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground flex items-center gap-1.5">
             <Database className="h-4 w-4" />
             Database Backups
           </h3>
@@ -210,7 +210,7 @@ export function StorageTab() {
                 className="flex items-center justify-between gap-3 px-3 py-2 border-b border-border/50 last:border-0 text-xs"
               >
                 <span className="font-mono text-foreground truncate flex-1">{b.filename}</span>
-                <span className="text-muted-foreground shrink-0">{formatBytes(b.size_bytes)}</span>
+                <span className="font-mono tabular-nums text-muted-foreground shrink-0">{formatBytes(b.size_bytes)}</span>
                 <button
                   onClick={() => setPendingDeleteBackup(b.filename)}
                   className="shrink-0 rounded p-1 text-muted-foreground hover:text-destructive transition-colors"

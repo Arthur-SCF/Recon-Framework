@@ -23,7 +23,7 @@ export function NaabuParams({ stepId, overrides, onChange }: Props) {
             <button
               key={opt}
               onClick={() => onChange({ ...overrides, top_ports: opt })}
-              className={`px-2 py-1 text-xs rounded border transition-colors ${
+              className={`px-2 py-1 font-mono text-xs tabular-nums rounded-md border transition-colors ${
                 topPorts === opt
                   ? "border-primary bg-primary/10 text-foreground"
                   : "border-border text-muted-foreground hover:border-muted-foreground"
@@ -40,9 +40,9 @@ export function NaabuParams({ stepId, overrides, onChange }: Props) {
         <NumberInput
           value={rate} min={1} max={10000}
           onChange={(v) => onChange({ ...overrides, rate: v })}
-          className="w-20 rounded border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
-        <span className="text-xs text-muted-foreground">pps</span>
+        <span className="font-mono text-[10px] text-muted-foreground">pps</span>
         <InfoTooltip text={PARAM_TOOLTIPS[`${stepId}:rate`]} />
       </div>
     </div>

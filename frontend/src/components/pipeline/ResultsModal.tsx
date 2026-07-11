@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, X } from "lucide-react";
+import { ExternalLink, Loader2, X } from "lucide-react";
 
 interface StepResultsData {
   type: "subdomains" | "live_hosts" | "screenshots" | "takeovers" | "list" | "cloud_assets" | "none";
@@ -51,7 +51,7 @@ export function ResultsModal({
         transition={{ duration: 0.15 }}
       >
         <motion.div
-          className="relative w-full max-w-2xl max-h-[80vh] m-4 flex flex-col rounded-2xl overflow-hidden bg-card/90 backdrop-blur-xl border border-white/[0.07] shadow-2xl shadow-black/60"
+          className="relative w-full max-w-2xl max-h-[80vh] m-4 flex flex-col rounded-lg overflow-hidden bg-popover border border-border shadow-2xl shadow-black/60"
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.96, y: 12 }}
           animate={{ opacity: 1, scale: 1,    y: 0  }}
@@ -62,13 +62,13 @@ export function ResultsModal({
           <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent shrink-0" />
 
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5 bg-gradient-to-r from-primary/[0.04] to-transparent shrink-0">
+          <div className="flex items-center justify-between border-b border-border px-4 py-2.5 bg-gradient-to-r from-primary/[0.04] to-transparent shrink-0">
             <div className="flex items-center gap-3">
               <span className="font-mono text-sm font-medium text-foreground shrink-0">
                 {stepId}
               </span>
               {data && (
-                <span className="text-xs text-muted-foreground/60">
+                <span className="font-mono text-[11px] tabular-nums text-muted-foreground/60">
                   {filter
                     ? `${filtered.length} / ${data.items.length} match`
                     : `${data.count} results`}
@@ -77,7 +77,7 @@ export function ResultsModal({
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1 text-muted-foreground/40 hover:text-foreground hover:bg-white/[0.06] transition-colors"
+              className="rounded-md p-1 text-muted-foreground/40 hover:text-foreground hover:bg-surface-hover transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -85,7 +85,7 @@ export function ResultsModal({
 
           {/* Filter */}
           {data && data.items.length > 0 && (
-            <div className="border-b border-white/[0.05] px-3 py-1.5 bg-white/[0.01] shrink-0">
+            <div className="border-b border-border px-3 py-1.5 bg-muted/20 shrink-0">
               <input
                 autoFocus
                 type="text"
@@ -124,14 +124,10 @@ export function ResultsModal({
                   const m = item.match(/^\[(\w+)\] (.+)$/);
                   const badge = m?.[1] ?? "?";
                   const url   = m?.[2] ?? item;
-                  const badgeClass =
-                    badge === "s3"    ? "bg-orange-500/15 text-orange-400" :
-                    badge === "azure" ? "bg-blue-500/15 text-blue-400"    :
-                    badge === "gcp"   ? "bg-sky-500/15 text-sky-400"      :
-                    "bg-white/[0.06] text-muted-foreground";
+                  const badgeClass = "bg-muted/60 text-muted-foreground";
                   return (
-                    <div key={item} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] group transition-colors">
-                      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${badgeClass}`}>
+                    <div key={item} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-surface-hover group transition-colors">
+                      <span className={`shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase ${badgeClass}`}>
                         {badge}
                       </span>
                       <span className="flex-1 font-mono text-xs text-foreground/80 truncate" title={url}>
@@ -141,9 +137,9 @@ export function ResultsModal({
                         href={url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:text-foreground"
+                        className="text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
                       >
-                        ↗
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                   );
@@ -163,7 +159,7 @@ export function ResultsModal({
                 {filtered.map((item) => (
                   <div
                     key={item}
-                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/[0.04] group transition-colors"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-surface-hover group transition-colors"
                   >
                     <span className="flex-1 font-mono text-xs text-foreground/80">
                       {item}
@@ -173,9 +169,9 @@ export function ResultsModal({
                         href={`https://${item}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs hover:text-foreground"
+                        className="text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
                       >
-                        ↗
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </div>

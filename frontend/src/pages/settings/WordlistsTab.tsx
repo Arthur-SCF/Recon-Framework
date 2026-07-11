@@ -132,10 +132,10 @@ export function WordlistsTab() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/30 text-left">
-                <th className="px-3 py-2 font-medium text-muted-foreground">Name</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Type</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Lines</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Size</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Name</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Type</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Lines</th>
+                <th className="px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-faint-foreground">Size</th>
                 <th className="px-3 py-2 w-8"></th>
               </tr>
             </thead>
@@ -151,16 +151,16 @@ export function WordlistsTab() {
                   <td className="px-3 py-2 font-mono text-foreground">{w.name}</td>
                   <td className="px-3 py-2">
                     <span className={cn(
-                      "rounded px-1.5 py-0.5 text-[10px] font-medium",
+                      "rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide",
                       w.type === "bundled"
                         ? "bg-muted text-muted-foreground"
-                        : "bg-primary/15 text-primary",
+                        : "bg-sev-info/15 text-sev-info",
                     )}>
                       {w.type}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">{w.lines.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{fmtSize(w.size_bytes)}</td>
+                  <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{w.lines.toLocaleString()}</td>
+                  <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{fmtSize(w.size_bytes)}</td>
                   <td className="px-3 py-2">
                     {w.type === "custom" && (
                       <button

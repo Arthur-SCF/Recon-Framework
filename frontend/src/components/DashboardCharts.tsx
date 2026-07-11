@@ -231,26 +231,26 @@ export function DashboardCharts() {
               <ActivityTile
                 value={recent_7d.new_subdomains}
                 label="new subdomains"
-                color="text-emerald-400"
+                color="text-sev-low"
                 sign="+"
               />
               <ActivityTile
                 value={recent_7d.new_hosts}
                 label="new hosts"
-                color="text-blue-400"
+                color="text-sev-info"
                 sign="+"
               />
               <ActivityTile
                 value={recent_7d.hosts_gone}
                 label="hosts gone"
-                color="text-amber-400"
+                color="text-sev-medium"
                 sign=""
               />
               <ActivityTile
                 value={recent_7d.new_takeovers}
                 label="takeover candidates"
-                color={recent_7d.new_takeovers > 0 ? "text-red-400" : "text-muted-foreground"}
-                sign={recent_7d.new_takeovers > 0 ? "⚠ " : ""}
+                color={recent_7d.new_takeovers > 0 ? "text-sev-critical" : "text-muted-foreground"}
+                sign=""
               />
             </div>
           )}
@@ -262,7 +262,7 @@ export function DashboardCharts() {
                 buckets[b] ? (
                   <span
                     key={b}
-                    className="rounded px-1.5 py-0.5 text-[10px] font-medium"
+                    className="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums"
                     style={{ background: STATUS_COLORS[b] + "22", color: STATUS_COLORS[b] }}
                   >
                     {b} · {buckets[b].toLocaleString()}
@@ -287,7 +287,7 @@ function ActivityTile({
 }) {
   return (
     <div className="rounded-md border border-border bg-muted/20 px-2.5 py-2">
-      <p className={`text-lg font-bold leading-none ${color}`}>
+      <p className={`font-mono text-lg font-semibold leading-none tabular-nums ${color}`}>
         {sign}{value.toLocaleString()}
       </p>
       <p className="mt-0.5 text-[10px] text-muted-foreground">{label}</p>

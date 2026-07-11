@@ -78,7 +78,7 @@ export function TelegramTab() {
   }
   if (!cfg) {
     return (
-      <div className="py-8 text-center text-sm text-destructive">
+      <div className="py-8 text-center text-sm text-sev-critical">
         Failed to load settings
       </div>
     );
@@ -138,10 +138,10 @@ export function TelegramTab() {
 
       {/* Bot token */}
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-foreground">
+        <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Bot Token
           {cfg.has_token && (
-            <span className="ml-1 text-[10px] text-green-400">(configured)</span>
+            <span className="ml-1 normal-case tracking-normal text-[10px] text-sev-low">(configured)</span>
           )}
         </label>
         <div className="relative">
@@ -154,7 +154,7 @@ export function TelegramTab() {
                 ? "Leave blank to keep existing token"
                 : "1234567890:ABCdef..."
             }
-            className="w-full rounded-md border border-border bg-input px-3 py-2 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full rounded-md border border-border bg-input px-3 py-2 pr-9 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
           <button
             type="button"
@@ -169,7 +169,7 @@ export function TelegramTab() {
 
       {/* Chat ID */}
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-foreground">
+        <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Chat ID
         </label>
         <input
@@ -177,13 +177,13 @@ export function TelegramTab() {
           value={chatId}
           onChange={(e) => setChatId(e.target.value)}
           placeholder="-1001234567890"
-          className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full rounded-md border border-border bg-input px-3 py-2 font-mono text-sm tabular-nums text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
 
       {/* Notification checkboxes */}
       <div>
-        <p className="mb-2 text-xs font-medium text-foreground">Notify on</p>
+        <p className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">Notify on</p>
         <div className="space-y-2">
           {(
             [
@@ -211,7 +211,7 @@ export function TelegramTab() {
 
       {/* Test result */}
       {testResult && (
-        <p className={cn("text-xs", testResult.ok ? "text-green-400" : "text-destructive")}>
+        <p className={cn("text-xs", testResult.ok ? "text-sev-low" : "text-sev-critical")}>
           {testResult.msg}
         </p>
       )}

@@ -7,6 +7,7 @@ import type { Target } from "@/types/api";
 interface Crumb {
   label: string;
   to?: string;
+  mono?: boolean;
 }
 
 export function Breadcrumbs() {
@@ -32,10 +33,10 @@ export function Breadcrumbs() {
   const crumbs: Crumb[] = [{ label: "Dashboard", to: "/" }];
 
   if (path.includes("/pipeline/edit") && id) {
-    crumbs.push({ label: targetDomain ?? id, to: `/target/${id}` });
+    crumbs.push({ label: targetDomain ?? id, to: `/target/${id}`, mono: true });
     crumbs.push({ label: "Pipeline Config" });
   } else if (path.startsWith("/target/") && id) {
-    crumbs.push({ label: targetDomain ?? id });
+    crumbs.push({ label: targetDomain ?? id, mono: true });
   } else if (path === "/settings") {
     crumbs.push({ label: "Settings" });
   }
@@ -53,12 +54,12 @@ export function Breadcrumbs() {
             {crumb.to && !isLast ? (
               <Link
                 to={crumb.to}
-                className="hover:text-primary transition-colors truncate"
+                className={cn("truncate transition-colors hover:text-primary", crumb.mono && "font-mono")}
               >
                 {crumb.label}
               </Link>
             ) : (
-              <span className={cn("truncate", isLast && "text-foreground font-medium")}>
+              <span className={cn("truncate", crumb.mono && "font-mono", isLast && "text-foreground font-medium")}>
                 {crumb.label}
               </span>
             )}

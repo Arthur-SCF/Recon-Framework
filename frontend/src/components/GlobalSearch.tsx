@@ -74,17 +74,17 @@ interface SearchResults {
 
 function statusColor(code: number | null): string {
   if (!code) return "text-muted-foreground";
-  if (code < 300) return "text-emerald-400";
-  if (code < 400) return "text-yellow-400";
-  if (code < 500) return "text-red-400";
-  return "text-orange-400";
+  if (code < 300) return "text-sev-low";
+  if (code < 400) return "text-sev-info";
+  if (code < 500) return "text-sev-medium";
+  return "text-sev-critical";
 }
 
 function sevColor(sev: string | null): string {
-  if (sev === "critical") return "text-red-500";
-  if (sev === "high") return "text-orange-400";
-  if (sev === "medium") return "text-yellow-400";
-  if (sev === "low") return "text-blue-400";
+  if (sev === "critical") return "text-sev-critical";
+  if (sev === "high") return "text-sev-high";
+  if (sev === "medium") return "text-sev-medium";
+  if (sev === "low") return "text-sev-info";
   return "text-muted-foreground";
 }
 
@@ -197,9 +197,9 @@ export const GlobalSearch = forwardRef<GlobalSearchHandle>((_, ref) => {
     <div className="relative">
       <div className="relative flex items-center">
         {loading ? (
-          <Loader2 className="absolute left-2.5 h-3.5 w-3.5 animate-spin text-muted-foreground pointer-events-none" />
+          <Loader2 className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 animate-spin text-muted-foreground" />
         ) : (
-          <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <Search className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground" />
         )}
         <input
           ref={inputRef}
@@ -208,9 +208,14 @@ export const GlobalSearch = forwardRef<GlobalSearchHandle>((_, ref) => {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => { if (results && hasResults(results)) setOpen(true); }}
           onKeyDown={(e) => { if (e.key === "Escape") { setOpen(false); inputRef.current?.blur(); } }}
-          placeholder="Search… (/)"
-          className="h-8 w-28 sm:w-56 rounded-md border border-border bg-background pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:w-44 sm:focus:w-72 transition-[width] duration-200"
+          placeholder="Search…"
+          className="h-8 w-32 rounded-md border border-border bg-background pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground transition-[width,border-color] duration-200 focus:w-52 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary sm:w-56 sm:focus:w-72"
         />
+        {!query && (
+          <kbd className="pointer-events-none absolute right-2 hidden select-none items-center rounded border border-border bg-muted px-1.5 py-px font-mono text-[10px] font-medium leading-tight text-faint-foreground sm:inline-flex">
+            /
+          </kbd>
+        )}
       </div>
 
       {showDropdown && (
@@ -348,7 +353,7 @@ function ResultSection({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
         {icon}
         {label}
       </div>
@@ -375,7 +380,7 @@ function ResultRow({
       onClick={onClick}
       className={cn(
         "w-full flex items-center gap-2 px-3 py-2 text-left",
-        "hover:bg-accent/50 transition-colors",
+        "hover:bg-surface-hover transition-colors",
       )}
     >
       <div className="flex-1 min-w-0">
@@ -397,7 +402,7 @@ function ViewAllButton({ onClick, children }: { onClick: () => void; children: R
   return (
     <button
       onClick={onClick}
-      className="block w-full text-left px-3 py-1.5 text-xs text-primary hover:bg-muted/50 transition-colors"
+      className="block w-full text-left px-3 py-1.5 text-xs text-primary hover:bg-surface-hover transition-colors"
     >
       {children}
     </button>

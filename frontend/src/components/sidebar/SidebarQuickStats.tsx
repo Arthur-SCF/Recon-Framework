@@ -78,7 +78,7 @@ export function SidebarQuickStats({ collapsed }: { collapsed: boolean }) {
             className="flex flex-col items-center"
           >
             <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-[9px] font-mono text-foreground">{value}</span>
+            <span className="text-[9px] font-mono tabular-nums text-foreground">{value}</span>
           </div>
         ))}
       </div>
@@ -87,7 +87,8 @@ export function SidebarQuickStats({ collapsed }: { collapsed: boolean }) {
 
   return (
     <div className="px-3 py-2">
-      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+      <p className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-faint-foreground mb-1.5">
+        <span className="h-2 w-0.5 rounded-full bg-primary/60" aria-hidden="true" />
         Quick Stats
       </p>
       <div className="space-y-1">
@@ -95,7 +96,7 @@ export function SidebarQuickStats({ collapsed }: { collapsed: boolean }) {
           <div key={label} className="flex items-center gap-2 text-xs">
             <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <span className="flex-1 text-muted-foreground">{label}</span>
-            <span className="font-mono font-medium text-foreground">{value}</span>
+            <span className="font-mono font-semibold tabular-nums text-right text-foreground">{value}</span>
           </div>
         ))}
       </div>

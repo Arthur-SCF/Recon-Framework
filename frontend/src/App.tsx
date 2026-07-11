@@ -10,7 +10,7 @@ import { useWebSocket, type WsEvent } from "@/hooks/useWebSocket";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import type { Notification } from "@/types/api";
-import { Menu, Wifi, WifiOff } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useApiHealth } from "@/hooks/useApiHealth";
 
 export function App() {
@@ -89,8 +89,9 @@ export function App() {
           {/* Global Search */}
           <GlobalSearch ref={searchRef} />
 
-          {/* WebSocket + API health status */}
-          <button
+          <div className="instrument-cluster flex shrink-0 items-center gap-0.5 rounded-lg p-0.5">
+            {/* WebSocket + API health status */}
+            <button
             disabled={health === "ok" && connectionState === "connected"}
             onClick={() => health === "degraded" && forceRefreshAll()}
             title={
@@ -100,36 +101,48 @@ export function App() {
                 ? "WebSocket connected"
                 : "WebSocket disconnected"
             }
-            className="flex items-center gap-1.5 px-2 text-xs disabled:cursor-default"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] disabled:cursor-default"
           >
             {connectionState === "connected" && health === "ok" && (
               <>
-                <Wifi className="h-3.5 w-3.5 text-primary" />
-                <span className="hidden sm:inline text-primary">Live</span>
+                <span
+                  className="led h-1.5 w-1.5 shrink-0 animate-pulse rounded-full text-sev-low"
+                  style={{ backgroundColor: "currentColor" }}
+                />
+                <span className="hidden text-muted-foreground sm:inline">Live</span>
               </>
             )}
             {connectionState === "connected" && health === "degraded" && (
               <>
-                <WifiOff className="h-3.5 w-3.5 text-amber-500" />
-                <span className="hidden sm:inline text-amber-500">Connection issues</span>
+                <span
+                  className="led h-1.5 w-1.5 shrink-0 rounded-full text-sev-medium"
+                  style={{ backgroundColor: "currentColor" }}
+                />
+                <span className="hidden text-sev-medium sm:inline">Degraded</span>
               </>
             )}
             {connectionState === "reconnecting" && (
               <>
-                <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="hidden sm:inline text-muted-foreground">Reconnecting…</span>
+                <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-muted-foreground" />
+                <span className="hidden text-muted-foreground sm:inline">Reconnecting</span>
               </>
             )}
             {connectionState === "disconnected" && (
               <>
-                <WifiOff className="h-3.5 w-3.5 text-destructive" />
-                <span className="hidden sm:inline text-destructive">Disconnected</span>
+                <span
+                  className="led h-1.5 w-1.5 shrink-0 rounded-full text-sev-critical"
+                  style={{ backgroundColor: "currentColor" }}
+                />
+                <span className="hidden text-sev-critical sm:inline">Offline</span>
               </>
             )}
-          </button>
+            </button>
 
-          <ThemeSelector />
-          <NotificationBell />
+            <div className="mx-0.5 h-4 w-px shrink-0 bg-border" aria-hidden="true" />
+
+            <ThemeSelector />
+            <NotificationBell />
+          </div>
         </header>
 
         {/* Page content */}

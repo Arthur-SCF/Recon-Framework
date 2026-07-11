@@ -6,12 +6,12 @@ import type { Target } from "@/types/api";
 import { InlineError } from "@/components/ui/InlineError";
 
 const STATUS_DOT: Record<string, string> = {
-  idle:         "bg-muted-foreground",
-  running:      "bg-primary animate-pulse",
-  completed:    "bg-green-400",
-  paused:       "bg-yellow-400",
-  error:        "bg-destructive",
-  loop_stopped: "bg-amber-500",
+  idle:         "text-muted-foreground",
+  running:      "text-sev-info animate-pulse",
+  completed:    "text-sev-low",
+  paused:       "text-sev-medium",
+  error:        "text-sev-critical",
+  loop_stopped: "text-sev-high",
 };
 
 export function SidebarRecentTargets({ collapsed }: { collapsed: boolean }) {
@@ -61,7 +61,8 @@ export function SidebarRecentTargets({ collapsed }: { collapsed: boolean }) {
 
   return (
     <div className="px-3 py-2">
-      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+      <p className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-faint-foreground mb-1.5">
+        <span className="h-2 w-0.5 rounded-full bg-primary/60" aria-hidden="true" />
         Recent Targets
       </p>
       <div className="space-y-0.5">
@@ -69,13 +70,14 @@ export function SidebarRecentTargets({ collapsed }: { collapsed: boolean }) {
           <button
             key={t.id}
             onClick={() => navigate(`/target/${t.id}`)}
-            className="flex w-full items-center gap-2 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors"
+            className="flex w-full items-center gap-2 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-surface-hover hover:text-foreground transition-colors"
           >
             <span
               className={cn(
-                "h-1.5 w-1.5 rounded-full shrink-0",
+                "led h-1.5 w-1.5 rounded-full shrink-0",
                 STATUS_DOT[t.status] ?? STATUS_DOT.idle,
               )}
+              style={{ backgroundColor: "currentColor" }}
             />
             <span className="font-mono truncate">{t.domain}</span>
           </button>

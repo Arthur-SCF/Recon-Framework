@@ -26,7 +26,7 @@ export function ThemeSelector() {
           className="z-50 w-[calc(100vw-1.5rem)] sm:w-64 max-w-[16rem] rounded-[var(--radius)] border border-border bg-card p-2 shadow-xl"
         >
           {/* Theme list */}
-          <p className="px-2 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="px-2 pb-1 pt-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
             Theme
           </p>
 
@@ -38,7 +38,7 @@ export function ThemeSelector() {
                 "flex cursor-pointer items-center gap-3 rounded px-2 py-2 text-sm outline-none transition-colors",
                 theme === t.id
                   ? "bg-accent text-accent-foreground"
-                  : "text-foreground hover:bg-muted",
+                  : "text-foreground hover:bg-surface-hover",
               )}
             >
               {/* Color swatch */}
@@ -66,7 +66,7 @@ export function ThemeSelector() {
           <DropdownMenu.Separator className="my-2 h-px bg-border" />
 
           {/* Light / Dark toggle */}
-          <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="px-2 pb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-faint-foreground">
             Mode
           </p>
           <div className="flex gap-1.5 px-2 pb-1">
@@ -76,7 +76,7 @@ export function ThemeSelector() {
                 "flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 text-xs font-medium transition-colors",
                 !dark
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
               )}
             >
               <Sun className="h-3.5 w-3.5" />
@@ -88,7 +88,7 @@ export function ThemeSelector() {
                 "flex flex-1 items-center justify-center gap-1.5 rounded px-2 py-1.5 text-xs font-medium transition-colors",
                 dark
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
               )}
             >
               <Moon className="h-3.5 w-3.5" />

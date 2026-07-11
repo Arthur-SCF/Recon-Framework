@@ -27,7 +27,8 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
     if (collapsed) return null;
     return (
       <div className="px-3 py-2">
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+        <p className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-faint-foreground mb-1.5">
+          <span className="h-2 w-0.5 rounded-full bg-primary/60" aria-hidden="true" />
           Scan Status
         </p>
         <p className="text-xs text-muted-foreground">No active scan</p>
@@ -44,13 +45,13 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
               <span className="text-muted-foreground/60 shrink-0">Sched:</span>
               <span className="font-mono truncate flex-1">{nextAuto.domain}</span>
               <span className={cn(
-                "shrink-0 tabular-nums",
-                nextAuto.is_due ? "text-amber-500" : "text-muted-foreground/50"
+                "shrink-0 font-mono tabular-nums",
+                nextAuto.is_due ? "text-sev-medium" : "text-faint-foreground"
               )}>
                 {fmtCountdown(nextAuto.next_run_at)}
               </span>
             </div>
-            <p className="pl-9 text-muted-foreground/50">{fmtSched(nextAuto)}</p>
+            <p className="pl-9 font-mono tabular-nums text-faint-foreground">{fmtSched(nextAuto)}</p>
           </div>
         )}
         {nextLoop && (
@@ -73,18 +74,22 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
   if (collapsed) {
     return (
       <div className="flex justify-center px-1 py-2" aria-label={`Scanning ${active.domain}`}>
-        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        <Loader2 className="h-4 w-4 animate-spin text-sev-info" />
       </div>
     );
   }
 
   return (
     <div className="px-3 py-2">
-      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+      <p className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-faint-foreground mb-1.5">
+        <span className="h-2 w-0.5 rounded-full bg-primary/60" aria-hidden="true" />
         Active Scan
       </p>
       <div className="flex items-center gap-1.5 mb-1">
-        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" />
+        <span
+          className="led h-1.5 w-1.5 rounded-full bg-sev-info text-sev-info animate-pulse shrink-0"
+          style={{ backgroundColor: "currentColor" }}
+        />
         <span className="text-xs font-mono font-medium text-foreground truncate">
           {active.domain}
         </span>
@@ -100,11 +105,11 @@ export function SidebarScanStatus({ collapsed }: { collapsed: boolean }) {
       {/* Progress bar */}
       <div className="h-1 w-full rounded-full bg-muted overflow-hidden mb-1">
         <div
-          className="h-full rounded-full bg-primary transition-all duration-500"
+          className="h-full rounded-full bg-sev-info transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between font-mono text-[10px] tabular-nums text-muted-foreground">
         <span>{progress}%</span>
         {elapsedStr && <span>{elapsedStr}</span>}
       </div>

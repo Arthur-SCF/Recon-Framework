@@ -1,0 +1,12 @@
+# Secrets — never commit (contains RECON_MASTER_KEY / ENCRYPTION_SALT)
+.env
+.env.local
+.env.*.local
+
+# Local agent / tooling state
+.omo/
+.remember/
+.codegraph/
+
+# Build caches
+frontend/tsconfig.tsbuildinfo

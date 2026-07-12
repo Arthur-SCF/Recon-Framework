@@ -529,7 +529,7 @@ async def list_subdomains(
                is_live, consolidated_in
         FROM subdomains
         {where}
-        ORDER BY {sort_col} {sort_dir.upper()}
+        ORDER BY {sort_col} {sort_dir.upper()}, id
         LIMIT ? OFFSET ?
         """,
         tuple(params) + (per_page, (page - 1) * per_page),
@@ -670,7 +670,7 @@ def _live_host_row(r) -> dict:
     }
 
 
-_LIVE_HOST_SORT = {"url", "status_code", "first_seen", "last_seen", "response_time"}
+_LIVE_HOST_SORT = {"url", "status_code", "title", "webserver", "first_seen", "last_seen", "response_time"}
 
 _STATUS_CODE_BUCKET = {
     range(200, 300): "2xx",
@@ -754,7 +754,7 @@ async def list_live_hosts(
     rows = await db.fetchall(
         _LIVE_HOST_SELECT + f"""
         {where}
-        ORDER BY {sort_col} {sort_dir.upper()}
+        ORDER BY {sort_col} {sort_dir.upper()}, id
         LIMIT ? OFFSET ?
         """,
         tuple(params) + (per_page, (page - 1) * per_page),
@@ -896,9 +896,9 @@ async def list_takeovers(
 
     # Sort: default is severity CASE; explicit sort_by overrides
     if sort_by in _TAKEOVER_SORT:
-        order_clause = f"{sort_by} {sort_dir.upper()}"
+        order_clause = f"{sort_by} {sort_dir.upper()}, id"
     else:
-        order_clause = f"{_SEVERITY_CASE}, subdomain ASC"
+        order_clause = f"{_SEVERITY_CASE}, subdomain ASC, id"
 
     total_row = await db.fetchone(
         f"SELECT COUNT(*) AS n FROM nuclei_takeover_results {where}", tuple(params)
@@ -1079,7 +1079,7 @@ async def list_ports(
     total = total_row["n"] if total_row else 0
 
     rows = await db.fetchall(
-        base_q + f" ORDER BY {sort_col} {sort_dir.upper()} LIMIT ? OFFSET ?",
+        base_q + f" ORDER BY {sort_col} {sort_dir.upper()}, nr.host, nr.port, nr.protocol LIMIT ? OFFSET ?",
         tuple(params) + (per_page, (page - 1) * per_page),
     )
 

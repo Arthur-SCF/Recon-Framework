@@ -21,7 +21,10 @@ from engine.api.schemas import (
     ProgramAssignAssets, ProgramCreate, ProgramOut, ProgramScanSessionOut,
     ProgramUpdate,
 )
-from engine.api.scans import _paginate, _live_host_row, _status_bucket
+from engine.api.scans import (
+    _paginate, _live_host_row, _status_bucket,
+    _LIVE_HOST_SORT, _SUBDOMAIN_SORT, _PORTS_SORT, _TAKEOVER_SORT, _SEVERITY_CASE,
+)
 from engine.programs_config import apply_program_config, propagate_program_config
 from engine import scheduler
 from engine.websocket import ws_manager
@@ -366,6 +369,8 @@ async def program_subdomains(
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=500),
     q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_dir: str = Query("desc", pattern="^(asc|desc)$"),
     db: Database = Depends(get_db),
 ) -> dict:
     await _require_program(program_id, db)
@@ -374,6 +379,7 @@ async def program_subdomains(
     if not ids:
         return _paginate([], 0, page, per_page)
 
+    sort_col = sort_by if sort_by in _SUBDOMAIN_SORT else "first_seen"
     ph = ",".join("?" * len(ids))
     where = f"WHERE target_id IN ({ph}) AND in_scope = 1"
     params: list = list(ids)
@@ -388,7 +394,7 @@ async def program_subdomains(
         f"""
         SELECT id, target_id, subdomain, sources, first_seen, last_seen, is_live
         FROM subdomains {where}
-        ORDER BY first_seen DESC LIMIT ? OFFSET ?
+        ORDER BY {sort_col} {sort_dir.upper()}, id LIMIT ? OFFSET ?
         """,
         tuple(params) + (per_page, (page - 1) * per_page),
     )
@@ -420,6 +426,8 @@ async def program_live_hosts(
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=500),
     q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_dir: str = Query("desc", pattern="^(asc|desc)$"),
     status_code: int | None = Query(None),
     db: Database = Depends(get_db),
 ) -> dict:
@@ -429,6 +437,7 @@ async def program_live_hosts(
     if not ids:
         return _paginate([], 0, page, per_page)
 
+    sort_col = sort_by if sort_by in _LIVE_HOST_SORT else "first_seen"
     ph = ",".join("?" * len(ids))
     where = f"WHERE target_id IN ({ph}) AND in_scope = 1"
     params: list = list(ids)
@@ -456,7 +465,7 @@ async def program_live_hosts(
                waf, first_seen, last_seen, last_status, last_title,
                screenshot_path
         FROM live_hosts {where}
-        ORDER BY first_seen DESC LIMIT ? OFFSET ?
+        ORDER BY {sort_col} {sort_dir.upper()}, id LIMIT ? OFFSET ?
         """,
         tuple(params) + (per_page, (page - 1) * per_page),
     )
@@ -475,6 +484,8 @@ async def program_ports(
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=500),
     q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_dir: str = Query("asc", pattern="^(asc|desc)$"),
     db: Database = Depends(get_db),
 ) -> dict:
     await _require_program(program_id, db)
@@ -483,6 +494,7 @@ async def program_ports(
     if not ids:
         return _paginate([], 0, page, per_page)
 
+    sort_col = f"nr.{sort_by}" if sort_by in _PORTS_SORT else "nr.host, nr.port"
     ph = ",".join("?" * len(ids))
     extra = ""
     params: list = list(ids)
@@ -507,7 +519,7 @@ async def program_ports(
         f"SELECT COUNT(*) AS n FROM ({base_q}) AS sub", tuple(params)
     ))["n"]
     rows = await db.fetchall(
-        base_q + " ORDER BY nr.host, nr.port LIMIT ? OFFSET ?",
+        base_q + f" ORDER BY {sort_col} {sort_dir.upper()}, nr.host, nr.port, nr.protocol LIMIT ? OFFSET ?",
         tuple(params) + (per_page, (page - 1) * per_page),
     )
     return _paginate(
@@ -534,6 +546,9 @@ async def program_takeovers(
     program_id: str,
     page: int = Query(1, ge=1),
     per_page: int = Query(50, ge=1, le=500),
+    q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_dir: str = Query("asc", pattern="^(asc|desc)$"),
     db: Database = Depends(get_db),
 ) -> dict:
     await _require_program(program_id, db)
@@ -544,17 +559,27 @@ async def program_takeovers(
 
     ph = ",".join("?" * len(ids))
     where = f"WHERE target_id IN ({ph})"
+    params: list = list(ids)
+    if q:
+        where += " AND subdomain LIKE ?"
+        params.append(f"%{q}%")
+
+    if sort_by in _TAKEOVER_SORT:
+        order_clause = f"{sort_by} {sort_dir.upper()}, id"
+    else:
+        order_clause = f"{_SEVERITY_CASE}, subdomain ASC, id"
+
     total = (await db.fetchone(
-        f"SELECT COUNT(*) AS n FROM nuclei_takeover_results {where}", tuple(ids)
+        f"SELECT COUNT(*) AS n FROM nuclei_takeover_results {where}", tuple(params)
     ))["n"]
     rows = await db.fetchall(
         f"""
         SELECT id, target_id, session_id, subdomain, url, template_id,
                service, severity, matched_at, verified
         FROM nuclei_takeover_results {where}
-        ORDER BY matched_at DESC LIMIT ? OFFSET ?
+        ORDER BY {order_clause} LIMIT ? OFFSET ?
         """,
-        tuple(ids) + (per_page, (page - 1) * per_page),
+        tuple(params) + (per_page, (page - 1) * per_page),
     )
     return _paginate(
         [

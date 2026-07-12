@@ -1031,17 +1031,14 @@ _PORTS_BASE_QUERY = """
         nr.protocol,
         nr.service,
         nr.service_version,
-        GROUP_CONCAT(DISTINCT lh.host) AS subdomains
+        GROUP_CONCAT(DISTINCT m.sub) AS subdomains
     FROM naabu_results nr
-    LEFT JOIN live_hosts lh
-        ON lh.target_id = nr.target_id
-        AND (
-            lh.host = nr.host
-            OR EXISTS (
-                SELECT 1 FROM json_each(lh.a_records)
-                WHERE json_each.value = nr.host
-            )
-        )
+    LEFT JOIN (
+        SELECT target_id, host AS match_key, host AS sub FROM live_hosts WHERE host IS NOT NULL
+        UNION ALL
+        SELECT lh.target_id, je.value AS match_key, lh.host AS sub
+        FROM live_hosts lh, json_each(lh.a_records) je
+    ) m ON m.target_id = nr.target_id AND m.match_key = nr.host
     WHERE nr.target_id = ?{extra_where}
     GROUP BY nr.host, nr.port, nr.protocol
 """

@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from engine.db import Database, get_db
 from engine.api.schemas import (
     ProgramAssignAssets, ProgramCreate, ProgramOut, ProgramScanSessionOut,
-    ProgramUpdate,
+    ProgramTargetCreate, ProgramUpdate,
 )
 from engine.api.scans import (
     _paginate, _live_host_row, _status_bucket,
@@ -225,6 +225,37 @@ async def list_program_assets(program_id: str, db: Database = Depends(get_db)) -
         (program_id,),
     )
     return [dict(r) for r in rows]
+
+
+@router.post("/{program_id}/targets", status_code=status.HTTP_201_CREATED)
+async def create_program_target(
+    program_id: str, body: ProgramTargetCreate, db: Database = Depends(get_db)
+) -> dict:
+    program = await _require_program(program_id, db)
+    existing = await db.fetchone("SELECT id FROM targets WHERE domain = ?", (body.domain,))
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Target '{body.domain}' already exists",
+        )
+
+    target_id = str(uuid.uuid4())
+    async with db.transaction():
+        await db.execute(
+            """
+            INSERT INTO targets (id, domain, status, created_at, program_id, config_source)
+            VALUES (?, ?, 'idle', ?, ?, 'inherit')
+            """,
+            (target_id, body.domain, _now(), program_id),
+        )
+        await apply_program_config(db, target_id, program, copy_pipeline=True)
+
+    log.info("Program %s: created inherited asset %s (%s)", program_id, body.domain, target_id)
+    row = await db.fetchone(
+        "SELECT id, domain, status, config_source, last_scan_at, scan_count FROM targets WHERE id = ?",
+        (target_id,),
+    )
+    return dict(row)
 
 
 @router.post("/{program_id}/assets", status_code=status.HTTP_200_OK)
@@ -505,13 +536,14 @@ async def program_ports(
     base_q = f"""
         SELECT nr.host, nr.ip, nr.port, nr.protocol, nr.service, nr.service_version,
                nr.target_id,
-               GROUP_CONCAT(DISTINCT lh.host) AS subdomains
+               GROUP_CONCAT(DISTINCT m.sub) AS subdomains
         FROM naabu_results nr
-        LEFT JOIN live_hosts lh
-            ON lh.target_id = nr.target_id
-            AND (lh.host = nr.host OR EXISTS (
-                SELECT 1 FROM json_each(lh.a_records) WHERE json_each.value = nr.host
-            ))
+        LEFT JOIN (
+            SELECT target_id, host AS match_key, host AS sub FROM live_hosts WHERE host IS NOT NULL
+            UNION ALL
+            SELECT lh.target_id, je.value AS match_key, lh.host AS sub
+            FROM live_hosts lh, json_each(lh.a_records) je
+        ) m ON m.target_id = nr.target_id AND m.match_key = nr.host
         WHERE nr.target_id IN ({ph}){extra}
         GROUP BY nr.host, nr.port, nr.protocol
     """

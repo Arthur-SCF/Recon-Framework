@@ -369,6 +369,20 @@ class ProgramAssignAssets(BaseModel):
         return v
 
 
+class ProgramTargetCreate(BaseModel):
+    domain: str
+
+    @field_validator("domain")
+    @classmethod
+    def validate_domain(cls, v: str) -> str:
+        v = v.strip().lower().removeprefix("https://").removeprefix("http://").rstrip("/")
+        if not _DOMAIN_RE.match(v):
+            raise ValueError("Invalid domain name")
+        if len(v) > 253:
+            raise ValueError("Domain too long (max 253 chars)")
+        return v
+
+
 class ProgramScanSessionOut(BaseModel):
     id: str
     program_id: str

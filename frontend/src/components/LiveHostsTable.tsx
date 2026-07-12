@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useTableSort, type SortDir } from "@/lib/useTableSort";
 import type { LiveHost } from "@/types/api";
 
-export type LiveHostCol = "url" | "code" | "title" | "webserver" | "rt";
+export type LiveHostCol = "url" | "code" | "title" | "webserver" | "rt" | "first_seen";
 
 function SortIcon({ dir }: { dir: SortDir }) {
   if (dir === "asc")  return <ArrowUp   className="h-3 w-3" />;
@@ -183,6 +183,7 @@ export function LiveHostsTable({
       else if (sort.col === "title")     cmp = (a.title ?? "").localeCompare(b.title ?? "");
       else if (sort.col === "webserver") cmp = (a.webserver ?? "").localeCompare(b.webserver ?? "");
       else if (sort.col === "rt")        cmp = (a.response_time ?? -1) - (b.response_time ?? -1);
+      else if (sort.col === "first_seen") cmp = (a.first_seen ?? "").localeCompare(b.first_seen ?? "");
       return sort.dir === "asc" ? cmp : -cmp;
     });
   }, [filtered, sort, isControlled]);
@@ -269,6 +270,9 @@ export function LiveHostsTable({
               </th>
               <th className="px-3 py-2">Tech</th>
               <th className="px-3 py-2">Security</th>
+              <th className="px-3 py-2 cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("first_seen")}>
+                <span className="inline-flex items-center gap-1">First seen <SortIcon dir={getColDir("first_seen")} /></span>
+              </th>
               <th className="px-3 py-2 w-16 text-right cursor-pointer select-none hover:text-foreground" onClick={() => handleColumnClick("rt")}>
                 <span className="inline-flex items-center justify-end gap-1">RT <SortIcon dir={getColDir("rt")} /></span>
               </th>
@@ -386,6 +390,16 @@ export function LiveHostsTable({
                       </div>
                     </td>
 
+                    {/* First seen */}
+                    <td className="px-3 py-2">
+                      <span
+                        className="font-mono text-[11px] tabular-nums text-muted-foreground"
+                        title={host.first_seen}
+                      >
+                        {host.first_seen ? host.first_seen.slice(0, 10) : "—"}
+                      </span>
+                    </td>
+
                     {/* Response time */}
                     <td className="px-3 py-2 text-right">
                       <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
@@ -399,7 +413,7 @@ export function LiveHostsTable({
                   {/* Expanded detail row */}
                   {isExpanded && (
                     <tr key={`${host.id}-detail`} className="bg-muted/10 border-b border-border/50">
-                      <td colSpan={showAsset ? 8 : 7} className="px-4 py-3">
+                      <td colSpan={showAsset ? 9 : 8} className="px-4 py-3">
                         <div className="grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                           <Detail label="Host"       value={host.host} />
                           <Detail label="Port"       value={host.port} />

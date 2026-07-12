@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as Tabs from "@radix-ui/react-tabs";
 import {
-  AlertTriangle, Bell, Globe, History, Link2, Loader2, Pencil, Play, ShieldAlert, Target as TargetIcon, Trash2, Unlink,
+  AlertTriangle, Bell, Globe, History, Link2, Loader2, Pencil, Play, Plus, ShieldAlert, Target as TargetIcon, Trash2, Unlink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/PageTransition";
@@ -392,6 +392,9 @@ function AssetsPanel({ programId, onOpenAssign, onChanged }: {
   const [assets, setAssets] = useState<ProgramAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [unassigning, setUnassigning] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [newDomain, setNewDomain] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const { actionFetch } = useActionFetch();
 
   const load = useCallback(() => {
@@ -404,6 +407,25 @@ function AssetsPanel({ programId, onOpenAssign, onChanged }: {
   }, [programId]);
 
   useEffect(() => { load(); }, [load]);
+
+  async function createTarget() {
+    const domain = newDomain.trim();
+    if (!domain) return;
+    setSubmitting(true);
+    const res = await actionFetch(`/api/v1/programs/${programId}/targets`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain }),
+      successMessage: "Target created (inherits program config)",
+      errorPrefix: "Create target",
+    });
+    setSubmitting(false);
+    if (!res) return;
+    setNewDomain("");
+    setCreating(false);
+    load();
+    onChanged();
+  }
 
   async function unassign(targetId: string) {
     setUnassigning(targetId);
@@ -425,12 +447,49 @@ function AssetsPanel({ programId, onOpenAssign, onChanged }: {
           {assets.length} asset{assets.length !== 1 ? "s" : ""}
         </span>
         <button
+          onClick={() => setCreating((v) => !v)}
+          className="ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/30 transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" /> New target
+        </button>
+        <button
           onClick={onOpenAssign}
-          className="ml-auto flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Link2 className="h-3.5 w-3.5" /> Assign assets
         </button>
       </div>
+
+      {creating && (
+        <form
+          onSubmit={(e) => { e.preventDefault(); void createTarget(); }}
+          className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/20 p-2"
+        >
+          <input
+            autoFocus
+            type="text"
+            value={newDomain}
+            onChange={(e) => setNewDomain(e.target.value)}
+            placeholder="example.com — new asset inherits this program's config"
+            className="h-8 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <button
+            type="submit"
+            disabled={submitting || !newDomain.trim()}
+            className="flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            Create
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCreating(false); setNewDomain(""); }}
+            className="rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancel
+          </button>
+        </form>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>

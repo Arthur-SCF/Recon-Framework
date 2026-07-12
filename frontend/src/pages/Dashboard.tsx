@@ -10,12 +10,13 @@ import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { StatsRow } from "@/components/dashboard/StatsRow";
 import { DashboardCharts } from "@/components/DashboardCharts";
 import { TargetCard } from "@/components/dashboard/TargetCard";
+import { TargetGroupHeader } from "@/components/dashboard/TargetGroupHeader";
 import { ScanQueueWidget } from "@/components/dashboard/ScanQueueWidget";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { SkeletonCards } from "@/components/Skeleton";
 import { useSchedulerState, buildQueuePositionMap } from "@/hooks/useSchedulerState";
 import { useActionFetch } from "@/hooks/useActionFetch";
-import type { Target as TargetType, ToolHealth } from "@/types/api";
+import type { Program, Target as TargetType, ToolHealth } from "@/types/api";
 
 export function Dashboard() {
   const [targets, setTargets]     = useState<TargetType[]>([]);
@@ -28,6 +29,7 @@ export function Dashboard() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [allTags, setAllTags] = useState<{ tag: string; count: number }[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [outdatedTools, setOutdatedTools] = useState(0);
   const navigate = useNavigate();
   const { actionFetch } = useActionFetch();
@@ -77,10 +79,50 @@ export function Dashboard() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    fetch("/api/v1/programs")
+      .then((r) => r.ok ? r.json() as Promise<Program[]> : [])
+      .then(setPrograms)
+      .catch(() => {});
+  }, []);
+
   const filteredTargets = useMemo(
     () => activeTag ? targets.filter((t) => t.tags?.includes(activeTag)) : targets,
     [targets, activeTag],
   );
+
+  const programNames = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of programs) m.set(p.id, p.name);
+    return m;
+  }, [programs]);
+
+  // indexOf = running index across the whole visible set so the card stagger stays smooth.
+  const { programGroups, ungrouped, indexOf } = useMemo(() => {
+    const byProgram = new Map<string, TargetType[]>();
+    const standalone: TargetType[] = [];
+    for (const t of filteredTargets) {
+      if (t.program_id) {
+        const arr = byProgram.get(t.program_id);
+        if (arr) arr.push(t);
+        else byProgram.set(t.program_id, [t]);
+      } else {
+        standalone.push(t);
+      }
+    }
+    const groups = [...byProgram.entries()]
+      .map(([id, groupTargets]) => ({
+        id,
+        name: programNames.get(id) ?? "Unknown program",
+        targets: groupTargets,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const order = new Map<string, number>();
+    [...groups.flatMap((g) => g.targets), ...standalone].forEach((t, i) => order.set(t.id, i));
+
+    return { programGroups: groups, ungrouped: standalone, indexOf: order };
+  }, [filteredTargets, programNames]);
 
   function handleCreated(target: TargetType) {
     setTargets((prev) => [target, ...prev]);
@@ -150,6 +192,63 @@ export function Dashboard() {
   const allSelected =
     filteredTargets.length > 0 &&
     filteredTargets.every((t) => selected.has(t.id));
+
+  const renderCell = (t: TargetType, i: number) => (
+    <div key={t.id} className="relative group/selectable">
+      {/* Selection overlay */}
+      <button
+        onClick={(e) => toggleSelect(t.id, e)}
+        className={cn(
+          "absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded",
+          "border border-border bg-card transition-opacity",
+          selected.has(t.id)
+            ? "opacity-100 border-primary bg-primary"
+            : "opacity-0 group-hover/selectable:opacity-100",
+        )}
+        title="Select target"
+      >
+        {selected.has(t.id) && (
+          <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </button>
+
+      <TargetCard
+        target={t}
+        index={i}
+        queuePosition={queuePositionMap.get(t.id)}
+        onRestart={async () => {
+          const res = await actionFetch(`/api/v1/targets/${t.id}/start`, {
+            method: "POST",
+            errorPrefix: "Start scan",
+          });
+          if (!res) return;
+          void fetchTargets();
+        }}
+        onClick={() => {
+          if (selCount > 0) {
+            // In selection mode — toggle instead of navigate
+            setSelected((prev) => {
+              const s = new Set(prev);
+              s.has(t.id) ? s.delete(t.id) : s.add(t.id);
+              return s;
+            });
+          } else {
+            navigate(`/target/${t.id}`);
+          }
+        }}
+        onDelete={async () => {
+          const res = await actionFetch(`/api/v1/targets/${t.id}`, {
+            method: "DELETE",
+            errorPrefix: "Delete target",
+          });
+          if (!res) return;
+          handleDeleted(t.id);
+        }}
+      />
+    </div>
+  );
 
   return (
     <PageTransition>
@@ -310,64 +409,30 @@ export function Dashboard() {
                 )}
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredTargets.map((t, i) => (
-                <div key={t.id} className="relative group/selectable">
-                  {/* Selection overlay */}
-                  <button
-                    onClick={(e) => toggleSelect(t.id, e)}
-                    className={cn(
-                      "absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded",
-                      "border border-border bg-card transition-opacity",
-                      selected.has(t.id)
-                        ? "opacity-100 border-primary bg-primary"
-                        : "opacity-0 group-hover/selectable:opacity-100",
-                    )}
-                    title="Select target"
-                  >
-                    {selected.has(t.id) && (
-                      <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </button>
-
-                  <TargetCard
-                    target={t}
-                    index={i}
-                    queuePosition={queuePositionMap.get(t.id)}
-                    onRestart={async () => {
-                      const res = await actionFetch(`/api/v1/targets/${t.id}/start`, {
-                        method: "POST",
-                        errorPrefix: "Start scan",
-                      });
-                      if (!res) return;
-                      void fetchTargets();
-                    }}
-                    onClick={() => {
-                      if (selCount > 0) {
-                        // In selection mode — toggle instead of navigate
-                        setSelected((prev) => {
-                          const s = new Set(prev);
-                          s.has(t.id) ? s.delete(t.id) : s.add(t.id);
-                          return s;
-                        });
-                      } else {
-                        navigate(`/target/${t.id}`);
-                      }
-                    }}
-                    onDelete={async () => {
-                      const res = await actionFetch(`/api/v1/targets/${t.id}`, {
-                        method: "DELETE",
-                        errorPrefix: "Delete target",
-                      });
-                      if (!res) return;
-                      handleDeleted(t.id);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+            {programGroups.length === 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredTargets.map((t, i) => renderCell(t, i))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {programGroups.map((g) => (
+                  <div key={g.id}>
+                    <TargetGroupHeader name={g.name} count={g.targets.length} programId={g.id} />
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {g.targets.map((t) => renderCell(t, indexOf.get(t.id) ?? 0))}
+                    </div>
+                  </div>
+                ))}
+                {ungrouped.length > 0 && (
+                  <div>
+                    <TargetGroupHeader name="Standalone" count={ungrouped.length} />
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {ungrouped.map((t) => renderCell(t, indexOf.get(t.id) ?? 0))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </>
       )}

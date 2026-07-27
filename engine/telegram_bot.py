@@ -407,7 +407,7 @@ class TelegramBot:
             (now, session_id),
         )
         await db.execute(
-            "UPDATE step_runs SET status='error', finished_at=? WHERE session_id=? AND status='running'",
+            "UPDATE step_runs SET status='skipped', finished_at=? WHERE session_id=? AND status='running'",
             (now, session_id),
         )
         await db.execute(
@@ -430,7 +430,7 @@ class TelegramBot:
             (now, session_id),
         )
         await db.execute(
-            "UPDATE step_runs SET status='error', finished_at=? WHERE session_id=? AND status='running'",
+            "UPDATE step_runs SET status='skipped', finished_at=? WHERE session_id=? AND status='running'",
             (now, session_id),
         )
         await db.execute(

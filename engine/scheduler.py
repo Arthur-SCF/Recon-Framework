@@ -300,9 +300,11 @@ async def recover_running_sessions(db) -> None:
         )
 
     # Also clean up any step_runs that were mid-flight when the process died.
+    # Mark them 'interrupted', not 'error' (the worker was killed, the tool did
+    # not fail); resume re-runs any non-'success' step, so these re-execute.
     await db.execute(
         """
-        UPDATE step_runs SET status='error', finished_at=?
+        UPDATE step_runs SET status='interrupted', finished_at=?
         WHERE status = 'running'
         """,
         (_now(),),

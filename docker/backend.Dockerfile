@@ -159,10 +159,17 @@ EXPOSE 8000
 # Production: 1 Uvicorn worker under Gunicorn.
 # 1 worker is intentional — WebSocket events share in-process state;
 # multiple workers would isolate WS connections from scan events.
+# --timeout 1800: this worker also HOSTS the scan pipeline in-process
+# (amass alone runs ~10 min). The default 30s worker-heartbeat timeout was
+# SIGKILLing the worker whenever a synchronous step stalled the event loop
+# >30s; the respawned worker's crash-recovery then mislabeled the in-flight
+# amass step as failed. 1800s tolerates any legitimate stall while still
+# catching a genuinely wedged worker.
 CMD ["gunicorn", "engine.app:app", \
      "-k", "uvicorn.workers.UvicornWorker", \
      "--bind", "0.0.0.0:8000", \
      "--workers", "1", \
+     "--timeout", "1800", \
      "--max-requests", "0", \
      "--graceful-timeout", "300", \
      "--preload"]

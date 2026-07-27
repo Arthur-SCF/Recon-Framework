@@ -180,8 +180,10 @@ async def cancel_scan(target_id: str, db: Database = Depends(get_db)):
         "UPDATE scan_sessions SET status='cancelled', finished_at=? WHERE id=?",
         (now, row["id"]),
     )
+    # Mark the in-flight step 'skipped' (not 'error') — it was cut off by a
+    # user cancel, it did not fail. Mirrors the runner's CancelledError path.
     await db.execute(
-        "UPDATE step_runs SET status='error', finished_at=? WHERE session_id=? AND status='running'",
+        "UPDATE step_runs SET status='skipped', finished_at=? WHERE session_id=? AND status='running'",
         (now, row["id"]),
     )
     # Loop targets move to 'loop_stopped' on cancel so the scheduler

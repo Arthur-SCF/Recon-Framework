@@ -1,8 +1,11 @@
 """
 Real KatanaTool — JS-aware web crawler for subdomain and endpoint discovery.
 
-Reads live host URLs for this target (up to 500), crawls with headless JS support,
+Reads live host URLs for this target, crawls with headless JS support,
 extracts subdomains from discovered URLs, persists to katana_results.
+
+JS crawl caps input to _MAX_JS_CRAWL_URLS (default 50) because each URL
+spawns a headless Chrome process.  Standard crawl uses _MAX_INPUT_URLS (500).
 
 step_id: katana
 """
@@ -11,6 +14,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import tempfile
 import time
 import uuid
@@ -23,6 +27,7 @@ from engine.storage import run_subprocess, save_raw_output
 log = logging.getLogger("engine.tools.katana")
 
 _MAX_INPUT_URLS = 500
+_MAX_JS_CRAWL_URLS = 50   # JS crawl spawns Chrome per URL — cap to prevent OOM
 
 
 class KatanaTool(BaseTool):
@@ -112,11 +117,12 @@ class KatanaTool(BaseTool):
             log.info("%s katana: no live hosts — skipping", ctx.session_id[:8])
             return StepResult(status=OutputStatus.SKIPPED, data={"count": 0})
 
-        input_urls = [r["url"] for r in rows][:_MAX_INPUT_URLS]
-        if len(rows) > _MAX_INPUT_URLS:
+        url_cap = _MAX_JS_CRAWL_URLS   # JS crawl is Chrome-heavy; cap aggressively
+        input_urls = [r["url"] for r in rows][:url_cap]
+        if len(rows) > url_cap:
             log.warning(
-                "%s katana: capping input to %d URLs (%d total)",
-                ctx.session_id[:8], _MAX_INPUT_URLS, len(rows),
+                "%s katana: capping input to %d URLs (%d total live hosts)",
+                ctx.session_id[:8], url_cap, len(rows),
             )
 
         tmp_fd, tmp_path = tempfile.mkstemp(prefix="katana_input_", suffix=".txt", dir="/tmp")
@@ -124,8 +130,8 @@ class KatanaTool(BaseTool):
             with os.fdopen(tmp_fd, "w") as f:
                 f.write("\n".join(input_urls))
 
-            concurrency   = ctx.config.get("katana_concurrency", 10)
-            parallelism   = ctx.config.get("katana_parallelism", 5)
+            concurrency   = ctx.config.get("katana_concurrency", 3)
+            parallelism   = ctx.config.get("katana_parallelism", 2)
             rate_limit    = ctx.config.get("katana_rate_limit", 100)
             depth         = ctx.config.get("katana_depth", 3)
             timeout       = ctx.config.get("timeout", self.default_timeout)
@@ -133,13 +139,22 @@ class KatanaTool(BaseTool):
             # Default: 90% of the process timeout so output is flushed before SIGTERM.
             crawl_seconds = ctx.config.get("katana_crawl_duration", int(timeout * 0.9))
 
+            out_fd, out_path = tempfile.mkstemp(
+                prefix="katana_out_", suffix=".jsonl", dir="/tmp",
+            )
+            os.close(out_fd)
+
+            escaped_domain = re.escape(ctx.domain)
+            scope_re = f"(.*\\.)?{escaped_domain}"
+
             cmd = [
                 "katana",
                 "-list", tmp_path,
+                "-output", out_path,
                 "-depth", str(depth),
                 "-js-crawl",
                 "-known-files", "all",
-                "-crawl-scope", f".*\\.{ctx.domain}",
+                "-crawl-scope", scope_re,
                 "-silent",
                 "-jsonl",
                 "-concurrency", str(concurrency),
@@ -153,6 +168,20 @@ class KatanaTool(BaseTool):
             stdout, stderr, retcode = await run_subprocess(cmd, timeout=timeout)
             elapsed = time.monotonic() - start
 
+            file_output = ""
+            try:
+                with open(out_path, encoding="utf-8", errors="replace") as f:
+                    file_output = f.read()
+            except OSError:
+                pass
+            finally:
+                try:
+                    os.unlink(out_path)
+                except OSError:
+                    pass
+
+            raw_output = file_output or stdout
+
             if retcode == -9:
                 status = OutputStatus.TIMEOUT
             elif retcode not in (0, 1):
@@ -161,11 +190,11 @@ class KatanaTool(BaseTool):
                 status = OutputStatus.SUCCESS
 
             data: dict = {"count": 0}
-            if stdout and status != OutputStatus.TIMEOUT:
-                data = self.parse_output(stdout, ctx)
+            if raw_output:
+                data = self.parse_output(raw_output, ctx)
 
             await save_raw_output(
-                ctx, cmd=cmd, stdout=stdout, stderr=stderr,
+                ctx, cmd=cmd, stdout=raw_output, stderr=stderr,
                 status=status, elapsed=elapsed, data=data,
             )
 
@@ -173,7 +202,7 @@ class KatanaTool(BaseTool):
                 status=status,
                 result_count=data.get("count", 0),
                 data=data,
-                stdout=stdout,
+                stdout=raw_output,
                 stderr=stderr,
                 command=cmd,
                 execution_time=elapsed,

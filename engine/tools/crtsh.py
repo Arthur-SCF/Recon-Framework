@@ -20,6 +20,11 @@ from engine.pipeline.base import BaseAction, StepContext
 log = logging.getLogger("engine.tools.crtsh")
 from engine.pipeline.dedup import normalize_subdomain
 
+# crt.sh returns one JSON array of every logged cert; for a large brand this can
+# be hundreds of MB. Read is bounded so a single passive source cannot OOM the
+# worker (json.loads then roughly doubles it again as Python objects).
+_MAX_CRTSH_BYTES = 100 * 1024 * 1024
+
 
 class CrtShAction(BaseAction):
     label = "crt.sh (CTL)"
@@ -97,7 +102,10 @@ def _fetch_crtsh(url: str, timeout: int) -> list | None:
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
-            body = resp.read().decode("utf-8", errors="replace")
-            return json.loads(body)
+            raw = resp.read(_MAX_CRTSH_BYTES + 1)
+            if len(raw) > _MAX_CRTSH_BYTES:
+                log.warning("crt.sh response exceeded %d bytes — skipping to bound memory", _MAX_CRTSH_BYTES)
+                return None
+            return json.loads(raw.decode("utf-8", errors="replace"))
     except Exception:
         return None

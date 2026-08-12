@@ -140,8 +140,12 @@ class KatanaTool(BaseTool):
             # Default: 90% of the process timeout so output is flushed before SIGTERM.
             crawl_seconds = ctx.config.get("katana_crawl_duration", int(timeout * 0.9))
 
+            # Anchor the domain to a host boundary so it matches jbl.com and
+            # *.jbl.com only. An unanchored `.*\.jbl\.com` also matches the
+            # international sites jbl.com.sg / jbl.com.au and lookalikes like
+            # notjbl.com.evil.com, exploding the crawl and escaping scope.
             escaped_domain = re.escape(ctx.domain)
-            scope_re = f"(.*\\.)?{escaped_domain}"
+            scope_re = f"(^|//|\\.){escaped_domain}($|[/:?#])"
 
             cmd = [
                 "katana",

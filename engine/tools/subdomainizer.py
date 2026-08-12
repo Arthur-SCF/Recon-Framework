@@ -141,7 +141,7 @@ class SubdomainizerTool(BaseTool):
                     pass
 
             data: dict = {"count": 0}
-            if raw and status != OutputStatus.TIMEOUT:
+            if raw:
                 data = self.parse_output(raw, ctx)
 
             await save_raw_output(

@@ -27,7 +27,8 @@ from engine.storage import run_subprocess, save_raw_output
 log = logging.getLogger("engine.tools.katana")
 
 _MAX_INPUT_URLS = 500
-_MAX_JS_CRAWL_URLS = 50   # JS crawl spawns Chrome per URL — cap to prevent OOM
+_MAX_JS_CRAWL_URLS = 50   # JS crawl is Chrome-heavy — cap input to bound load
+_MAX_KEEP = 4096          # bytes of stdout/stderr retained in StepResult (rest is on disk)
 
 
 class KatanaTool(BaseTool):
@@ -139,18 +140,12 @@ class KatanaTool(BaseTool):
             # Default: 90% of the process timeout so output is flushed before SIGTERM.
             crawl_seconds = ctx.config.get("katana_crawl_duration", int(timeout * 0.9))
 
-            out_fd, out_path = tempfile.mkstemp(
-                prefix="katana_out_", suffix=".jsonl", dir="/tmp",
-            )
-            os.close(out_fd)
-
             escaped_domain = re.escape(ctx.domain)
             scope_re = f"(.*\\.)?{escaped_domain}"
 
             cmd = [
                 "katana",
                 "-list", tmp_path,
-                "-output", out_path,
                 "-depth", str(depth),
                 "-js-crawl",
                 "-known-files", "all",
@@ -168,20 +163,6 @@ class KatanaTool(BaseTool):
             stdout, stderr, retcode = await run_subprocess(cmd, timeout=timeout)
             elapsed = time.monotonic() - start
 
-            file_output = ""
-            try:
-                with open(out_path, encoding="utf-8", errors="replace") as f:
-                    file_output = f.read()
-            except OSError:
-                pass
-            finally:
-                try:
-                    os.unlink(out_path)
-                except OSError:
-                    pass
-
-            raw_output = file_output or stdout
-
             if retcode == -9:
                 status = OutputStatus.TIMEOUT
             elif retcode not in (0, 1):
@@ -190,11 +171,11 @@ class KatanaTool(BaseTool):
                 status = OutputStatus.SUCCESS
 
             data: dict = {"count": 0}
-            if raw_output:
-                data = self.parse_output(raw_output, ctx)
+            if stdout:
+                data = self.parse_output(stdout, ctx)
 
             await save_raw_output(
-                ctx, cmd=cmd, stdout=raw_output, stderr=stderr,
+                ctx, cmd=cmd, stdout=stdout, stderr=stderr,
                 status=status, elapsed=elapsed, data=data,
             )
 
@@ -202,8 +183,8 @@ class KatanaTool(BaseTool):
                 status=status,
                 result_count=data.get("count", 0),
                 data=data,
-                stdout=raw_output,
-                stderr=stderr,
+                stdout=stdout[:_MAX_KEEP],
+                stderr=stderr[:_MAX_KEEP],
                 command=cmd,
                 execution_time=elapsed,
             )

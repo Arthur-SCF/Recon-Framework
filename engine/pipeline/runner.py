@@ -39,6 +39,21 @@ def _now() -> str:
     return datetime.now(tz=timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+def _release_freed_memory() -> None:
+    """Return heap arenas freed by the just-finished step back to the OS.
+
+    glibc does not return large freed allocations to the kernel on its own, so
+    the single long-lived worker's RSS ratchets up across a scan until the
+    container memory cgroup OOM-kills it. malloc_trim(0) forces the release.
+    No-op on non-glibc libc.
+    """
+    try:
+        import ctypes
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
+
+
 async def _broadcast(event: str, data: dict) -> None:
     try:
         target_id  = data.pop("target_id", None)
@@ -308,6 +323,7 @@ async def _run_step(
     # ── End retry loop ────────────────────────────────────────────────────────
 
     await _finish_step_run(db, run_id, result)
+    _release_freed_memory()
 
     # Step-level error notification (after all retries exhausted)
     if result.status in (OutputStatus.ERROR, OutputStatus.TIMEOUT):

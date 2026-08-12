@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import shutil
+import tempfile
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -28,6 +29,31 @@ DISK_PAUSE_THRESHOLD_PCT = 90.0
 # Data root — matches Docker volume mount
 DATA_ROOT = Path(os.environ.get("DATA_DIR", "/data"))
 
+# Hard caps on captured subprocess output read back into worker RAM.
+# Child output is redirected to disk (below); only these many bytes are ever
+# loaded into the process, so a tool with unbounded output (e.g. `gau --subs`
+# on a large domain) cannot grow the worker heap past this bound.
+_MAX_STDOUT_BYTES = 200 * 1024 * 1024
+_MAX_STDERR_BYTES = 4 * 1024 * 1024
+
+# Disk-backed scratch dir for subprocess capture files. MUST be on the /data
+# volume, not /tmp — /tmp is tmpfs (RAM) and would still count against the
+# container memory cgroup, defeating the purpose.
+_SUBPROC_TMP = DATA_ROOT / "tmp"
+
+
+def _read_capped(path: Path, cap: int) -> str:
+    """Read at most `cap` bytes from `path`, utf-8 decoded. Bounds memory."""
+    try:
+        with open(path, "rb") as fh:
+            data = fh.read(cap + 1)
+    except OSError:
+        return ""
+    if len(data) > cap:
+        data = data[:cap]
+        log.warning("run_subprocess: captured output truncated to %d bytes (%s)", cap, path.name)
+    return data.decode("utf-8", errors="replace")
+
 
 # ── Subprocess execution ───────────────────────────────────────────────────────
 
@@ -41,32 +67,27 @@ async def run_subprocess(
     Run an external command as a subprocess (shell=False, always).
 
     Returns (stdout, stderr, returncode).
-    On timeout: sends SIGTERM, waits 5s, then SIGKILL. Returns returncode -9.
+    On timeout: sends SIGTERM, waits 5s, then SIGKILL. Returns returncode -9,
+    preserving whatever partial output the tool wrote.
+
+    Memory: child stdout/stderr are redirected to disk files and read back with
+    a hard byte cap (_MAX_STDOUT_BYTES/_MAX_STDERR_BYTES), so the worker never
+    buffers a tool's full output in RAM.
 
     Security: shell=False is enforced by asyncio.create_subprocess_exec.
     Never pass user input into cmd without prior validation.
     """
-    # shell=False: using create_subprocess_exec, not create_subprocess_shell
-    _spawn = asyncio.create_subprocess_exec
-    process = await _spawn(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        cwd=cwd,
-        env=env,
-    )
-
     try:
-        stdout_bytes, stderr_bytes = await asyncio.wait_for(
-            process.communicate(), timeout=timeout
-        )
-        return (
-            stdout_bytes.decode("utf-8", errors="replace"),
-            stderr_bytes.decode("utf-8", errors="replace"),
-            process.returncode or 0,
-        )
-    except asyncio.TimeoutError:
-        log.warning("Process %s timed out after %ds — sending SIGTERM", cmd[0], timeout)
+        _SUBPROC_TMP.mkdir(parents=True, exist_ok=True)
+        tmp_dir = str(_SUBPROC_TMP)
+    except OSError:
+        tmp_dir = tempfile.gettempdir()
+
+    out_fd, out_name = tempfile.mkstemp(prefix="subproc_out_", suffix=".bin", dir=tmp_dir)
+    err_fd, err_name = tempfile.mkstemp(prefix="subproc_err_", suffix=".bin", dir=tmp_dir)
+    out_path, err_path = Path(out_name), Path(err_name)
+
+    async def _kill(process) -> None:
         try:
             process.terminate()
             await asyncio.wait_for(process.wait(), timeout=5)
@@ -74,18 +95,48 @@ async def run_subprocess(
             log.warning("SIGTERM ignored — sending SIGKILL to %s", cmd[0])
             process.kill()
             await process.wait()
-        return ("", f"Process killed after {timeout}s timeout", -9)
-    except asyncio.CancelledError:
-        # User-requested skip: kill subprocess cleanly, then re-raise so the
-        # runner can catch it and mark the step as SKIPPED.
-        log.info("run_subprocess: CancelledError — killing %s", cmd[0])
+
+    process = None
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *cmd, stdout=out_fd, stderr=err_fd, cwd=cwd, env=env,
+        )
+        os.close(out_fd); out_fd = -1
+        os.close(err_fd); err_fd = -1
+
         try:
-            process.terminate()
-            await asyncio.wait_for(process.wait(), timeout=5)
+            await asyncio.wait_for(process.wait(), timeout=timeout)
+            return (
+                _read_capped(out_path, _MAX_STDOUT_BYTES),
+                _read_capped(err_path, _MAX_STDERR_BYTES),
+                process.returncode or 0,
+            )
         except asyncio.TimeoutError:
-            process.kill()
-            await process.wait()
-        raise
+            log.warning("Process %s timed out after %ds — sending SIGTERM", cmd[0], timeout)
+            await _kill(process)
+            err = _read_capped(err_path, _MAX_STDERR_BYTES)
+            marker = f"Process killed after {timeout}s timeout"
+            return (
+                _read_capped(out_path, _MAX_STDOUT_BYTES),
+                f"{err}\n{marker}" if err else marker,
+                -9,
+            )
+        except asyncio.CancelledError:
+            log.info("run_subprocess: CancelledError — killing %s", cmd[0])
+            await _kill(process)
+            raise
+    finally:
+        for fd in (out_fd, err_fd):
+            if fd is not None and fd >= 0:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+        for path in (out_path, err_path):
+            try:
+                path.unlink()
+            except OSError:
+                pass
 
 
 # ── Raw output persistence ─────────────────────────────────────────────────────

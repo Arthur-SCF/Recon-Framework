@@ -136,9 +136,11 @@ class KatanaTool(BaseTool):
             rate_limit    = ctx.config.get("katana_rate_limit", 100)
             depth         = ctx.config.get("katana_depth", 3)
             timeout       = ctx.config.get("timeout", self.default_timeout)
-            # crawl_duration: graceful crawl time cap (katana exits cleanly, no lost output).
-            # Default: 90% of the process timeout so output is flushed before SIGTERM.
-            crawl_seconds = ctx.config.get("katana_crawl_duration", int(timeout * 0.9))
+            # crawl_duration caps the crawl so katana exits on its own before the
+            # process timeout SIGKILLs it. Leave 120s of headroom (not 10%) so a
+            # large in-scope crawl has time to flush its output and shut down
+            # cleanly — otherwise it is killed mid-flush and mislabeled a failure.
+            crawl_seconds = ctx.config.get("katana_crawl_duration", max(60, timeout - 120))
 
             # Anchor the domain to a host boundary so it matches jbl.com and
             # *.jbl.com only. An unanchored `.*\.jbl\.com` also matches the
@@ -167,16 +169,23 @@ class KatanaTool(BaseTool):
             stdout, stderr, retcode = await run_subprocess(cmd, timeout=timeout)
             elapsed = time.monotonic() - start
 
-            if retcode == -9:
-                status = OutputStatus.TIMEOUT
-            elif retcode not in (0, 1):
-                status = OutputStatus.ERROR
-            else:
-                status = OutputStatus.SUCCESS
-
             data: dict = {"count": 0}
             if stdout:
                 data = self.parse_output(stdout, ctx)
+
+            # katana is a time-boxed crawler: on a huge in-scope target it runs
+            # its full crawl-duration budget and is then killed (retcode -9).
+            # If it still returned crawl results, that is successful time-boxing,
+            # not a failure — only an empty kill is a real timeout.
+            crawled = bool(data.get("urls") or data.get("subdomains"))
+            if retcode in (0, 1):
+                status = OutputStatus.SUCCESS
+            elif retcode == -9 and crawled:
+                status = OutputStatus.SUCCESS
+            elif retcode == -9:
+                status = OutputStatus.TIMEOUT
+            else:
+                status = OutputStatus.ERROR
 
             await save_raw_output(
                 ctx, cmd=cmd, stdout=stdout, stderr=stderr,

@@ -51,7 +51,7 @@ class SubdomainizerTool(BaseTool):
     label           = "SubDomainizer"
     binary_name     = "SubDomainizer"
     parallelisable  = True
-    default_timeout = 300
+    default_timeout = 600
 
     def get_version_command(self) -> list[str]:
         return ["SubDomainizer", "--help"]
